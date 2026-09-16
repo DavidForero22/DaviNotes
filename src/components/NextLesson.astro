@@ -1,0 +1,74 @@
+---
+import type { Lang } from "../i18n/ui";
+import { useTranslations } from "../i18n/utils";
+
+/**
+ * Button shown at the bottom of a guide that links to the next lesson of the learning path.
+ */
+interface Props {
+	lang: Lang;
+	href: string;
+	title: string;
+}
+
+const { lang, href, title } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<nav class="next-lesson">
+	<a href={href} title={t("doc.nextLessonTitle", { lesson: title })}>
+		<span class="label">{t("doc.nextLesson")}</span>
+		<span class="lesson">{title} <span class="arrow">&rarr;</span></span>
+	</a>
+</nav>
+
+<style>
+	.next-lesson {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 4rem;
+		padding-top: 2rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.next-lesson a {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.25rem;
+		min-width: min(100%, 280px);
+		padding: 1rem 1.5rem;
+		background: #1e2127;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 8px;
+		text-decoration: none;
+		transition: transform 0.2s, border-color 0.2s;
+	}
+
+	.next-lesson a:hover {
+		transform: translateY(-3px);
+		border-color: #a78bfa;
+	}
+
+	.label {
+		color: #888;
+		font-size: 0.85rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.lesson {
+		color: white;
+		font-size: 1.1rem;
+		font-weight: bold;
+	}
+
+	.arrow {
+		color: #a78bfa;
+		transition: margin-left 0.2s;
+	}
+
+	.next-lesson a:hover .arrow {
+		margin-left: 0.25rem;
+	}
+</style>
