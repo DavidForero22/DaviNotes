@@ -1,6 +1,7 @@
 ---
 import DocsLayout from "./DocInfoLayout.astro";
 import InfoBox from "../components/InfoBox.astro";
+import DocSearch from "../components/DocSearch.astro";
 import { INSTALLATION_GUIDE_SLUG, type LanguageItem } from "../data/languages";
 import type { Lang } from "../i18n/ui";
 import { pick, useTranslations } from "../i18n/utils";
@@ -41,6 +42,8 @@ const installLink = languageHref(item, lang, INSTALLATION_GUIDE_SLUG);
 			difficulty={item.difficulty}
 			prerequisites={item.prerequisites}
 		/>
+
+		<DocSearch item={item} lang={lang} />
 
 		<hr class="divider" />
 

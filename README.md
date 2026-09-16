@@ -126,6 +126,8 @@ The project is built with **Astro**. The guides are Markdown files stored in a *
 
 - `LanguagePicker.astro:` Links to the current page in every available language. It is shown on the home page and in the top bar of every guide.
 
+- `DocSearch.astro:` Keyword search on each language landing page, limited to the guides of that language. The index is generated at build time from the rendered guides (`utils/search.ts`), so searching runs instantly in the browser. Each result links to its section and, in browsers that support text fragments, highlights the searched word.
+
 ### 2. Core Data Model
 
 The heart of the application is located at `data/languages.ts`. This file acts as the single source of truth for the entire site. It exports a strictly typed JSON-like structure that dictates:

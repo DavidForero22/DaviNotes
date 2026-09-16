@@ -1,0 +1,570 @@
+---
+import type { LanguageItem } from "../data/languages";
+import type { Lang } from "../i18n/ui";
+import { useTranslations } from "../i18n/utils";
+import { buildSearchIndex } from "../utils/search";
+
+/**
+ * Keyword search limited to the guides of one language (e.g. only PHP).
+ * The index is built when the site is generated and embedded in the page as JSON,
+ * so searching works instantly in the browser without any server or external service.
+ */
+interface Props {
+	item: LanguageItem;
+	lang: Lang;
+}
+
+const { item, lang } = Astro.props;
+const t = useTranslations(lang);
+const index = await buildSearchIndex(item, lang);
+
+const inputId = `doc-search-${item.slug}`;
+
+/** Texts used by the browser script, with the placeholders left for it to fill. */
+const messages = {
+	resultOne: t("search.resultOne"),
+	resultMany: t("search.resultMany"),
+	showing: t("search.showing"),
+	noResults: t("search.noResults"),
+};
+
+/** "<" is escaped so the text of the guides can never close the <script> tag early. */
+const indexJson = JSON.stringify(index).replace(/</g, "\\u003c");
+---
+
+<div
+	class="doc-search"
+	role="search"
+	data-doc-search
+	data-messages={JSON.stringify(messages)}
+>
+	<label for={inputId} class="search-label"
+		>{t("search.label", { lang: item.title })}</label
+	>
+
+	<div class="search-wrapper">
+		<div class="search-field">
+			<svg
+				class="search-icon"
+				xmlns="http://www.w3.org/2000/svg"
+				width="18"
+				height="18"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true"
+			>
+				<circle cx="11" cy="11" r="8"></circle>
+				<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+			</svg>
+			<input
+				id={inputId}
+				type="search"
+				autocomplete="off"
+				spellcheck="false"
+				placeholder={t("search.placeholder")}
+				aria-controls={`${inputId}-results`}
+			/>
+			<button
+				type="button"
+				class="search-clear"
+				aria-label={t("search.clear")}
+				title={t("search.clear")}
+				hidden>&times;</button
+			>
+		</div>
+
+		<div class="search-dropdown">
+			<p class="search-status" aria-live="polite"></p>
+			<ul id={`${inputId}-results`} class="search-results"></ul>
+		</div>
+	</div>
+
+	<script
+		is:inline
+		type="application/json"
+		data-search-index
+		set:html={indexJson}
+	/>
+</div>
+
+<script>
+	import { CELL_SEPARATOR } from "../utils/search-shared";
+
+	type SearchSection = {
+		page: string;
+		href: string;
+		heading: string;
+		slug: string;
+		blocks: string[];
+	};
+	type Normalized = { text: string; map: number[] };
+	type Range = [number, number];
+
+	const MAX_RESULTS = 20;
+	const SNIPPET_BEFORE = 60;
+	const SNIPPET_LENGTH = 180;
+
+	function normalize(text: string): Normalized {
+		let result = "";
+		const map: number[] = [];
+		for (let i = 0; i < text.length; i++) {
+			const simplified = text[i]
+				.normalize("NFD")
+				.replace(/[̀-ͯ]/g, "")
+				.toLowerCase();
+			for (const char of simplified) {
+				result += char;
+				map.push(i);
+			}
+		}
+		return { text: result, map };
+	}
+
+	function findRanges(normalized: Normalized, terms: string[]): Range[] {
+		const ranges: Range[] = [];
+		for (const term of terms) {
+			let position = normalized.text.indexOf(term);
+			while (position !== -1) {
+				ranges.push([
+					normalized.map[position],
+					normalized.map[position + term.length - 1] + 1,
+				]);
+				position = normalized.text.indexOf(
+					term,
+					position + term.length,
+				);
+			}
+		}
+		return ranges.sort((a, b) => a[0] - b[0]);
+	}
+
+	function escapeHtml(text: string): string {
+		return text.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
+	}
+
+	function highlight(
+		text: string,
+		ranges: Range[],
+		start = 0,
+		end = text.length,
+	): string {
+		let html = "";
+		let cursor = start;
+		for (const [from, to] of ranges) {
+			if (to <= cursor || from >= end) continue;
+			const markStart = Math.max(from, cursor);
+			const markEnd = Math.min(to, end);
+			html +=
+				escapeHtml(text.slice(cursor, markStart)) +
+				`<mark>${escapeHtml(text.slice(markStart, markEnd))}</mark>`;
+			cursor = markEnd;
+		}
+		return html + escapeHtml(text.slice(cursor, end));
+	}
+
+	function buildSnippet(text: string, ranges: Range[]): string {
+		const first = ranges[0]?.[0] ?? 0;
+		let start = Math.max(0, first - SNIPPET_BEFORE);
+		if (start > 0) start = text.indexOf(" ", start) + 1 || start;
+		let end = Math.min(text.length, start + SNIPPET_LENGTH);
+		if (end < text.length)
+			end =
+				text.lastIndexOf(" ", end) > first
+					? text.lastIndexOf(" ", end)
+					: end;
+
+		return (
+			(start > 0 ? "… " : "") +
+			highlight(text, ranges, start, end) +
+			(end < text.length ? " …" : "")
+		);
+	}
+
+	function buildLink(
+		section: SearchSection,
+		text: string | undefined,
+		range: Range | undefined,
+	): string {
+		const base = section.slug
+			? `${section.href}#${section.slug}`
+			: section.href;
+		if (!text || !range) return base;
+
+		const encode = (value: string) =>
+			encodeURIComponent(value).replace(/-/g, "%2D").replace(/,/g, "%2C");
+
+		let wordStart = range[0];
+		while (wordStart > 0 && !/\s/.test(text[wordStart - 1])) wordStart--;
+		let wordEnd = range[1];
+		while (wordEnd < text.length && !/\s/.test(text[wordEnd])) wordEnd++;
+
+		const word = text.slice(wordStart, wordEnd);
+		const before = text
+			.slice(0, wordStart)
+			.split(CELL_SEPARATOR)
+			.pop()!
+			.trim()
+			.split(/\s+/)
+			.filter(Boolean)
+			.slice(-3)
+			.join(" ");
+		const after = text
+			.slice(wordEnd)
+			.split(CELL_SEPARATOR)[0]
+			.trim()
+			.split(/\s+/)
+			.filter(Boolean)
+			.slice(0, 3)
+			.join(" ");
+
+		const directive = before
+			? `${encode(before)}-,${encode(word)}`
+			: after
+				? `${encode(word)},-${encode(after)}`
+				: encode(word);
+
+		return `${base}:~:text=${directive}`;
+	}
+
+	function initSearch(root: HTMLElement) {
+		if (root.dataset.bound) return;
+		root.dataset.bound = "true";
+
+		const input = root.querySelector<HTMLInputElement>("input")!;
+		const clear = root.querySelector<HTMLButtonElement>(".search-clear")!;
+		const status = root.querySelector<HTMLElement>(".search-status")!;
+		const list = root.querySelector<HTMLUListElement>(".search-results")!;
+		const messages = JSON.parse(root.dataset.messages ?? "{}");
+		const sections: SearchSection[] = JSON.parse(
+			root.querySelector("[data-search-index]")?.textContent ?? "[]",
+		);
+
+		const prepared = sections.map((section) => ({
+			section,
+			heading: normalize(section.heading),
+			blocks: section.blocks.map(normalize),
+		}));
+
+		const fill = (
+			template: string,
+			values: Record<string, string | number>,
+		) =>
+			template.replace(/\{(\w+)\}/g, (match, key) =>
+				String(values[key] ?? match),
+			);
+
+		function render() {
+			const query = input.value.trim();
+			clear.hidden = query === "";
+
+			const terms = [
+				...new Set(normalize(query).text.split(/\s+/).filter(Boolean)),
+			];
+
+			// Lógica para cerrar el desplegable y activar la animación de salida
+			if (query.length < 2 || terms.length === 0) {
+				root.classList.remove("is-open");
+				// No limpiamos el innerHTML aquí para que la animación de salida tenga contenido que mostrar
+				return;
+			}
+
+			// Abrir el desplegable
+			root.classList.add("is-open");
+			list.innerHTML = "";
+
+			const results = prepared
+				.map(({ section, heading, blocks }, order) => {
+					const fullText = [
+						heading.text,
+						...blocks.map((block) => block.text),
+					].join(" ");
+					if (!terms.every((term) => fullText.includes(term)))
+						return null;
+
+					let score = 0;
+					for (const term of terms) {
+						if (heading.text.includes(term)) score += 10;
+						score += fullText.split(term).length - 1;
+					}
+
+					const blockIndex = blocks.findIndex((block) =>
+						terms.some((term) => block.text.includes(term)),
+					);
+					return {
+						section,
+						heading,
+						blocks,
+						blockIndex,
+						score,
+						order,
+					};
+				})
+				.filter((result) => result !== null)
+				.sort((a, b) => b.score - a.score || a.order - b.order);
+
+			if (results.length === 0) {
+				status.textContent = fill(messages.noResults, { query });
+				return;
+			}
+
+			status.textContent =
+				results.length > MAX_RESULTS
+					? fill(messages.showing, {
+							shown: MAX_RESULTS,
+							count: results.length,
+						})
+					: results.length === 1
+						? messages.resultOne
+						: fill(messages.resultMany, { count: results.length });
+
+			for (const {
+				section,
+				heading,
+				blocks,
+				blockIndex,
+			} of results.slice(0, MAX_RESULTS)) {
+				const blockText =
+					section.blocks[blockIndex] ?? section.blocks[0];
+				const blockRanges =
+					blockIndex === -1
+						? []
+						: findRanges(blocks[blockIndex], terms);
+				const headingRanges = findRanges(heading, terms);
+
+				const link = document.createElement("a");
+				link.href = buildLink(section, blockText, blockRanges[0]);
+				link.setAttribute("data-astro-reload", "");
+				link.innerHTML = `
+                    <span class="result-path">${escapeHtml(section.page)} <span aria-hidden="true">›</span> ${highlight(section.heading, headingRanges)}</span>
+                    ${blockText ? `<span class="result-snippet">${buildSnippet(blockText, blockRanges)}</span>` : ""}
+                `;
+
+				const item = document.createElement("li");
+				item.append(link);
+				list.append(item);
+			}
+		}
+
+		input.addEventListener("input", render);
+
+		clear.addEventListener("click", () => {
+			input.value = "";
+			render();
+			input.focus();
+		});
+
+		root.addEventListener("keydown", (event) => {
+			const links = [...list.querySelectorAll<HTMLAnchorElement>("a")];
+			const position = links.indexOf(
+				document.activeElement as HTMLAnchorElement,
+			);
+
+			if (event.key === "ArrowDown" && links.length) {
+				event.preventDefault();
+				links[Math.min(position + 1, links.length - 1)].focus();
+			} else if (event.key === "ArrowUp" && position !== -1) {
+				event.preventDefault();
+				(position === 0 ? input : links[position - 1]).focus();
+			} else if (event.key === "Escape") {
+				input.value = "";
+				render();
+				input.focus();
+			}
+		});
+
+		if (input.value) render();
+	}
+
+	document.addEventListener("astro:page-load", () => {
+		document
+			.querySelectorAll<HTMLElement>("[data-doc-search]")
+			.forEach(initSearch);
+	});
+</script>
+
+<style>
+	.doc-search {
+		margin-top: 2rem;
+	}
+
+	.search-label {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-weight: 600;
+		font-size: 0.9rem;
+		color: #e0e0e0;
+	}
+
+	/* Contenedor relativo para posicionar el dropdown justo debajo */
+	.search-wrapper {
+		position: relative;
+	}
+
+	.search-field {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.search-icon {
+		position: absolute;
+		left: 1rem;
+		color: #71717a;
+		pointer-events: none;
+	}
+
+	input {
+		width: 100%;
+		padding: 0.85rem 2.75rem;
+		background: #1e2127;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 8px;
+		color: white;
+		font: inherit;
+		font-size: 1rem;
+		transition:
+			border-color 0.2s,
+			box-shadow 0.2s,
+			border-radius 0.2s; /* Añadida transición al radio */
+	}
+
+	input::placeholder {
+		color: #71717a;
+	}
+
+	input:focus {
+		outline: none;
+		border-color: var(--themeColor, #a78bfa);
+		box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+	}
+
+	/* Cuando el desplegable está abierto, aplanamos las esquinas inferiores del input */
+	.is-open input {
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+
+	input::-webkit-search-cancel-button {
+		display: none;
+	}
+
+	.search-clear {
+		position: absolute;
+		right: 0.6rem;
+		width: 2rem;
+		height: 2rem;
+		background: transparent;
+		border: none;
+		border-radius: 6px;
+		color: #a1a1aa;
+		font-size: 1.4rem;
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.search-clear:hover {
+		color: white;
+		background: rgba(255, 255, 255, 0.05);
+	}
+
+	/* Estilos del nuevo desplegable */
+	.search-dropdown {
+		position: absolute;
+		top: 100%; /* Justo debajo del input */
+		left: 0;
+		right: 0;
+		background: #1e2127;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-top: none; /* Simula extensión del buscador */
+		border-radius: 0 0 8px 8px; /* Bordes inferiores redondeados */
+		z-index: 50; /* Superposición por encima de otros componentes */
+		box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+
+		/* Animación de entrada/salida */
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(-10px);
+		transition:
+			opacity 0.2s ease,
+			transform 0.2s ease,
+			visibility 0.2s;
+		padding-bottom: 15px;;
+	}
+
+	/* Activación del desplegable controlada por la clase is-open en el padre */
+	.is-open .search-dropdown {
+		opacity: 1;
+		visibility: visible;
+		transform: translateY(0);
+	}
+
+	.search-status {
+		margin: 0;
+		padding: 0.75rem 1rem 0.25rem; /* Ajuste de espaciado interno */
+		font-size: 0.85rem;
+		color: #888;
+	}
+
+	.search-status:empty {
+		display: none;
+	}
+
+	.search-results {
+		list-style: none;
+		margin: 0;
+		padding: 0.5rem;
+		display: grid;
+		gap: 0.5rem;
+		max-height: 28rem;
+		overflow-y: auto;
+	}
+
+	.search-results:empty {
+		display: none;
+	}
+
+	.search-results :global(a) {
+		display: block;
+		padding: 0.75rem 1rem;
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: 8px;
+		text-decoration: none;
+		transition:
+			border-color 0.2s,
+			background-color 0.2s;
+	}
+
+	.search-results :global(a:hover),
+	.search-results :global(a:focus-visible) {
+		outline: none;
+		background: rgba(255, 255, 255, 0.06);
+		border-color: var(--themeColor, #a78bfa);
+	}
+
+	.search-results :global(.result-path) {
+		display: block;
+		color: white;
+		font-weight: 600;
+		font-size: 0.95rem;
+	}
+
+	.search-results :global(.result-snippet) {
+		display: block;
+		margin-top: 0.25rem;
+		color: #a1a1aa;
+		font-size: 0.9rem;
+		line-height: 1.5;
+	}
+
+	.search-results :global(mark) {
+		background: rgba(167, 139, 250, 0.25);
+		color: white;
+		border-radius: 3px;
+		padding: 0 0.1em;
+	}
+</style>

@@ -71,6 +71,12 @@
     margin-left: auto;
 }
 
+/* Word highlighted by the browser when a guide is opened from a search result (#:~:text=) */
+::target-text {
+    background-color: rgba(167, 139, 250, 0.35);
+    color: white;
+}
+
 /* Shown when a guide has not been translated yet and the English version is used */
 .untranslated-notice {
     padding: 0.75rem 1rem;
