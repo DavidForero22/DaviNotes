@@ -78,6 +78,11 @@ main {
 	margin: auto;
 }
 
+
+.tech-section:last-child {
+	margin-bottom: 5rem;
+}
+
 .section-title {
 	color: white;
 	font-size: 1.5rem;

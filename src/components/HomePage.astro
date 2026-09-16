@@ -30,7 +30,7 @@ const sortedLanguages = getSortedCategories(languages);
 	{
 		sortedLanguages.map((section) => (
 			<section class="tech-section">
-				<h2 class="section-title">{section.category}</h2>
+				<h2 class="section-title">{pick(section.category, lang)}</h2>
 				<hr />
 
 				<div class="link-card-grid">

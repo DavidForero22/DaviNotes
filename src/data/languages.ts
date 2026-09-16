@@ -17,7 +17,7 @@ export type DifficultyLevel =
  * This structure is used to organize the sidebar navigation and separate content into logical sections on the homepage.
  */
 export interface Category {
-    category: string;
+    category: Localized;
     items: LanguageItem[];
 }
 
@@ -77,14 +77,14 @@ export const INSTALLATION_GUIDE_SLUG = "installation-guide";
  */
 export const languages: Category[] = [
     {
-        category: "Backend",
+        category: { en: "Backend", es: "Backend", fr: "Backend" },
         items: [
             {
                 title: "Java",
                 desc: {
-                    en: "Build robust, scalable enterprise applications and backend systems",
-                    es: "Crea aplicaciones empresariales y sistemas de servidor robustos y escalables",
-                    fr: "Créez des applications d'entreprise et des systèmes serveur robustes et évolutifs",
+                    en: "Robust, scalable enterprise applications and backend systems",
+                    es: "Aplicaciones empresariales y sistemas de servidor robustos y escalables",
+                    fr: "Applications d'entreprise et des systèmes serveur robustes et évolutifs",
                 },
                 intro: {
                     en: "Robust, cross-platform object-oriented language.",
@@ -186,9 +186,9 @@ export const languages: Category[] = [
             {
                 title: "PHP",
                 desc: {
-                    en: "Create dynamic, data-driven web applications on the server",
-                    es: "Crea aplicaciones web dinámicas y basadas en datos desde el servidor",
-                    fr: "Créez côté serveur des applications web dynamiques alimentées par des données",
+                    en: "Dynamic, data-driven web applications on the server",
+                    es: "Aplicaciones web dinámicas y basadas en datos desde el servidor",
+                    fr: "Applications web dynamiques alimentées par des données",
                 },
                 intro: {
                     en: "A widely used server-side scripting language designed for web development.",
@@ -242,7 +242,7 @@ export const languages: Category[] = [
         ],
     },
     {
-        category: "Frontend",
+        category: { en: "Frontend", es: "Frontend", fr: "Frontend" },
         items: [
             {
                 title: "Astro",
@@ -391,7 +391,7 @@ export const languages: Category[] = [
         ],
     },
     {
-        category: "Tools",
+        category: { en: "Tools", es: "Herramientas", fr: "Outils" },
         items: [
             {
                 title: "Git",
@@ -510,6 +510,131 @@ export const languages: Category[] = [
                             fr: "Faites évoluer l'application, optimisez les performances CPU/mémoire, garantissez la sécurité et préparez-la pour la production.",
                         },
                         slug: "advanced-production",
+                    },
+                ],
+            },
+        ],
+    },
+    {
+        category: { en: "Databases", es: "Bases de Datos", fr: "Bases de Données" },
+        items: [
+            {
+                title: "MySQL",
+                desc: {
+                    en: "Store, organize and query structured data using the world's most popular relational database",
+                    es: "Almacena, organiza y consulta datos estructurados con la base de datos relacional más popular del mundo",
+                    fr: "Stockez, organisez et interrogez des données structurées avec la base de données relationnelle la plus utilisée au monde",
+                },
+                intro: {
+                    en: "A relational database that organizes information in tables, like a set of linked spreadsheets.",
+                    es: "Una base de datos relacional que organiza la información en tablas, como un conjunto de hojas de cálculo enlazadas.",
+                    fr: "Une base de données relationnelle qui organise l'information en tables, comme un ensemble de feuilles de calcul reliées entre elles.",
+                },
+                color: "#00758f",
+                theme: { color: "#00758f", dark: "#00435a" },
+                slug: "mysql",
+                icon: "🐬",
+                difficulty: "Beginner",
+                prerequisites: [prereq.none],
+                concepts: [
+                    {
+                        title: {
+                            en: "Fundamentals & Relational Design",
+                            es: "Fundamentos y Diseño Relacional",
+                            fr: "Fondamentaux et conception relationnelle",
+                        },
+                        desc: {
+                            en: "Understand the relational model, structure tables with normalized schemas, and run basic data queries.",
+                            es: "Entiende el modelo relacional, estructura tablas mediante esquemas normalizados y realiza consultas básicas de manipulación de datos.",
+                            fr: "Comprenez le modèle relationnel, structurez des tables avec des schémas normalisés et effectuez des requêtes de base.",
+                        },
+                        slug: "fundamentals-relational-design",
+                    },
+                    {
+                        title: {
+                            en: "Advanced Queries & Operations",
+                            es: "Consultas Avanzadas y Operativa",
+                            fr: "Requêtes avancées et exploitation",
+                        },
+                        desc: {
+                            en: "Master complex data retrieval, ensure relational integrity, and automate logic inside the database engine.",
+                            es: "Domina la extracción compleja de información, asegura la integridad relacional y automatiza lógica dentro del motor de base de datos.",
+                            fr: "Maîtrisez l'extraction complexe de données, garantissez l'intégrité relationnelle et automatisez la logique au sein du moteur.",
+                        },
+                        slug: "advanced-queries",
+                    },
+                    {
+                        title: {
+                            en: "Optimization, Security & Production",
+                            es: "Optimización, Seguridad y Producción",
+                            fr: "Optimisation, sécurité et production",
+                        },
+                        desc: {
+                            en: "Speed up slow queries, manage users and permissions, and prepare a database for real-world production use.",
+                            es: "Acelera consultas lentas, gestiona usuarios y permisos, y prepara una base de datos para un entorno real de producción.",
+                            fr: "Accélérez les requêtes lentes, gérez utilisateurs et permissions, et préparez une base de données pour la production.",
+                        },
+                        slug: "optimization-security-production",
+                    },
+                ],
+            },
+            {
+                title: "MongoDB",
+                desc: {
+                    en: "Store flexible, JSON-like data and scale applications with the leading NoSQL document database",
+                    es: "Almacena datos flexibles en formato JSON y escala aplicaciones con la base de datos NoSQL documental líder",
+                    fr: "Stockez des données flexibles au format JSON et faites évoluer vos applications avec la base NoSQL orientée documents leader",
+                },
+                intro: {
+                    en: "A document-oriented NoSQL database that stores data as flexible, JSON-like records.",
+                    es: "Una base de datos NoSQL orientada a documentos que almacena la información en registros flexibles, similares a JSON.",
+                    fr: "Une base de données NoSQL orientée documents qui stocke les informations dans des enregistrements flexibles, semblables à du JSON.",
+                },
+                color: "#47a248",
+                theme: { color: "#47a248", dark: "#2e6b2f" },
+                slug: "mongodb",
+                icon: "🍃",
+                difficulty: "Beginner",
+                prerequisites: [prereq.none],
+                concepts: [
+                    {
+                        title: {
+                            en: "Fundamentals & the Document Model",
+                            es: "Fundamentos y Modelo Documental",
+                            fr: "Fondamentaux et modèle de documents",
+                        },
+                        desc: {
+                            en: "Understand the schema-less document paradigm and learn to model data around access patterns rather than normalization.",
+                            es: "Comprende el paradigma de documentos sin esquema estricto y aprende a modelar datos priorizando patrones de acceso sobre normalización.",
+                            fr: "Comprenez le paradigme des documents sans schéma strict et modélisez les données selon les usages plutôt que la normalisation.",
+                        },
+                        slug: "fundamentals-document-model",
+                    },
+                    {
+                        title: {
+                            en: "Advanced Queries & Aggregation",
+                            es: "Consultas Avanzadas y Agregación",
+                            fr: "Requêtes avancées et agrégation",
+                        },
+                        desc: {
+                            en: "Process and transform large volumes of data through advanced aggregation pipelines and speed up searches with proper indexing.",
+                            es: "Procesa y transforma grandes volúmenes de datos mediante tuberías de agregación avanzadas y optimiza búsquedas con indexación adecuada.",
+                            fr: "Traitez et transformez de gros volumes de données via des pipelines d'agrégation avancés et optimisez les recherches grâce à l'indexation.",
+                        },
+                        slug: "advanced-queries-aggregation",
+                    },
+                    {
+                        title: {
+                            en: "Scalability, Security & Production",
+                            es: "Escalabilidad, Seguridad y Producción",
+                            fr: "Scalabilité, sécurité et production",
+                        },
+                        desc: {
+                            en: "Scale a database horizontally, secure access to it, and deploy it reliably to the cloud.",
+                            es: "Escala una base de datos de forma horizontal, protege el acceso a ella y despliégala de forma fiable en la nube.",
+                            fr: "Faites évoluer une base de données horizontalement, sécurisez-y l'accès et déployez-la de façon fiable dans le cloud.",
+                        },
+                        slug: "scalability-security-production",
                     },
                 ],
             },

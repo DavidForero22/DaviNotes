@@ -1,7 +1,7 @@
 ---
 import type { Category } from "../data/languages";
 import type { Lang } from "../i18n/ui";
-import { localizePath, useTranslations } from "../i18n/utils";
+import { localizePath, pick, useTranslations } from "../i18n/utils";
 import { getSortedCategories, languageHref } from "../utils/utils";
 
 interface Props {
@@ -69,7 +69,7 @@ const isActive = (href: string) => {
 			{
 				sortedLanguages.map((category) => (
 					<li class="nav-group">
-						<h3 class="nav-title">{category.category}</h3>
+						<h3 class="nav-title">{pick(category.category, lang)}</h3>
 						<ul class="nav-list">
 							{category.items.map((language) => {
 								const href = languageHref(language, lang);
