@@ -1,4 +1,15 @@
-<button id="scroll-to-top" aria-label="Volver arriba" title="Volver arriba" class="scroll-btn">
+---
+import type { Lang } from "../i18n/ui";
+import { useTranslations } from "../i18n/utils";
+
+interface Props {
+	lang: Lang;
+}
+
+const t = useTranslations(Astro.props.lang);
+---
+
+<button id="scroll-to-top" aria-label={t("nav.scrollTop")} title={t("nav.scrollTop")} class="scroll-btn">
     <svg
         xmlns="http://www.w3.org/2000/svg"
         width="24"

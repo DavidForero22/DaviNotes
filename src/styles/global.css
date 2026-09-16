@@ -54,6 +54,12 @@ main {
 	margin-bottom: 3rem;
 }
 
+.home-top-bar {
+	display: flex;
+	justify-content: flex-end;
+	padding: 1.5rem 2rem 0;
+}
+
 .tech-section {
 	width: 55vw;
 	margin: auto;

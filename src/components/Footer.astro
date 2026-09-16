@@ -1,13 +1,17 @@
 ---
-/**
- * Retrieves the current calendar year dynamically using the Date object.
- */
-const currentYear = new Date().getFullYear();
+import type { Lang } from "../i18n/ui";
+import { useTranslations } from "../i18n/utils";
+
+interface Props {
+	lang: Lang;
+}
+
+const t = useTranslations(Astro.props.lang);
 ---
 
 <footer class="site-footer">
 	<div class="footer-content">
-		<p>© 2025 Davitroon — Code: MIT · Content: CC BY-NC 4.0</p>
+		<p>© 2025 Davitroon — {t("footer.license")}</p>
 	</div>
 </footer>
 

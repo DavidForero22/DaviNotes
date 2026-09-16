@@ -1,0 +1,49 @@
+---
+import HomeLayout from "../layouts/HomeLayout.astro";
+import LanguageCard from "./LanguageCard.astro";
+import LanguagePicker from "./LanguagePicker.astro";
+import "../styles/global.css";
+import { languages } from "../data/languages";
+import type { Lang } from "../i18n/ui";
+import { pick, useTranslations } from "../i18n/utils";
+import { getSortedCategories, languageHref } from "../utils/utils";
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const sortedLanguages = getSortedCategories(languages);
+---
+
+<HomeLayout title="DaviNotes" lang={lang}>
+	<div class="home-top-bar">
+		<LanguagePicker lang={lang} />
+	</div>
+
+	<header class="hero">
+		<h1>Davi<span class="text-gradient">Notes</span></h1>
+		<p class="subtitle">{t("home.subtitle")}</p>
+	</header>
+
+	{
+		sortedLanguages.map((section) => (
+			<section class="tech-section">
+				<h2 class="section-title">{section.category}</h2>
+				<hr />
+
+				<div class="link-card-grid">
+					{section.items.map((item) => (
+						<LanguageCard
+							href={languageHref(item, lang)}
+							title={item.title}
+							description={pick(item.desc, lang)}
+							color={item.color}
+						/>
+					))}
+				</div>
+			</section>
+		))
+	}
+</HomeLayout>

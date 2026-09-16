@@ -1,27 +1,53 @@
 ---
-const currentPath = Astro.url.pathname;
+import { INSTALLATION_GUIDE_SLUG, languages } from "../data/languages";
+import type { Lang } from "../i18n/ui";
+import { localizePath, pick, stripLang, useTranslations } from "../i18n/utils";
+import { getAllLanguageItems } from "../utils/utils";
 
-/** 
- * Processes the raw URL path to ensure a clean array of segments. It removes any trailing slash to prevent empty segments at the end of the array, splits the string by slashes, and filters out any falsy values (like the empty string from the initial slash).
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+/**
+ * Processes the raw URL path to ensure a clean array of segments. It removes the language prefix and any trailing slash to prevent empty segments at the end of the array, splits the string by slashes, and filters out any falsy values (like the empty string from the initial slash).
  */
-const cleanPath = currentPath.replace(/\/$/, "");
+const cleanPath = stripLang(Astro.url.pathname).replace(/\/$/, "");
 const segments = cleanPath.split("/").filter(Boolean);
 
-/** 
- * Transforms the path segments into an array of breadcrumb objects containing a label and a URL. It reconstructs the cumulative path for the `href` and formats the `label` by converting hyphens into spaces and capitalizing the first letter of each word to ensure the text is human-readable.
+/**
+ * Finds a readable, translated label for a path segment using `languages.ts`.
+ * Unknown segments fall back to converting hyphens into spaces and capitalizing each word.
+ */
+const allItems = getAllLanguageItems(languages);
+
+const getLabel = (segment: string, index: number) => {
+	const item = allItems.find((entry) => entry.slug === segments[0]);
+
+	if (index === 0 && item) return item.title;
+	if (segment === INSTALLATION_GUIDE_SLUG) return t("index.installGuide");
+
+	const concept = item?.concepts.find((entry) => entry.slug === segment);
+	if (concept) return pick(concept.title, lang);
+
+	return segment
+		.replace(/-/g, " ")
+		.replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+/**
+ * Transforms the path segments into an array of breadcrumb objects containing a label and a localized URL.
  */
 const breadcrumbs = segments.map((segment, index) => {
-    const href = "/" + segments.slice(0, index + 1).join("/");
-    const label = segment
-        .replace(/-/g, " ")
-        .replace(/\b\w/g, (char) => char.toUpperCase());
-
-    return { label, href };
+    const href = localizePath("/" + segments.slice(0, index + 1).join("/"), lang);
+    return { label: getLabel(segment, index), href };
 });
 ---
 
-<nav class="breadcrumb" aria-label="Breadcrumb">
-    <a href="/" class="crumb-link">Home</a>
+<nav class="breadcrumb" aria-label={t("nav.breadcrumb")}>
+    <a href={localizePath("/", lang)} class="crumb-link">{t("nav.home")}</a>
 
     {
         breadcrumbs.map((crumb, index) => {
@@ -47,6 +73,7 @@ const breadcrumbs = segments.map((segment, index) => {
     .breadcrumb {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
         gap: 0.5rem;
         font-size: 0.9rem;
     }
@@ -54,7 +81,7 @@ const breadcrumbs = segments.map((segment, index) => {
     .crumb-link {
         color: #888;
         text-decoration: none;
-        font-weight: bold; 
+        font-weight: bold;
         transition: color 0.2s ease;
     }
 

@@ -1,0 +1,80 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import HomePage from "../components/HomePage.astro";
+import DocIndexLayout from "../layouts/DocIndexLayout.astro";
+import DocInfoLayout from "../layouts/DocInfoLayout.astro";
+import { INSTALLATION_GUIDE_SLUG, languages, type LanguageItem } from "../data/languages";
+import { defaultLang, type Lang } from "../i18n/ui";
+import { langs, useTranslations } from "../i18n/utils";
+import { getAllLanguageItems } from "../utils/utils";
+
+/**
+ * Generates every page of the site for every language from a single file:
+ *
+ *   /             /es/             /fr/              -> home
+ *   /java         /es/java         /fr/java          -> language landing page
+ *   /java/oop     /es/java/oop     /fr/java/oop      -> guide (Markdown)
+ *
+ * Guides are read from `src/content/docs/<lang>/<language>/<page>.md`.
+ * When a translation does not exist yet, the English version is shown with a notice.
+ */
+type Props =
+	| { kind: "home"; lang: Lang }
+	| { kind: "index"; lang: Lang; item: LanguageItem }
+	| { kind: "doc"; lang: Lang; entry: CollectionEntry<"docs">; untranslated: boolean };
+
+export async function getStaticPaths() {
+	const docs = await getCollection("docs");
+	const findDoc = (lang: Lang, id: string) => docs.find((doc) => doc.id === `${lang}/${id}`);
+	const prefix = (lang: Lang) => (lang === defaultLang ? "" : `${lang}/`);
+
+	return langs.flatMap((lang) => {
+		const home = {
+			params: { path: lang === defaultLang ? undefined : lang },
+			props: { kind: "home", lang } as const,
+		};
+
+		const languagePages = getAllLanguageItems(languages).flatMap((item) => {
+			const index = {
+				params: { path: `${prefix(lang)}${item.slug}` },
+				props: { kind: "index", lang, item } as const,
+			};
+
+			const slugs = [...item.concepts.map((concept) => concept.slug), INSTALLATION_GUIDE_SLUG];
+
+			const guides = slugs.flatMap((slug) => {
+				const id = `${item.slug}/${slug}`;
+				const translated = findDoc(lang, id);
+				const entry = translated ?? findDoc(defaultLang, id);
+				if (!entry) return [];
+
+				return [{
+					params: { path: `${prefix(lang)}${id}` },
+					props: { kind: "doc", lang, entry, untranslated: !translated } as const,
+				}];
+			});
+
+			return [index, ...guides];
+		});
+
+		return [home, ...languagePages];
+	});
+}
+
+const props = Astro.props;
+const t = useTranslations(props.lang);
+const Content = props.kind === "doc" ? (await render(props.entry)).Content : null;
+---
+
+{props.kind === "home" && <HomePage lang={props.lang} />}
+
+{props.kind === "index" && <DocIndexLayout item={props.item} lang={props.lang} />}
+
+{
+	props.kind === "doc" && Content && (
+		<DocInfoLayout title={props.entry.data.title} lang={props.lang}>
+			{props.untranslated && <p class="untranslated-notice">{t("doc.untranslated")}</p>}
+			<Content />
+		</DocInfoLayout>
+	)
+}

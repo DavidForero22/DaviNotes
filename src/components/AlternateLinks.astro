@@ -1,0 +1,13 @@
+---
+import { defaultLang } from "../i18n/ui";
+import { langs, localizePath } from "../i18n/utils";
+
+/**
+ * Tells search engines which URL holds each translation of the current page.
+ * Relative URLs are used because the site has no fixed domain configured.
+ */
+const path = Astro.url.pathname;
+---
+
+{langs.map((code) => <link rel="alternate" hreflang={code} href={localizePath(path, code)} />)}
+<link rel="alternate" hreflang="x-default" href={localizePath(path, defaultLang)} />

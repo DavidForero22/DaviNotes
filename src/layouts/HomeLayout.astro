@@ -1,20 +1,28 @@
 ---
 import { ClientRouter } from "astro:transitions";
+import AlternateLinks from "../components/AlternateLinks.astro";
+import type { Lang } from "../i18n/ui";
+import { useTranslations } from "../i18n/utils";
 
 interface Props {
 	title: string;
+	/** Set to false on pages that have no translated URLs (e.g. 404). */
+	alternates?: boolean;
+	lang: Lang;
 }
 
-const { title } = Astro.props;
+const { title, lang, alternates = true } = Astro.props;
+const t = useTranslations(lang);
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={lang}>
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content="DaviNotes - Development Notes" />
+		<meta name="description" content={t("site.description")} />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		{alternates && <AlternateLinks />}
 		<title>{title}</title>
 
 		<ClientRouter />

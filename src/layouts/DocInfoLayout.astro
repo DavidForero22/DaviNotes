@@ -4,22 +4,32 @@ import SideBar from "../components/SideBar.astro";
 import ScrollToTop from "../components/ScrollToTop.astro";
 import Breadcrumbs from "../components/Breadcrumbs.astro";
 import Footer from "../components/Footer.astro";
+import LanguagePicker from "../components/LanguagePicker.astro";
+import AlternateLinks from "../components/AlternateLinks.astro";
 import "../styles/global.css";
 import "../styles/doc-layout.css";
 import { languages } from "../data/languages";
+import type { Lang } from "../i18n/ui";
+import { useTranslations } from "../i18n/utils";
 
 interface Props {
   title: string;
+  lang: Lang;
 }
 
-const { title } = Astro.props;
+const { title, lang } = Astro.props;
+const t = useTranslations(lang);
 const currentPath = Astro.url.pathname;
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
+    <meta name="description" content={t("site.description")} />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <AlternateLinks />
     <title>{title}</title>
     {/* Enables Astro's View Transitions for SPA-like navigation */}
     <ClientRouter />
@@ -28,11 +38,13 @@ const currentPath = Astro.url.pathname;
     <div class="layout-container">
       {/* 'transition:persist' keeps the Sidebar state (scroll position, open folders)
         intact while navigating between different documentation pages.
+        The name includes the language so switching language renders a translated sidebar.
       */}
       <SideBar
         languages={languages}
         currentPath={currentPath}
-        transition:persist
+        lang={lang}
+        transition:persist={`sidebar-${lang}`}
       />
 
       <main class="content-area">
@@ -42,8 +54,8 @@ const currentPath = Astro.url.pathname;
             <button
               id="menu-toggle"
               class="menu-btn"
-              aria-label="Open menu"
-              title="Open menu"
+              aria-label={t("nav.openMenu")}
+              title={t("nav.openMenu")}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -64,10 +76,14 @@ const currentPath = Astro.url.pathname;
 
             {/* Native browser history navigation */}
             <button class="back-button" onclick="history.back()">
-              <span class="arrow-icon">←</span> Go back
+              <span class="arrow-icon">←</span> {t("nav.back")}
             </button>
 
-            <Breadcrumbs />
+            <Breadcrumbs lang={lang} />
+
+            <div class="top-bar-end">
+              <LanguagePicker lang={lang} />
+            </div>
           </div>
         </header>
 
@@ -76,11 +92,11 @@ const currentPath = Astro.url.pathname;
           <slot />
         </div>
 
-        <Footer />
+        <Footer lang={lang} />
       </main>
     </div>
 
-    <ScrollToTop />
+    <ScrollToTop lang={lang} />
 
     <script>
       /**
@@ -108,7 +124,7 @@ const currentPath = Astro.url.pathname;
         // Event Listeners
         menuBtn?.addEventListener("click", toggleMenu);
         closeBtn?.addEventListener("click", closeMenu);
-        
+
         // Close menu when clicking the backdrop overlay
         overlay?.addEventListener("click", closeMenu);
       });

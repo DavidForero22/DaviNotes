@@ -85,32 +85,46 @@ Navigating through DaviNotes is intuitive and designed for quick access to infor
 ## 🔧 Architecture
 
 ### 1. Proyect Structure
-The project is structured using **Astro's** file-based routing system. It leverages a component-based architecture to separate layout logic from content.
+The project is built with **Astro**. The guides are Markdown files stored in a **content collection**, and a single dynamic route generates every page of the site in every supported language (English, Spanish and French).
 
 **File Structure Overview:**
 
 ```plaintext
-    C:.
-    ├───components      # UI components (Breadcrumbs, Sidebar, InfoBox, etc.)
-    ├───data            # Static data sources (languages.ts)
-    ├───layouts         # Page wrappers (HomeLayout, DocInfoLayout)
-    ├───pages           # Languages docs
-    │   ├───astro       
-    │   ├───html        
-    │   ├───java        
-    │   ├───python      
-    │   └───react       
-    ├───styles          # Global and layout-specific CSS
-    └───utils           # Utility functions (colors, sorting, etc.)
+    src
+    ├───components          # UI components (Breadcrumbs, Sidebar, InfoBox, LanguagePicker, etc.)
+    ├───content
+    │   └───docs            # Guides, one folder per language
+    │       ├───en
+    │       │   ├───astro
+    │       │   ├───html
+    │       │   ├───java
+    │       │   ├───php
+    │       │   ├───python
+    │       │   └───react
+    │       ├───es          # Same structure as en
+    │       └───fr          # Same structure as en
+    ├───data                # Static data sources (languages.ts)
+    ├───i18n                # Interface translations (ui.ts) and language helpers (utils.ts)
+    ├───layouts             # Page wrappers (HomeLayout, DocInfoLayout, DocIndexLayout)
+    ├───pages
+    │   ├───[...path].astro # Generates home, language landing pages and guides for every language
+    │   └───404.astro
+    ├───styles              # Global and layout-specific CSS
+    ├───utils               # Utility functions (colors, sorting, localized links)
+    └───content.config.ts   # Content collection definition
 ```
 
 **Key Components:**
 
-- `DocIndexLayout.astro:` A dynamic layout that serves as the "Landing Page" for a specific language. It accepts props like `language`, `description`, and `color` to dynamically theme the UI (buttons, text highlights) and fetch data from `languages.ts`.
+- `[...path].astro:` The only route of the site. It reads `languages.ts` and the `docs` collection and generates `/`, `/java`, `/java/oop`... for English, and the same pages under `/es/` and `/fr/`.
 
-- `DocInfoLayout.astro:` The main wrapper for documentation content. It includes the `ClientRouter` (for View Transitions), the `SideBar`, and `Breadcrumbs`, ensuring the navigation state persists across page loads.
+- `DocIndexLayout.astro:` The "Landing Page" of a specific language. It receives the language item from `languages.ts` and uses its colors to theme the UI (buttons, text highlights).
+
+- `DocInfoLayout.astro:` The main wrapper for documentation content. It includes the `ClientRouter` (for View Transitions), the `SideBar`, the `Breadcrumbs` and the `LanguagePicker`, ensuring the navigation state persists across page loads.
 
 - `SideBar.astro:` Handles the navigation menu, allowing users to browse through the hierarchy of documentation pages.
+
+- `LanguagePicker.astro:` Links to the current page in every available language. It is shown on the home page and in the top bar of every guide.
 
 ### 2. Core Data Model
 
@@ -118,30 +132,34 @@ The heart of the application is located at `data/languages.ts`. This file acts a
 
 - **Navigation:** Populates the `SideBar` and `HomeLayout`.
 
-- **Routing:** Maps concepts to their file paths (e.g., `/java/basic-syntax`).
+- **Routing:** Maps each technology and concept to its URL and Markdown file (e.g., `java` + `basic-syntax` → `/java/basic-syntax`).
 
 - **Theming:** Defines specific colors (`#f89820`) and icons (`☕`) for each technology.
 
 - **Metadata:** Stores difficulty levels and prerequisites.
 
-**Type Definitions:** The data adheres to strict TypeScript interfaces to ensure consistency across the UI:
+**Type Definitions:** The data adheres to strict TypeScript interfaces to ensure consistency across the UI. Every text a visitor reads is `Localized`, which means it is written once per language:
 
 ```typescript
 
+    type Localized = { en: string; es: string; fr: string };
+
     interface Concept {
-        title: string;       // e.g., "Collections"
-        desc: string;        // Short decription of the doc page
-        href: string;        // e.g., "/java/collections"
+        title: Localized;    // e.g., { en: "Collections", es: "Colecciones", fr: "Collections" }
+        desc: Localized;     // Short description of the doc page
+        slug: string;        // Markdown file name, e.g., "collections"
     }
 
     interface LanguageItem {
         title: string;       // e.g., "Java"
-        desc: string;        // Short description
-        color: string;       // Hex code for dynamic theming
-        href: string;        // e.g., "/java"
+        desc: Localized;     // Short description for the home page card
+        intro: Localized;    // Introduction of the landing page
+        color: string;       // Card glow color on the home page
+        theme: { color: string; dark: string }; // Landing page accent colors
+        slug: string;        // e.g., "java" -> /java
         icon: string;        // Icon for the sidebar item
         difficulty: "Fundamental" | "Beginner" | "Elementary" | "Intermediate" | "Advanced";
-        prerequisites: string[]; // Recommended prior knowledge
+        prerequisites: Localized[]; // Recommended prior knowledge
         concepts: Concept[]; // List of documentation topics
     }
 
@@ -152,6 +170,29 @@ The heart of the application is located at `data/languages.ts`. This file acts a
 ```
 
 By modifying this single file, you can add new categories, languages, or topics without altering the UI components.
+
+### 3. Translations
+
+The site is available in English (default, no URL prefix), Spanish (`/es/`) and French (`/fr/`).
+
+- **Guides:** each guide exists once per language, with the same file name: `src/content/docs/en/java/oop.md`, `src/content/docs/es/java/oop.md`, `src/content/docs/fr/java/oop.md`. If a translation is missing, the English version is shown with a notice.
+
+- **Interface texts** (buttons, labels, 404 page...): `src/i18n/ui.ts`.
+
+- **Technology and topic names/descriptions:** the `Localized` fields of `src/data/languages.ts`.
+
+**Adding a new guide:** add the concept (with its `slug`) to `languages.ts`, then create the Markdown file in each language folder. Each file only needs a `title` in its frontmatter:
+
+```markdown
+
+    ---
+    title: "Collections in Java"
+    ---
+
+
+```
+
+**Adding a new language:** add it to `locales` and `ui` in `src/i18n/ui.ts`, to `i18n.locales` in `astro.config.mjs`, to every `Localized` value in `languages.ts`, and create its folder in `src/content/docs/`.
 
 ---
 
