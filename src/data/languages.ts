@@ -390,4 +390,129 @@ export const languages: Category[] = [
             }
         ],
     },
+    {
+        category: "Tools",
+        items: [
+            {
+                title: "Git",
+                desc: {
+                    en: "Track changes, collaborate with branches, and sync your code with remote repositories",
+                    es: "Registra cambios, colabora con ramas y sincroniza tu código con repositorios remotos",
+                    fr: "Suivez les modifications, collaborez avec des branches et synchronisez votre code avec des dépôts distants",
+                },
+                intro: {
+                    en: "The distributed version control system every developer needs to know.",
+                    es: "El sistema de control de versiones distribuido que todo desarrollador necesita conocer.",
+                    fr: "Le système de contrôle de version distribué que tout développeur doit connaître.",
+                },
+                color: "#f05033",
+                theme: { color: "#f05033", dark: "#b23d26" },
+                slug: "git",
+                icon: "🔀",
+                difficulty: "Beginner",
+                prerequisites: [prereq.none],
+                concepts: [
+                    {
+                        title: {
+                            en: "Fundamentals & Local Environment",
+                            es: "Fundamentos y Entorno Local",
+                            fr: "Fondamentaux et environnement local",
+                        },
+                        desc: {
+                            en: "Understand the Git mindset and master the basic workflow without leaving your machine.",
+                            es: "Entiende la mentalidad de Git y domina el flujo básico de trabajo sin salir de tu máquina.",
+                            fr: "Comprenez l'état d'esprit de Git et maîtrisez le flux de travail de base sans quitter votre machine.",
+                        },
+                        slug: "local-environment",
+                    },
+                    {
+                        title: {
+                            en: "Branching & Remote Collaboration",
+                            es: "Ramificaciones y Colaboración Remota",
+                            fr: "Branches et collaboration à distance",
+                        },
+                        desc: {
+                            en: "Work in parallel with isolated branches and sync changes with remote platforms like GitHub, GitLab or Bitbucket.",
+                            es: "Trabaja en paralelo con ramas aisladas y sincroniza tus cambios con plataformas remotas como GitHub, GitLab o Bitbucket.",
+                            fr: "Travaillez en parallèle avec des branches isolées et synchronisez vos modifications avec des plateformes distantes comme GitHub, GitLab ou Bitbucket.",
+                        },
+                        slug: "branching-collaboration",
+                    },
+                    {
+                        title: {
+                            en: "Advanced Control & Fixing Mistakes",
+                            es: "Control Avanzado y Corrección de Errores",
+                            fr: "Contrôle avancé et correction des erreurs",
+                        },
+                        desc: {
+                            en: "Learn to solve common problems, safely travel back in time, and keep a clean history.",
+                            es: "Aprende a solucionar problemas comunes, volver atrás en el tiempo de forma segura y mantener un historial limpio.",
+                            fr: "Apprenez à résoudre les problèmes courants, à revenir en arrière en toute sécurité et à garder un historique propre.",
+                        },
+                        slug: "advanced-control",
+                    },
+                ],
+            },
+            {
+                title: "Node.js",
+                desc: {
+                    en: "Build fast, scalable backend applications and APIs using JavaScript on the server",
+                    es: "Crea aplicaciones backend rápidas y escalables y APIs usando JavaScript en el servidor",
+                    fr: "Créez des applications backend rapides et évolutives et des API avec JavaScript côté serveur",
+                },
+                intro: {
+                    en: "A JavaScript runtime built on Chrome's V8 engine for server-side development.",
+                    es: "Un entorno de ejecución de JavaScript basado en el motor V8 de Chrome para el desarrollo del lado del servidor.",
+                    fr: "Un environnement d'exécution JavaScript basé sur le moteur V8 de Chrome pour le développement côté serveur.",
+                },
+                color: "#339933",
+                theme: { color: "#339933", dark: "#235f24" },
+                slug: "node",
+                icon: "⬢",
+                difficulty: "Intermediate",
+                prerequisites: [prereq.js],
+                concepts: [
+                    {
+                        title: {
+                            en: "Fundamentals & First Steps",
+                            es: "Fundamentos y Primeros Pasos",
+                            fr: "Fondamentaux et premiers pas",
+                        },
+                        desc: {
+                            en: "Understand what Node.js is, how its asynchronous architecture works internally, and master its core native modules.",
+                            es: "Comprende qué es Node.js, cómo funciona internamente su arquitectura asíncrona y domina el uso de sus módulos nativos básicos.",
+                            fr: "Comprenez ce qu'est Node.js, le fonctionnement interne de son architecture asynchrone, et maîtrisez ses modules natifs essentiels.",
+                        },
+                        slug: "fundamentals",
+                    },
+                    {
+                        title: {
+                            en: "Building Applications & APIs",
+                            es: "Desarrollo de Aplicaciones y APIs",
+                            fr: "Développement d'applications et d'API",
+                        },
+                        desc: {
+                            en: "Move from theory to practice by building functional, robust, structured APIs connected to real data.",
+                            es: "Pasa de la teoría a la práctica construyendo APIs funcionales, robustas, estructuradas y conectadas a datos.",
+                            fr: "Passez de la théorie à la pratique en créant des API fonctionnelles, robustes, structurées et connectées à des données.",
+                        },
+                        slug: "apis-and-apps",
+                    },
+                    {
+                        title: {
+                            en: "Advanced Concepts & Production",
+                            es: "Conceptos Avanzados y Producción",
+                            fr: "Concepts avancés et production",
+                        },
+                        desc: {
+                            en: "Scale the application, optimize CPU/memory performance, ensure security, and prepare it for production.",
+                            es: "Escala la aplicación, optimiza el rendimiento de CPU/memoria, garantiza la seguridad y prepárala para producción.",
+                            fr: "Faites évoluer l'application, optimisez les performances CPU/mémoire, garantissez la sécurité et préparez-la pour la production.",
+                        },
+                        slug: "advanced-production",
+                    },
+                ],
+            },
+        ],
+    },
 ];
