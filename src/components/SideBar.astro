@@ -1,21 +1,28 @@
 ---
 import type { Category } from "../data/languages";
-import { getSortedCategories } from "../utils/utils";
+import type { Lang } from "../i18n/ui";
+import { localizePath, useTranslations } from "../i18n/utils";
+import { getSortedCategories, languageHref } from "../utils/utils";
 
 interface Props {
 	languages: Category[];
 	currentPath: string;
+	lang: Lang;
 }
 
-const { languages, currentPath } = Astro.props;
+const { languages, currentPath, lang } = Astro.props;
+const t = useTranslations(lang);
 const sortedLanguages = getSortedCategories(languages);
+const homeHref = localizePath("/", lang);
 
 /**
  * Returns true if the href matches the current path or is a parent route.
  */
 const isActive = (href: string) => {
-	if (href === "/") return currentPath === "/";
-	return currentPath === href || currentPath.startsWith(href + "/");
+	const path = currentPath.replace(/\/$/, "") || "/";
+	const target = href.replace(/\/$/, "") || "/";
+	if (target === homeHref.replace(/\/$/, "") || target === "/") return path === target;
+	return path === target || path.startsWith(target + "/");
 };
 ---
 
@@ -24,12 +31,12 @@ const isActive = (href: string) => {
 <aside class="sidebar">
 	<div class="sidebar-header">
 		<div class="logo">
-			<a href="/" title="Go to home page"
+			<a href={homeHref} title={t("nav.goHome")}
 				>Davi<span class="text-gradient">Notes</span></a
 			>
 		</div>
 
-		<button id="sidebar-close" aria-label="Cerrar menú">
+		<button id="sidebar-close" aria-label={t("nav.closeMenu")}>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				width="24"
@@ -47,15 +54,15 @@ const isActive = (href: string) => {
 		</button>
 	</div>
 
-	<nav class="nav-div" aria-label="Main navigation">
+	<nav class="nav-div" aria-label={t("nav.mainNavigation")}>
 		<ul class="nav-list">
 			<li>
 				<a
-					href="/"
-					title="Go to home page"
-					class={isActive("/") ? "active" : ""}
+					href={homeHref}
+					title={t("nav.goHome")}
+					class={isActive(homeHref) ? "active" : ""}
 				>
-					<span class="icon">🏠</span> Home
+					<span class="icon">🏠</span> {t("nav.home")}
 				</a>
 			</li>
 
@@ -64,18 +71,21 @@ const isActive = (href: string) => {
 					<li class="nav-group">
 						<h3 class="nav-title">{category.category}</h3>
 						<ul class="nav-list">
-							{category.items.map((lenguage) => (
-								<li>
-									<a
-										href={lenguage.href}
-										class={isActive(lenguage.href) ? "active" : ""}
-										title={"Go to " + lenguage.title}
-									>
-										<span class="icon">{lenguage.icon}</span>
-										{lenguage.title}
-									</a>
-								</li>
-							))}
+							{category.items.map((language) => {
+								const href = languageHref(language, lang);
+								return (
+									<li>
+										<a
+											href={href}
+											class={isActive(href) ? "active" : ""}
+											title={t("nav.goTo", { lang: language.title })}
+										>
+											<span class="icon">{language.icon}</span>
+											{language.title}
+										</a>
+									</li>
+								);
+							})}
 						</ul>
 					</li>
 				))
@@ -83,6 +93,29 @@ const isActive = (href: string) => {
 		</ul>
 	</nav>
 </aside>
+
+<script>
+	/**
+	 * The sidebar is persisted between View Transitions, so the server-rendered
+	 * "active" class would keep pointing at the first page visited. This refreshes
+	 * it after every navigation using the same parent-route rule as `isActive`.
+	 */
+	document.addEventListener("astro:page-load", () => {
+		const normalize = (path: string) => path.replace(/\/$/, "") || "/";
+		const current = normalize(window.location.pathname);
+		const links = document.querySelectorAll<HTMLAnchorElement>(".sidebar .nav-list a");
+		const homePath = normalize(document.querySelector<HTMLAnchorElement>(".sidebar .logo a")?.pathname ?? "/");
+
+		links.forEach((link) => {
+			const target = normalize(link.pathname);
+			const active =
+				target === homePath
+					? current === target
+					: current === target || current.startsWith(target + "/");
+			link.classList.toggle("active", active);
+		});
+	});
+</script>
 
 <style>
 	/* =========================================

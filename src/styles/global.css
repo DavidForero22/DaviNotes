@@ -54,6 +54,25 @@ main {
 	margin-bottom: 3rem;
 }
 
+/*
+ * Language picker of the home page. It is fixed to the top-right corner with the
+ * same spacing as the top bar of the documentation pages, and it stays out of the
+ * normal flow so the rest of the home page keeps its original position.
+ */
+.home-top-bar {
+	position: fixed;
+	top: 0;
+	right: 0;
+	z-index: 10;
+	padding: 1rem 3rem;
+}
+
+@media (max-width: 846px) {
+	.home-top-bar {
+		padding: 0.75rem 1.25rem;
+	}
+}
+
 .tech-section {
 	width: 55vw;
 	margin: auto;

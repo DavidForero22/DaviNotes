@@ -1,0 +1,71 @@
+---
+import { locales, type Lang } from "../i18n/ui";
+import { langs, localizePath, useTranslations } from "../i18n/utils";
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+/**
+ * Each option points to the same page in another language, so switching
+ * language keeps the visitor on the guide they are reading.
+ */
+const options = langs.map((code) => ({
+	code,
+	label: locales[code].label,
+	short: locales[code].short,
+	href: localizePath(Astro.url.pathname, code),
+}));
+---
+
+<nav class="lang-picker" aria-label={t("lang.picker")}>
+	{
+		options.map((option) => (
+			<a
+				href={option.href}
+				hreflang={option.code}
+				lang={option.code}
+				title={option.label}
+				class={option.code === lang ? "active" : ""}
+				aria-current={option.code === lang ? "true" : undefined}
+			>
+				{option.short}
+			</a>
+		))
+	}
+</nav>
+
+<style>
+	.lang-picker {
+		display: inline-flex;
+		gap: 0.25rem;
+		padding: 0.25rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 99px;
+		background: rgba(19, 21, 26, 0.8);
+	}
+
+	.lang-picker a {
+		padding: 0.25rem 0.65rem;
+		border-radius: 99px;
+		color: #a1a1aa;
+		font-size: 0.8rem;
+		font-weight: bold;
+		letter-spacing: 0.05em;
+		text-decoration: none;
+		transition: 0.2s ease;
+	}
+
+	.lang-picker a:hover {
+		color: white;
+		background: rgba(255, 255, 255, 0.05);
+	}
+
+	.lang-picker a.active {
+		color: #13151a;
+		background: #a78bfa;
+	}
+</style>

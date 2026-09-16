@@ -1,57 +1,62 @@
 ---
 import DocsLayout from "./DocInfoLayout.astro";
 import InfoBox from "../components/InfoBox.astro";
-import { languages } from "../data/languages";
-import { getTextColorForBackground } from "../utils/utils";
+import DocSearch from "../components/DocSearch.astro";
+import { INSTALLATION_GUIDE_SLUG, type LanguageItem } from "../data/languages";
+import type { Lang } from "../i18n/ui";
+import { pick, useTranslations } from "../i18n/utils";
+import { getTextColorForBackground, languageHref } from "../utils/utils";
 
 /**
  * Defines the essential configuration properties required to render the landing page.
- * It captures the target language name to fetch data, a brief introductory description, and specific color hex codes to dynamically theme UI elements like buttons and highlights.
+ * It receives the language metadata from `languages.ts` (texts, colors and concepts) and the language the visitor is reading in.
  */
 interface Props {
-	language: string;
-	description: string;
-	color: string;
-	colorDark: string;
+	item: LanguageItem;
+	lang: Lang;
 }
 
-const { language, description, color, colorDark } = Astro.props;
+const { item, lang } = Astro.props;
+const t = useTranslations(lang);
 
+const color = item.theme.color;
+const colorDark = item.theme.dark;
 const btnTextColor = getTextColorForBackground(color);
 
 /**
- * Retrieves the specific language metadata by traversing the categorized data structure.
- * It searches through all categories to find the item matching the provided title prop.
+ * The translated title contains a `{lang}` placeholder (e.g. "Apuntes de {lang}").
+ * It is split around the placeholder so the language name can be highlighted wherever it appears.
  */
-const langInfo = languages
-	.flatMap((lang) => lang.items)
-	.find((item) => item.title === language);
+const [titleBefore, titleAfter] = t("index.title").split("{lang}");
 
-const installLink = `/${language.toLowerCase()}/installation-guide`;
+const installLink = languageHref(item, lang, INSTALLATION_GUIDE_SLUG);
 ---
 
-<DocsLayout title={language}>
+<DocsLayout title={item.title} lang={lang}>
 	<div class="landing-container">
-		<h1 class="title"><span class="text-highlight">{language}</span> Notes</h1>
-		<p class="intro">{description}</p>
+		<h1 class="title">{titleBefore}<span class="text-highlight">{item.title}</span>{titleAfter}</h1>
+		<p class="intro">{pick(item.intro, lang)}</p>
 
 		<InfoBox
-			difficulty={langInfo?.difficulty}
-			prerequisites={langInfo?.prerequisites}
+			lang={lang}
+			difficulty={item.difficulty}
+			prerequisites={item.prerequisites}
 		/>
+
+		<DocSearch item={item} lang={lang} />
 
 		<hr class="divider" />
 
 		<section>
-			<h2>Key Concepts</h2>
+			<h2>{t("index.keyConcepts")}</h2>
 			<ul class="topic-list">
 				{
 					/* Index will be used in doc-layout.css for calculing the delay time in its animation */
-					langInfo?.concepts.map((concept, index) => (
+					item.concepts.map((concept, index) => (
 						<li style={`--i: ${index}`}>
-							<a href={concept.href}>
-								<h3>{concept.title}</h3>
-								<p>{concept.desc}</p>
+							<a href={languageHref(item, lang, concept.slug)}>
+								<h3>{pick(concept.title, lang)}</h3>
+								<p>{pick(concept.desc, lang)}</p>
 							</a>
 						</li>
 					))
@@ -63,15 +68,15 @@ const installLink = `/${language.toLowerCase()}/installation-guide`;
 
 		<section class="install-section">
 			<div class="cta-container">
-				<h2>Ready to start building?</h2>
-				<p>Follow the complete setup process in our dedicated guide.</p>
+				<h2>{t("index.ctaTitle")}</h2>
+				<p>{t("index.ctaText")}</p>
 
 				<a
 					href={installLink}
 					class="install-btn"
-					title={`See ${language}'s installation guide`}
+					title={t("index.installTitle", { lang: item.title })}
 				>
-					Installation Guide <span>&rarr;</span>
+					{t("index.installGuide")} <span>&rarr;</span>
 				</a>
 			</div>
 		</section>
@@ -85,9 +90,9 @@ const installLink = `/${language.toLowerCase()}/installation-guide`;
 		themeTextColor: btnTextColor,
 	}}
 >
-	/* 
-    Utilizes Astro's define:vars directive to pass server-side JavaScript variables into the CSS scope. 
-    This creates dynamic CSS custom properties based on the props. 
+	/*
+    Utilizes Astro's define:vars directive to pass server-side JavaScript variables into the CSS scope.
+    This creates dynamic CSS custom properties based on the props.
   */
 
 	.text-highlight {

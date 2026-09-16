@@ -66,6 +66,26 @@
     gap: 1.5rem;
 }
 
+/* Pushes the language picker to the right edge of the top bar */
+.top-bar-end {
+    margin-left: auto;
+}
+
+/* Word highlighted by the browser when a guide is opened from a search result (#:~:text=) */
+::target-text {
+    background-color: rgba(167, 139, 250, 0.35);
+    color: white;
+}
+
+/* Shown when a guide has not been translated yet and the English version is used */
+.untranslated-notice {
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.08);
+    color: #fbbf24;
+}
+
 /* Navigation Buttons (Back & Menu) */
 .back-button {
     background: transparent;
@@ -268,5 +288,21 @@
     /* Show hamburger menu on mobile */
     .menu-btn {
         display: flex;
+    }
+
+    /* Let the top bar wrap so the language picker fits on small screens */
+    .top-bar {
+        padding: 0.75rem 1.25rem;
+    }
+
+    .breadcrumb-container {
+        flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+    }
+
+    /* First row: menu, back button and language picker. Second row: breadcrumbs */
+    .breadcrumb-container .breadcrumb {
+        order: 1;
+        flex-basis: 100%;
     }
 }

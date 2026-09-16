@@ -1,4 +1,6 @@
-import type { Category } from "../data/languages";
+import type { Category, LanguageItem } from "../data/languages";
+import type { Lang } from "../i18n/ui";
+import { localizePath } from "../i18n/utils";
 
 /**
  * Calculates the relative luminance of a hex color.
@@ -40,7 +42,24 @@ export function getSortedCategories(data: Category[]): Category[] {
   return data.map((category) => ({
     ...category,
     items: [...category.items].sort((a, b) =>
-      a.title.localeCompare(b.title) 
+      a.title.localeCompare(b.title)
     ),
   }));
+}
+
+/**
+ * Returns every language item without its category.
+ */
+export function getAllLanguageItems(data: Category[]): LanguageItem[] {
+	return data.flatMap((category) => category.items);
+}
+
+/**
+ * Builds the localized URL of a language landing page or one of its pages.
+ * languageHref(java, "es") -> "/es/java"
+ * languageHref(java, "es", "oop") -> "/es/java/oop"
+ */
+export function languageHref(item: LanguageItem, lang: Lang, pageSlug?: string): string {
+	const path = pageSlug ? `/${item.slug}/${pageSlug}` : `/${item.slug}`;
+	return localizePath(path, lang);
 }

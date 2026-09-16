@@ -1,10 +1,16 @@
 ---
+import type { DifficultyLevel } from "../data/languages";
+import type { Lang, Localized } from "../i18n/ui";
+import { pick, useTranslations } from "../i18n/utils";
+
 interface Props {
-	difficulty: string | undefined;
-	prerequisites?: string[];
+	lang: Lang;
+	difficulty: DifficultyLevel | undefined;
+	prerequisites?: Localized[];
 }
 
-const { difficulty, prerequisites } = Astro.props;
+const { lang, difficulty, prerequisites } = Astro.props;
+const t = useTranslations(lang);
 
 /**
  * Determines the visual color theme for the difficulty badge based on the provided skill level. It returns specific hex codes for "Fundamental", "Beginner", "Intermediate", and "Advanced" tiers, defaulting to a neutral gray for undefined or unrecognized levels.
@@ -23,7 +29,7 @@ const badgeColor = getDifficultyColor(difficulty);
 
 <div class="info-box">
 	<div class="info-item">
-		<span class="label">Difficulty:</span>
+		<span class="label">{t("info.difficulty")}</span>
 		{
 			/* Applies dynamic inline styles to the badge using the derived color. The background-color property utilizes hex alpha transparency (appending '20' to the hex code) to create a subtle tinted background while maintaining the solid text and border color for contrast.
 			 */
@@ -32,7 +38,7 @@ const badgeColor = getDifficultyColor(difficulty);
 			class="badge"
 			style={`background-color: ${badgeColor}20; color: ${badgeColor}; border-color: ${badgeColor}`}
 		>
-			{difficulty}
+			{difficulty && t(`difficulty.${difficulty}`)}
 		</span>
 	</div>
 
@@ -41,10 +47,10 @@ const badgeColor = getDifficultyColor(difficulty);
 		 */
 		prerequisites && (
 			<div class="info-item">
-				<span class="label">Prerequisites:</span>
+				<span class="label">{t("info.prerequisites")}</span>
 				<div class="prereq-tags">
 					{prerequisites.map((req) => (
-						<span class="tag">{req.trim()}</span>
+						<span class="tag">{pick(req, lang).trim()}</span>
 					))}
 				</div>
 			</div>
