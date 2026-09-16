@@ -78,6 +78,8 @@ Navigating through DaviNotes is intuitive and designed for quick access to infor
 
 - **Documentation Pages:** Inside a topic (e.g., "Basic Syntax" or "Hooks"), you can read the detailed documentation.
 
+- **Help System:** A built-in, accessible help modal is located next to the language selector in the top bar. It provides quick guidance for newcomers, explaining the site's purpose, a breakdown of difficulty levels, and recommended starting paths.
+
 ![Language documentation showcase](/public/images/docs/doc-showcase.png)
 
 ---
@@ -127,6 +129,8 @@ The project is built with **Astro**. The guides are Markdown files stored in a *
 - `LanguagePicker.astro:` Links to the current page in every available language. It is shown on the home page and in the top bar of every guide.
 
 - `DocSearch.astro:` Keyword search on each language landing page, limited to the guides of that language. The index is generated at build time from the rendered guides (`utils/search.ts`), so searching runs instantly in the browser. Each result links to its section and, in browsers that support text fragments, highlights the searched word.
+
+- `HelpModal.astro:` A native HTML `<dialog>` component that acts as a quick-reference guide for beginners. It features custom entry/exit animations, backdrop click-to-close behavior, and full multi-language support.
 
 ### 2. Core Data Model
 

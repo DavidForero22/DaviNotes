@@ -1,0 +1,300 @@
+---
+import type { Lang } from "../i18n/ui";
+import { useTranslations } from "../i18n/utils";
+import DifficultyBadge from "./DifficultyBadge.astro";
+
+interface Props {
+    lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<button
+    id="help-modal-trigger"
+    class="help-btn"
+    aria-label={t("help.open")}
+    title={t("help.open")}
+>
+    ?
+</button>
+
+<dialog id="help-modal" class="help-modal" aria-labelledby="help-title">
+    <div class="modal-content">
+        <header class="modal-header">
+            <h2 id="help-title">{t("help.title")}</h2>
+            <button
+                id="close-modal-btn"
+                class="close-btn"
+                aria-label={t("help.close")}>&times;</button
+            >
+        </header>
+
+        <div class="modal-body">
+            <section>
+                <h3>{t("help.aboutTitle")}</h3>
+                <p>{t("help.aboutText")}</p>
+            </section>
+
+            <section>
+                <h3>{t("help.difficultyTitle")}</h3>
+                <p>{t("help.difficultyText")}</p>
+                <ul class="difficulty-list">
+                    <li>
+                        <DifficultyBadge lang={lang} difficulty="Fundamental" /> :
+                        {t("help.diff.fund")}
+                    </li>
+                    <li>
+                        <DifficultyBadge lang={lang} difficulty="Beginner" /> : {
+                            t("help.diff.beg")
+                        }
+                    </li>
+                    <li>
+                        <DifficultyBadge lang={lang} difficulty="Elementary" /> :
+                        {t("help.diff.elem")}
+                    </li>
+                    <li>
+                        <DifficultyBadge
+                            lang={lang}
+                            difficulty="Intermediate"
+                        /> : {t("help.diff.int")}
+                    </li>
+                    <li>
+                        <DifficultyBadge lang={lang} difficulty="Advanced" /> : {
+                            t("help.diff.adv")
+                        }
+                    </li>
+                </ul>
+            </section>
+
+            <section class="beginner-recommendation">
+                <h3>{t("help.beginnerTitle")}</h3>
+                <p>{t("help.beginnerText")}</p>
+            </section>
+        </div>
+    </div>
+</dialog>
+
+<style>
+    /* BOTÓN DISPARADOR */
+    .help-btn {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: var(--text-color, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .help-btn:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: scale(1.05);
+    }
+
+    /* MODAL (DIALOG) */
+    .help-modal {
+        background-color: var(--card-bg, #23262d);
+        color: var(--text-color, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 0;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        margin: auto;
+    }
+
+    .help-modal::backdrop {
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(3px);
+    }
+
+    /* ANIMACIONES DE ENTRADA Y SALIDA */
+    .help-modal[open] {
+        animation: fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    .help-modal[open]::backdrop {
+        animation: backdrop-fade-in 0.3s ease forwards;
+    }
+
+    .help-modal.closing {
+        animation: fade-out 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    .help-modal.closing::backdrop {
+        animation: backdrop-fade-out 0.2s ease forwards;
+    }
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    @keyframes fade-out {
+        from {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+        }
+    }
+    @keyframes backdrop-fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    @keyframes backdrop-fade-out {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    /* CONTENIDO DEL MODAL */
+    .modal-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 1.5rem 1rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        color: #a1a1aa;
+        font-size: 1.8rem;
+        line-height: 1;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .close-btn:hover {
+        color: white;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+        max-height: 70vh;
+    }
+
+    .modal-body section {
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-body section:last-child {
+        margin-bottom: 0;
+    }
+
+    .modal-body h3 {
+        margin-top: 0;
+        color: white;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .modal-body p {
+        color: #a1a1aa;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .difficulty-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 1rem;
+    }
+
+    .difficulty-list li {
+        margin-bottom: 0.75rem;
+        color: #a1a1aa;
+        font-size: 0.95rem;
+        line-height: 2; /* Un poco más de espacio debido al padding del badge */
+        display: flex;
+        align-items: center; /* Alinea texto y etiqueta de forma limpia */
+        gap: 0.5rem;
+    }
+
+    .beginner-recommendation {
+        background: rgba(136, 58, 234, 0.1);
+        border-left: 4px solid #a78bfa;
+        padding: 1rem;
+        border-radius: 0 8px 8px 0;
+    }
+</style>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        const btn = document.getElementById("help-modal-trigger");
+        const modal = document.getElementById(
+            "help-modal",
+        ) as HTMLDialogElement;
+        const closeBtn = document.getElementById("close-modal-btn");
+
+        if (!btn || !modal || !closeBtn) return;
+
+        // Abrir Modal y bloquear scroll
+        btn.addEventListener("click", () => {
+            modal.showModal();
+            document.body.style.overflow = "hidden"; // ← Bloquea el scroll de la página
+        });
+
+        // Función para cerrar con animación y restaurar scroll
+        const closeModal = () => {
+            modal.classList.add("closing");
+            modal.addEventListener("animationend", function handler() {
+                modal.classList.remove("closing");
+                modal.close();
+                document.body.style.overflow = ""; // ← Devuelve el scroll al cerrar
+                modal.removeEventListener("animationend", handler);
+            });
+        };
+
+        closeBtn.addEventListener("click", closeModal);
+
+        // Cerrar si se hace click fuera del modal (en el ::backdrop)
+        modal.addEventListener("click", (e) => {
+            const rect = modal.getBoundingClientRect();
+            const isInDialog =
+                rect.top <= e.clientY &&
+                e.clientY <= rect.top + rect.height &&
+                rect.left <= e.clientX &&
+                e.clientX <= rect.left + rect.width;
+            if (!isInDialog) {
+                closeModal();
+            }
+        });
+    });
+</script>

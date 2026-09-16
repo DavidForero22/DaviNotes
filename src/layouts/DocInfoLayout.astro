@@ -4,6 +4,7 @@ import SideBar from "../components/SideBar.astro";
 import ScrollToTop from "../components/ScrollToTop.astro";
 import Breadcrumbs from "../components/Breadcrumbs.astro";
 import Footer from "../components/Footer.astro";
+
 import LanguagePicker from "../components/LanguagePicker.astro";
 import AlternateLinks from "../components/AlternateLinks.astro";
 import "../styles/global.css";
@@ -11,6 +12,7 @@ import "../styles/doc-layout.css";
 import { languages } from "../data/languages";
 import type { Lang } from "../i18n/ui";
 import { useTranslations } from "../i18n/utils";
+import HelpModal from "../components/HelpModal.astro";
 
 interface Props {
   title: string;
@@ -36,10 +38,12 @@ const currentPath = Astro.url.pathname;
   </head>
   <body>
     <div class="layout-container">
-      {/* 'transition:persist' keeps the Sidebar state (scroll position, open folders)
+      {
+        /* 'transition:persist' keeps the Sidebar state (scroll position, open folders)
         intact while navigating between different documentation pages.
         The name includes the language so switching language renders a translated sidebar.
-      */}
+      */
+      }
       <SideBar
         languages={languages}
         currentPath={currentPath}
@@ -50,7 +54,9 @@ const currentPath = Astro.url.pathname;
       <main class="content-area">
         <header class="top-bar">
           <div class="breadcrumb-container">
-            {/* Mobile Menu Toggle Button (Visible only on small screens via CSS) */}
+            {
+              /* Mobile Menu Toggle Button (Visible only on small screens via CSS) */
+            }
             <button
               id="menu-toggle"
               class="menu-btn"
@@ -76,12 +82,17 @@ const currentPath = Astro.url.pathname;
 
             {/* Native browser history navigation */}
             <button class="back-button" onclick="history.back()">
-              <span class="arrow-icon">←</span> {t("nav.back")}
+              <span class="arrow-icon">←</span>
+              {t("nav.back")}
             </button>
 
             <Breadcrumbs lang={lang} />
 
-            <div class="top-bar-end">
+            <div
+              class="top-bar-end"
+              style="display: flex; gap: 0.75rem; align-items: center;"
+            >
+              <HelpModal lang={lang} />
               <LanguagePicker lang={lang} />
             </div>
           </div>

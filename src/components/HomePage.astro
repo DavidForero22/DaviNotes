@@ -7,6 +7,7 @@ import { languages } from "../data/languages";
 import type { Lang } from "../i18n/ui";
 import { pick, useTranslations } from "../i18n/utils";
 import { getSortedCategories, languageHref } from "../utils/utils";
+import HelpModal from "./HelpModal.astro";
 
 interface Props {
 	lang: Lang;
@@ -18,7 +19,11 @@ const sortedLanguages = getSortedCategories(languages);
 ---
 
 <HomeLayout title="DaviNotes" lang={lang}>
-	<div class="home-top-bar">
+	<div
+		class="home-top-bar"
+		style="display: flex; gap: 0.75rem; align-items: center;"
+	>
+		<HelpModal lang={lang} />
 		<LanguagePicker lang={lang} />
 	</div>
 

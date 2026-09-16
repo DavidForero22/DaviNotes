@@ -2,6 +2,7 @@
 import type { DifficultyLevel } from "../data/languages";
 import type { Lang, Localized } from "../i18n/ui";
 import { pick, useTranslations } from "../i18n/utils";
+import DifficultyBadge from "./DifficultyBadge.astro";
 
 interface Props {
 	lang: Lang;
@@ -11,40 +12,15 @@ interface Props {
 
 const { lang, difficulty, prerequisites } = Astro.props;
 const t = useTranslations(lang);
-
-/**
- * Determines the visual color theme for the difficulty badge based on the provided skill level. It returns specific hex codes for "Fundamental", "Beginner", "Intermediate", and "Advanced" tiers, defaulting to a neutral gray for undefined or unrecognized levels.
- */
-const getDifficultyColor = (level: string | undefined) => {
-    if (level === "Fundamental") return "#3b82f6"; // Blue
-    if (level === "Beginner") return "#10b981";    // Green
-    if (level === "Elementary") return "#84cc16";  // Lime
-    if (level === "Intermediate") return "#f59e0b"; // Orange
-    if (level === "Advanced") return "#ef4444";    // Red
-    return "#888";
-};
-
-const badgeColor = getDifficultyColor(difficulty);
 ---
 
 <div class="info-box">
 	<div class="info-item">
 		<span class="label">{t("info.difficulty")}</span>
-		{
-			/* Applies dynamic inline styles to the badge using the derived color. The background-color property utilizes hex alpha transparency (appending '20' to the hex code) to create a subtle tinted background while maintaining the solid text and border color for contrast.
-			 */
-		}
-		<span
-			class="badge"
-			style={`background-color: ${badgeColor}20; color: ${badgeColor}; border-color: ${badgeColor}`}
-		>
-			{difficulty && t(`difficulty.${difficulty}`)}
-		</span>
+		{difficulty && <DifficultyBadge lang={lang} difficulty={difficulty} />}
 	</div>
 
 	{
-		/** * Conditionally renders the prerequisites section only if the array exists. It iterates through the list of requirements to generate individual styled tags, ensuring any extra whitespace is trimmed from the text.
-		 */
 		prerequisites && (
 			<div class="info-item">
 				<span class="label">{t("info.prerequisites")}</span>
@@ -82,16 +58,6 @@ const badgeColor = getDifficultyColor(difficulty);
 		color: #e0e0e0;
 		font-size: 0.9rem;
 		min-width: 100px;
-	}
-
-	.badge {
-		font-size: 0.8rem;
-		padding: 0.2rem 0.6rem;
-		border-radius: 99px;
-		font-weight: 600;
-		border: 1px solid transparent;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
 	}
 
 	.prereq-tags {
