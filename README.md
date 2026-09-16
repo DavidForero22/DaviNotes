@@ -210,6 +210,7 @@ This project is built with modern web standards, focusing on performance and typ
 | ![View Transitions](https://img.shields.io/badge/View%20Transitions-SPA-6E5494?logo=astro&logoColor=white) | Provides a SPA-like feel (smooth fading, persistent sidebar) while maintaining the benefits of a multi-page application using Astro ClientRouter. |
 | ![Markdown](https://img.shields.io/badge/Markdown-Content-000000?logo=markdown&logoColor=white) | Used for the actual documentation content, making it easy to write and format technical notes. |
 
+Want to contribute a guide? See [Adding or Updating a Language Guide](docs/adding-a-guide.md) for the step-by-step process.
 
 ---
 
