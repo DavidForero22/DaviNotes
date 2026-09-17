@@ -8,17 +8,21 @@ interface Props {
   description: string;
   href: string;
   color: string;
+  icon: string;
 }
 
-const { href, title, description, color } = Astro.props;
+const { href, title, description, color, icon } = Astro.props;
 ---
 
 <a href={href} class="lang-card" style={`--glow-color: ${color}`}>
   <div class="content">
-    <h2>
-      {title}
-      <span>&rarr;</span>
-    </h2>
+    <div class="card-header">
+      <img src={icon} alt={`Logo de ${title}`} class="lang-icon" aria-hidden="true" />
+      <h2>
+        {title}
+        <span>&rarr;</span>
+      </h2>
+    </div>
     <p>
       {description}
     </p>
@@ -48,5 +52,27 @@ const { href, title, description, color } = Astro.props;
     padding: 1.5rem;
     border-radius: 8px;
     opacity: 0.8;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-header h2 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .lang-icon {
+    width: 32px;
+    min-width: 28px;
+    max-width: 40px;
+    height: auto;
+    object-fit: contain;
   }
 </style>

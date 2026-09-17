@@ -94,7 +94,7 @@ export const languages: Category[] = [
                 color: "#f89820",
                 theme: { color: "#f7b72e", dark: "#bd8b20" },
                 slug: "java",
-                icon: "☕",
+                icon: "/images/logos/language/java-logo.svg",
                 difficulty: "Intermediate",
                 prerequisites: [prereq.none],
                 concepts: [
@@ -146,7 +146,7 @@ export const languages: Category[] = [
                 color: "#3776ab",
                 theme: { color: "#3776ab", dark: "#295981" },
                 slug: "python",
-                icon: "🐍",
+                icon: "/images/logos/language/python-logo.svg",
                 difficulty: "Beginner",
                 prerequisites: [prereq.none],
                 concepts: [
@@ -198,7 +198,7 @@ export const languages: Category[] = [
                 color: "#777bb4",
                 theme: { color: "#777bb4", dark: "#585d8a" },
                 slug: "php",
-                icon: "🐘",
+                icon: "/images/logos/language/php-logo.svg",
                 difficulty: "Elementary",
                 prerequisites: [prereq.html],
                 concepts: [
@@ -259,7 +259,7 @@ export const languages: Category[] = [
                 color: "#ff5a03",
                 theme: { color: "#ff5a03", dark: "#c74200" },
                 slug: "astro",
-                icon: "🚀",
+                icon: "/images/logos/language/astro-logo.svg",
                 difficulty: "Beginner",
                 prerequisites: [prereq.html, prereq.css, prereq.basicJs, prereq.markdown],
                 concepts: [
@@ -307,7 +307,7 @@ export const languages: Category[] = [
                 color: "#61dafb",
                 theme: { color: "#61dafb", dark: "#4fb2ce" },
                 slug: "react",
-                icon: "⚛️",
+                icon: "/images/logos/language/react-logo.svg",
                 difficulty: "Intermediate",
                 prerequisites: [prereq.html, prereq.css, prereq.js],
                 concepts: [
@@ -355,7 +355,7 @@ export const languages: Category[] = [
                 color: "#e34c26",
                 theme: { color: "#e34c26", dark: "#b03e1d" },
                 slug: "html",
-                icon: "🌐",
+                icon: "/images/logos/language/html-logo.svg",
                 difficulty: "Fundamental",
                 prerequisites: [prereq.none],
                 concepts: [
@@ -408,7 +408,7 @@ export const languages: Category[] = [
                 color: "#f05033",
                 theme: { color: "#f05033", dark: "#b23d26" },
                 slug: "git",
-                icon: "🔀",
+                icon: "/images/logos/language/git-logo.svg",
                 difficulty: "Beginner",
                 prerequisites: [prereq.none],
                 concepts: [
@@ -468,7 +468,7 @@ export const languages: Category[] = [
                 color: "#339933",
                 theme: { color: "#339933", dark: "#235f24" },
                 slug: "node",
-                icon: "⬢",
+                icon: "/images/logos/language/nodejs-logo.svg",
                 difficulty: "Intermediate",
                 prerequisites: [prereq.js],
                 concepts: [
@@ -533,7 +533,7 @@ export const languages: Category[] = [
                 color: "#00758f",
                 theme: { color: "#00758f", dark: "#00435a" },
                 slug: "mysql",
-                icon: "🐬",
+                icon: "/images/logos/language/mysql-logo.svg",
                 difficulty: "Beginner",
                 prerequisites: [prereq.none],
                 concepts: [
@@ -593,7 +593,7 @@ export const languages: Category[] = [
                 color: "#47a248",
                 theme: { color: "#47a248", dark: "#2e6b2f" },
                 slug: "mongodb",
-                icon: "🍃",
+                icon: "/images/logos/language/mongodb-logo.svg",
                 difficulty: "Beginner",
                 prerequisites: [prereq.none],
                 concepts: [

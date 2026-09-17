@@ -16,6 +16,7 @@ export interface Framework {
     difficulty: DifficultyLevel;
     /** URL segment of the framework, nested under its language: "laravel" -> /php/laravel */
     slug: string;
+    icon: string;
     /** List of documentation topics. Reuses the same `Concept` shape languages use for their own topics. */
     concepts: Concept[];
 }
@@ -34,6 +35,7 @@ export const frameworks: Framework[] = [
             fr: "Le framework PHP le plus populaire, pour créer rapidement des applications web élégantes et complètes.",
         },
         difficulty: "Intermediate",
+        icon: "/images/logos/framework/laravel-logo.svg",
         slug: "laravel",
         concepts: [
             {

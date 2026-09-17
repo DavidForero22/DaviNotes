@@ -21,7 +21,8 @@ const homeHref = localizePath("/", lang);
 const isActive = (href: string) => {
 	const path = currentPath.replace(/\/$/, "") || "/";
 	const target = href.replace(/\/$/, "") || "/";
-	if (target === homeHref.replace(/\/$/, "") || target === "/") return path === target;
+	if (target === homeHref.replace(/\/$/, "") || target === "/")
+		return path === target;
 	return path === target || path.startsWith(target + "/");
 };
 ---
@@ -62,14 +63,17 @@ const isActive = (href: string) => {
 					title={t("nav.goHome")}
 					class={isActive(homeHref) ? "active" : ""}
 				>
-					<span class="icon">🏠</span> {t("nav.home")}
+					<span class="icon">🏠</span>
+					{t("nav.home")}
 				</a>
 			</li>
 
 			{
 				sortedLanguages.map((category) => (
 					<li class="nav-group">
-						<h3 class="nav-title">{pick(category.category, lang)}</h3>
+						<h3 class="nav-title">
+							{pick(category.category, lang)}
+						</h3>
 						<ul class="nav-list">
 							{category.items.map((language) => {
 								const href = languageHref(language, lang);
@@ -77,10 +81,21 @@ const isActive = (href: string) => {
 									<li>
 										<a
 											href={href}
-											class={isActive(href) ? "active" : ""}
-											title={t("nav.goTo", { lang: language.title })}
+											class={
+												isActive(href) ? "active" : ""
+											}
+											title={t("nav.goTo", {
+												lang: language.title,
+											})}
 										>
-											<span class="icon">{language.icon}</span>
+											<span class="icon">
+												<img
+													src={language.icon}
+													alt={`Logo de ${language.title}`}
+													class="sidebar-lang-icon"
+													aria-hidden="true"
+												/>
+											</span>
 											{language.title}
 										</a>
 									</li>
@@ -103,8 +118,13 @@ const isActive = (href: string) => {
 	document.addEventListener("astro:page-load", () => {
 		const normalize = (path: string) => path.replace(/\/$/, "") || "/";
 		const current = normalize(window.location.pathname);
-		const links = document.querySelectorAll<HTMLAnchorElement>(".sidebar .nav-list a");
-		const homePath = normalize(document.querySelector<HTMLAnchorElement>(".sidebar .logo a")?.pathname ?? "/");
+		const links = document.querySelectorAll<HTMLAnchorElement>(
+			".sidebar .nav-list a",
+		);
+		const homePath = normalize(
+			document.querySelector<HTMLAnchorElement>(".sidebar .logo a")
+				?.pathname ?? "/",
+		);
 
 		links.forEach((link) => {
 			const target = normalize(link.pathname);
@@ -187,6 +207,22 @@ const isActive = (href: string) => {
 		margin-bottom: 0.75rem;
 		padding-left: 1rem;
 		font-weight: 600;
+	}
+
+	.icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 24px;
+		height: 24px;
+		margin-right: 12px;
+	}
+
+	.sidebar-lang-icon {
+		min-width: 18px;
+		max-width: 24px;
+		height: auto;
+		object-fit: contain;
 	}
 
 	/* =========================================

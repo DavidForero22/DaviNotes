@@ -81,7 +81,10 @@ const itemFrameworks = getFrameworksForLanguage(frameworks, item.slug);
 								<details class="framework-item" style={`--i: ${index}`}>
 									<summary>
 										<div class="framework-summary-main">
-											<h3>{framework.name}</h3>
+											<div class="framework-header">
+												<img src={framework.icon} alt={`Logo de ${framework.name}`} class="framework-icon" aria-hidden="true" />
+												<h3>{framework.name}</h3>
+											</div>
 											<p>{pick(framework.desc, lang)}</p>
 										</div>
 										<div class="framework-summary-meta">
@@ -261,6 +264,25 @@ const itemFrameworks = getFrameworksForLanguage(frameworks, item.slug);
 
 	.install-btn:hover {
 		background-color: var(--themeColorDark);
+	}
+
+	.framework-header {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 4px;
+	}
+
+	.framework-header h3 {
+		margin: 0;
+	}
+
+	.framework-icon {
+		width: 28px;
+		min-width: 24px;
+		max-width: 36px;
+		height: auto;
+		object-fit: contain;
 	}
 </style>
 
