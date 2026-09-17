@@ -2,7 +2,7 @@
 
 This document explains how to add a new guide (topic/concept) to an existing technology, or update an existing one, in DaviNotes.
 
-> Looking to add a brand new technology (e.g. a new language or framework card on the home page) instead of a topic inside an existing one? The same files apply, but you will also need to add a new `LanguageItem` entry to `src/data/languages.ts` (see step 1) instead of just a new `Concept`.
+> Looking to add a brand new technology (e.g. a new language card on the home page) instead of a topic inside an existing one? The same files apply, but you will also need to add a new `LanguageItem` entry to `src/data/languages.ts` (see step 1) instead of just a new `Concept`. Looking to add a framework built on top of an existing language (e.g. Laravel for PHP) instead? See ["Adding a new framework"](#adding-a-new-framework-optional) — frameworks live in a separate file, `src/data/frameworks.ts`.
 
 ## Overview
 
@@ -101,10 +101,69 @@ Check that:
 
 If the goal is to introduce a technology that doesn't exist yet (e.g. a new language card on the home page), you additionally need to:
 
-1. Add a new `LanguageItem` object to the relevant `Category` (or a new `Category`) in `src/data/languages.ts`, filling in `title`, `desc`, `intro`, `color`, `theme`, `slug`, `icon`, `difficulty` and `prerequisites`.
+1. Add a new `LanguageItem` object to the relevant `Category` (or a new `Category`) in `src/data/languages.ts`, filling in `title`, `desc`, `intro`, `color`, `theme`, `slug`, `icon`, `difficulty` and `prerequisites`. A `Category`'s own `category` label is `Localized` too (`{ en, es, fr }`), since it is shown translated in the sidebar and on the home page.
 2. Create the technology's folder under `src/content/docs/<locale>/<new-technology>/` for each locale.
 3. Every technology conventionally includes an `installation-guide.md` guide, whose slug is exported as `INSTALLATION_GUIDE_SLUG` in `languages.ts` — add it as your first concept for consistency with the rest of the site.
 4. Follow the "Adding a new guide" steps above for each topic you want to document under the new technology.
+
+---
+
+## Adding a new framework (optional)
+
+A **framework** (e.g. Laravel for PHP) is a library built on top of an existing language, documented in its own mini learning path nested under that language. Frameworks are modeled separately from languages, in [`src/data/frameworks.ts`](../src/data/frameworks.ts), so adding one never touches `languages.ts`. Each language with at least one framework automatically gets a collapsible **"Frameworks"** section on its landing page, right below "Key Concepts", and a "discover frameworks" prompt at the end of its own last guide instead of a "next lesson" link — nothing else needs to be wired up by hand.
+
+### 1. Register the framework in `frameworks.ts`
+
+Open [`src/data/frameworks.ts`](../src/data/frameworks.ts) and add a new entry to the `frameworks` array:
+
+```typescript
+{
+    language: "php", // Slug of the parent LanguageItem this framework belongs to
+    name: "Laravel", // Proper noun, not localized
+    desc: {
+        en: "The most popular PHP framework, for building elegant, full-featured web applications fast.",
+        es: "El framework de PHP más popular, para crear aplicaciones web elegantes y completas con rapidez.",
+        fr: "Le framework PHP le plus populaire, pour créer rapidement des applications web élégantes et complètes.",
+    },
+    difficulty: "Intermediate", // Same DifficultyLevel type used by languages
+    slug: "laravel", // URL segment, nested under its language: /php/laravel
+    concepts: [ /* same shape as a LanguageItem's concepts */ ],
+},
+```
+
+- `language` must match an existing `LanguageItem.slug` from `languages.ts` — this is the only link between the two files.
+- `concepts` reuses the exact same `Concept` shape (`title`, `desc`, `slug`) that languages use, and each one becomes a full guide with its own "next lesson" flow, scoped to the framework (the framework's last concept has no next lesson, and frameworks have no installation guide of their own).
+
+### 2. Create the Markdown files
+
+Framework guides are nested one level deeper than a language's own guides, under the language's folder:
+
+```
+src/content/docs/en/<language-slug>/<framework-slug>/<concept-slug>.md
+src/content/docs/es/<language-slug>/<framework-slug>/<concept-slug>.md
+src/content/docs/fr/<language-slug>/<framework-slug>/<concept-slug>.md
+```
+
+For example, a `routing` guide under Laravel (nested under `php`) requires:
+
+```
+src/content/docs/en/php/laravel/routing.md
+src/content/docs/es/php/laravel/routing.md
+src/content/docs/fr/php/laravel/routing.md
+```
+
+Each file follows the same convention as any other guide (a `title` in its frontmatter, then Markdown content); see step 2 of "Adding a new guide" above. Link to the framework's own official documentation somewhere in the content, using the site's external-link style: `<a href="https://laravel.com/docs" class="doc-link" target="_blank" rel="noopener noreferrer" title="...">official documentation</a>`.
+
+### 3. Verify locally
+
+Run `npm run dev` and check that:
+
+- The technology's landing page (`/<language-slug>`) shows a "Frameworks" section with a collapsible row for the framework, showing its name, short description and difficulty; expanding it lists its concepts, linking to `/<language-slug>/<framework-slug>/<concept-slug>`.
+- Each framework guide renders at that nested URL, with a breadcrumb of `Home / <Language> / <Framework> / <Concept>`, and links to the next lesson of the framework's own path.
+- The language's very last guide (its last `concepts` entry) now shows a "discover frameworks" prompt instead of a "next lesson" link, pointing back to the `#frameworks` section of the landing page.
+- The framework's content shows up in that language's search results (`DocSearch`), alongside the language's own guides.
+
+A framework does **not** get its own landing page (there is no `/<language-slug>/<framework-slug>` route) — the collapsible row on its language's page is the only entry point to it, besides direct links to its guides.
 
 ---
 

@@ -74,6 +74,8 @@ Navigating through DaviNotes is intuitive and designed for quick access to infor
 
     - **Key Concepts:** A list of fundamental topics available for reading.
 
+    - **Frameworks:** If the technology has at least one framework built on top of it (e.g. Laravel for PHP), a collapsible "Frameworks" section lists it right below Key Concepts. Expanding it reveals that framework's own 3 key concepts, each a full guide with its own learning path.
+
 ![Language index showcase](/public/images/docs/doc-index-showcase.png)
 
 - **Documentation Pages:** Inside a topic (e.g., "Basic Syntax" or "Hooks"), you can read the detailed documentation.
@@ -101,15 +103,16 @@ The project is built with **Astro**. The guides are Markdown files stored in a *
     │       │   ├───html
     │       │   ├───java
     │       │   ├───php
+    │       │   │   └───laravel   # Framework guides, nested under their parent language
     │       │   ├───python
     │       │   └───react
     │       ├───es          # Same structure as en
     │       └───fr          # Same structure as en
-    ├───data                # Static data sources (languages.ts)
+    ├───data                # Static data sources (languages.ts, frameworks.ts)
     ├───i18n                # Interface translations (ui.ts) and language helpers (utils.ts)
     ├───layouts             # Page wrappers (HomeLayout, DocInfoLayout, DocIndexLayout)
     ├───pages
-    │   ├───[...path].astro # Generates home, language landing pages and guides for every language
+    │   ├───[...path].astro # Generates home, language/framework landing pages and guides for every language
     │   └───404.astro
     ├───styles              # Global and layout-specific CSS
     ├───utils               # Utility functions (colors, sorting, localized links)
@@ -128,7 +131,9 @@ The project is built with **Astro**. The guides are Markdown files stored in a *
 
 - `LanguagePicker.astro:` Links to the current page in every available language. It is shown on the home page and in the top bar of every guide.
 
-- `DocSearch.astro:` Keyword search on each language landing page, limited to the guides of that language. The index is generated at build time from the rendered guides (`utils/search.ts`), so searching runs instantly in the browser. Each result links to its section and, in browsers that support text fragments, highlights the searched word.
+- `DocSearch.astro:` Keyword search on each language landing page, limited to the guides of that language (and, transparently, the guides of that language's frameworks). The index is generated at build time from the rendered guides (`utils/search.ts`), so searching runs instantly in the browser. Each result links to its section and, in browsers that support text fragments, highlights the searched word.
+
+- `DiscoverFrameworks.astro:` Shown instead of the "next lesson" button at the bottom of a language's very last guide, when that language has at least one framework. Links back to the "Frameworks" section of the language's landing page.
 
 - `HelpModal.astro:` A native HTML `<dialog>` component that acts as a quick-reference guide for beginners. It features custom entry/exit animations, backdrop click-to-close behavior, and full multi-language support.
 
@@ -170,12 +175,28 @@ The heart of the application is located at `data/languages.ts`. This file acts a
     }
 
     interface Category {
-        category: string;    // e.g., "Backend"
+        category: Localized; // e.g., { en: "Backend", es: "Backend", fr: "Backend" }
         items: LanguageItem[];
     }
 ```
 
 By modifying this single file, you can add new categories, languages, or topics without altering the UI components.
+
+**Frameworks:** Libraries built on top of a language (e.g. Laravel for PHP) are modeled separately, in [`data/frameworks.ts`](src/data/frameworks.ts), so they never grow `languages.ts`. A `Framework` links back to its parent language by slug, and reuses the same `Concept` shape languages use for its own 3 key concepts:
+
+```typescript
+
+    interface Framework {
+        language: string;    // Slug of the parent LanguageItem, e.g. "php"
+        name: string;        // e.g., "Laravel" (not localized: proper nouns aren't translated)
+        desc: Localized;     // Short description shown on the collapsed row
+        difficulty: "Fundamental" | "Beginner" | "Elementary" | "Intermediate" | "Advanced";
+        slug: string;        // e.g., "laravel" -> /php/laravel
+        concepts: Concept[]; // Same shape as a language's own concepts
+    }
+```
+
+A language with at least one entry in `frameworks.ts` automatically gets a collapsible "Frameworks" section on its landing page (each row expanding to show that framework's concepts) and a "discover frameworks" prompt at the end of its own last guide, in place of the usual "next lesson" link. Framework guides live at `content/docs/<locale>/<language-slug>/<framework-slug>/<slug>.md` and have no landing page of their own — see [Adding a new framework](docs/adding-a-guide.md#adding-a-new-framework-optional) for the full walkthrough.
 
 ### 3. Translations
 
@@ -186,6 +207,8 @@ The site is available in English (default, no URL prefix), Spanish (`/es/`) and 
 - **Interface texts** (buttons, labels, 404 page...): `src/i18n/ui.ts`.
 
 - **Technology and topic names/descriptions:** the `Localized` fields of `src/data/languages.ts`.
+
+- **Framework names/descriptions:** the `Localized` fields of `src/data/frameworks.ts` (a framework's `name`, e.g. "Laravel", stays a plain, untranslated string since it's a proper noun).
 
 **Adding a new guide:** add the concept (with its `slug`) to `languages.ts`, then create the Markdown file in each language folder. Each file only needs a `title` in its frontmatter:
 

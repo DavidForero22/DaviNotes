@@ -1,9 +1,10 @@
 import { getCollection } from "astro:content";
 import { INSTALLATION_GUIDE_SLUG, type LanguageItem } from "../data/languages";
+import { frameworks } from "../data/frameworks";
 import { defaultLang, type Lang } from "../i18n/ui";
 import { pick, useTranslations } from "../i18n/utils";
 import { CELL_SEPARATOR } from "./search-shared";
-import { languageHref } from "./utils";
+import { getFrameworksForLanguage, languageHref } from "./utils";
 
 /**
  * A searchable part of a guide: the text under one heading, until the next heading.
@@ -96,16 +97,26 @@ function splitIntoSections(html: string) {
 
 /**
  * Builds the search index of one language (e.g. PHP) in the visitor's language.
- * It includes every lesson and the installation guide, falling back to English when a translation is missing.
+ * It includes every lesson, the installation guide, and every lesson of that language's
+ * frameworks (e.g. Laravel), falling back to English when a translation is missing.
  */
 export async function buildSearchIndex(item: LanguageItem, lang: Lang): Promise<SearchSection[]> {
 	const t = useTranslations(lang);
 	const docs = await getCollection("docs");
 
-	const pages = [
+	const languagePages = [
 		...item.concepts.map((concept) => ({ slug: concept.slug, title: pick(concept.title, lang) })),
 		{ slug: INSTALLATION_GUIDE_SLUG, title: t("index.installGuide") },
 	];
+
+	const frameworkPages = getFrameworksForLanguage(frameworks, item.slug).flatMap((framework) =>
+		framework.concepts.map((concept) => ({
+			slug: `${framework.slug}/${concept.slug}`,
+			title: `${framework.name} — ${pick(concept.title, lang)}`,
+		})),
+	);
+
+	const pages = [...languagePages, ...frameworkPages];
 
 	return pages.flatMap((page) => {
 		const id = `${item.slug}/${page.slug}`;

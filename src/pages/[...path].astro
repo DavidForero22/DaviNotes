@@ -2,33 +2,47 @@
 import { getCollection, render, type CollectionEntry } from "astro:content";
 import HomePage from "../components/HomePage.astro";
 import NextLesson from "../components/NextLesson.astro";
+import DiscoverFrameworks from "../components/DiscoverFrameworks.astro";
 import DocIndexLayout from "../layouts/DocIndexLayout.astro";
 import DocInfoLayout from "../layouts/DocInfoLayout.astro";
 import { INSTALLATION_GUIDE_SLUG, languages, type LanguageItem } from "../data/languages";
+import { frameworks } from "../data/frameworks";
 import { defaultLang, type Lang } from "../i18n/ui";
 import { langs, pick, useTranslations } from "../i18n/utils";
-import { getAllLanguageItems, languageHref } from "../utils/utils";
+import { getAllLanguageItems, getFrameworksForLanguage, languageHref } from "../utils/utils";
 
 /**
  * Generates every page of the site for every language from a single file:
  *
- *   /             /es/             /fr/              -> home
- *   /java         /es/java         /fr/java          -> language landing page
- *   /java/oop     /es/java/oop     /fr/java/oop      -> guide (Markdown)
+ *   /                    /es/                    /fr/                     -> home
+ *   /java                /es/java                /fr/java                 -> language landing page
+ *   /java/oop            /es/java/oop            /fr/java/oop             -> guide (Markdown)
+ *   /php/laravel/routing /es/php/laravel/routing /fr/php/laravel/routing  -> framework guide (Markdown)
  *
- * Guides are read from `src/content/docs/<lang>/<language>/<page>.md`.
- * When a translation does not exist yet, the English version is shown with a notice.
+ * Guides are read from `src/content/docs/<lang>/<language>/<page>.md`, and framework guides
+ * from `src/content/docs/<lang>/<language>/<framework>/<page>.md`. When a translation does not
+ * exist yet, the English version is shown with a notice.
  *
  * The learning path of each language follows the order of its `concepts` in `languages.ts`.
- * Every guide links to the next lesson of that path; the installation guide leads to the
- * first lesson, and the last lesson has no next one.
+ * Every guide links to the next lesson of that path; the installation guide leads to the first
+ * lesson, and the last lesson links to the language's frameworks instead, when it has any.
+ * Frameworks (`data/frameworks.ts`) have their own, separate learning path made of their own
+ * `concepts`; they have no installation guide and their last lesson has no next one.
  */
 type NextLessonLink = { href: string; title: string };
+type DiscoverFrameworksLink = { href: string; languageName: string };
 
 type Props =
 	| { kind: "home"; lang: Lang }
 	| { kind: "index"; lang: Lang; item: LanguageItem }
-	| { kind: "doc"; lang: Lang; entry: CollectionEntry<"docs">; untranslated: boolean; next?: NextLessonLink };
+	| {
+			kind: "doc";
+			lang: Lang;
+			entry: CollectionEntry<"docs">;
+			untranslated: boolean;
+			next?: NextLessonLink;
+			discoverFrameworks?: DiscoverFrameworksLink;
+	  };
 
 export async function getStaticPaths() {
 	const docs = await getCollection("docs");
@@ -46,6 +60,12 @@ export async function getStaticPaths() {
 				params: { path: `${prefix(lang)}${item.slug}` },
 				props: { kind: "index", lang, item } as const,
 			};
+
+			const itemFrameworks = getFrameworksForLanguage(frameworks, item.slug);
+			const discoverFrameworks: DiscoverFrameworksLink | undefined =
+				itemFrameworks.length > 0
+					? { href: `${languageHref(item, lang)}#frameworks`, languageName: item.title }
+					: undefined;
 
 			const slugs = [...item.concepts.map((concept) => concept.slug), INSTALLATION_GUIDE_SLUG];
 
@@ -67,13 +87,58 @@ export async function getStaticPaths() {
 				const entry = translated ?? findDoc(defaultLang, id);
 				if (!entry) return [];
 
+				const next = getNextLesson(slug);
+
 				return [{
 					params: { path: `${prefix(lang)}${id}` },
-					props: { kind: "doc", lang, entry, untranslated: !translated, next: getNextLesson(slug) } as const,
+					props: {
+						kind: "doc",
+						lang,
+						entry,
+						untranslated: !translated,
+						next,
+						discoverFrameworks: next ? undefined : discoverFrameworks,
+					} as const,
 				}];
 			});
 
-			return [index, ...guides];
+			/**
+			 * Each framework has its own learning path, built the same way as a language's:
+			 * ordered by its own `concepts`, with no installation guide and no next lesson
+			 * after the last one.
+			 */
+			const frameworkGuides = itemFrameworks.flatMap((framework) => {
+				const getNextFrameworkLesson = (slug: string): NextLessonLink | undefined => {
+					const position = framework.concepts.findIndex((concept) => concept.slug === slug);
+					const next = framework.concepts[position + 1];
+					if (!next) return undefined;
+
+					return {
+						href: languageHref(item, lang, `${framework.slug}/${next.slug}`),
+						title: pick(next.title, lang),
+					};
+				};
+
+				return framework.concepts.flatMap((concept) => {
+					const id = `${item.slug}/${framework.slug}/${concept.slug}`;
+					const translated = findDoc(lang, id);
+					const entry = translated ?? findDoc(defaultLang, id);
+					if (!entry) return [];
+
+					return [{
+						params: { path: `${prefix(lang)}${id}` },
+						props: {
+							kind: "doc",
+							lang,
+							entry,
+							untranslated: !translated,
+							next: getNextFrameworkLesson(concept.slug),
+						} as const,
+					}];
+				});
+			});
+
+			return [index, ...guides, ...frameworkGuides];
 		});
 
 		return [home, ...languagePages];
@@ -95,6 +160,15 @@ const Content = props.kind === "doc" ? (await render(props.entry)).Content : nul
 			{props.untranslated && <p class="untranslated-notice">{t("doc.untranslated")}</p>}
 			<Content />
 			{props.next && <NextLesson lang={props.lang} href={props.next.href} title={props.next.title} />}
+			{
+				!props.next && props.discoverFrameworks && (
+					<DiscoverFrameworks
+						lang={props.lang}
+						href={props.discoverFrameworks.href}
+						languageName={props.discoverFrameworks.languageName}
+					/>
+				)
+			}
 		</DocInfoLayout>
 	)
 }

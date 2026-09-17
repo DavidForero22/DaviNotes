@@ -1,4 +1,5 @@
 import type { Category, LanguageItem } from "../data/languages";
+import type { Framework } from "../data/frameworks";
 import type { Lang } from "../i18n/ui";
 import { localizePath } from "../i18n/utils";
 
@@ -52,6 +53,13 @@ export function getSortedCategories(data: Category[]): Category[] {
  */
 export function getAllLanguageItems(data: Category[]): LanguageItem[] {
 	return data.flatMap((category) => category.items);
+}
+
+/**
+ * Returns the frameworks that belong to a given language, e.g. Laravel for "php".
+ */
+export function getFrameworksForLanguage(frameworks: Framework[], languageSlug: string): Framework[] {
+	return frameworks.filter((framework) => framework.language === languageSlug);
 }
 
 /**

@@ -1,5 +1,6 @@
 ---
 import { INSTALLATION_GUIDE_SLUG, languages } from "../data/languages";
+import { frameworks } from "../data/frameworks";
 import type { Lang } from "../i18n/ui";
 import { localizePath, pick, stripLang, useTranslations } from "../i18n/utils";
 import { getAllLanguageItems } from "../utils/utils";
@@ -18,18 +19,29 @@ const cleanPath = stripLang(Astro.url.pathname).replace(/\/$/, "");
 const segments = cleanPath.split("/").filter(Boolean);
 
 /**
- * Finds a readable, translated label for a path segment using `languages.ts`.
+ * Finds a readable, translated label for a path segment using `languages.ts` and `frameworks.ts`.
  * Unknown segments fall back to converting hyphens into spaces and capitalizing each word.
  */
 const allItems = getAllLanguageItems(languages);
+const item = allItems.find((entry) => entry.slug === segments[0]);
+
+/**
+ * A framework has no landing page of its own (see `frameworks.ts`), so its breadcrumb segment
+ * (index 1, e.g. "laravel" in /php/laravel/routing) is only ever the middle of a 3-segment path.
+ */
+const framework =
+    item && segments.length >= 2
+        ? frameworks.find((entry) => entry.language === item.slug && entry.slug === segments[1])
+        : undefined;
 
 const getLabel = (segment: string, index: number) => {
-	const item = allItems.find((entry) => entry.slug === segments[0]);
-
 	if (index === 0 && item) return item.title;
+	if (index === 1 && framework) return framework.name;
 	if (segment === INSTALLATION_GUIDE_SLUG) return t("index.installGuide");
 
-	const concept = item?.concepts.find((entry) => entry.slug === segment);
+	const concept = framework
+		? framework.concepts.find((entry) => entry.slug === segment)
+		: item?.concepts.find((entry) => entry.slug === segment);
 	if (concept) return pick(concept.title, lang);
 
 	return segment
@@ -39,9 +51,14 @@ const getLabel = (segment: string, index: number) => {
 
 /**
  * Transforms the path segments into an array of breadcrumb objects containing a label and a localized URL.
+ * The framework segment has no page of its own, so it links back to the "Frameworks" section of
+ * its language's landing page instead of a 404.
  */
 const breadcrumbs = segments.map((segment, index) => {
-    const href = localizePath("/" + segments.slice(0, index + 1).join("/"), lang);
+    const href =
+        index === 1 && framework
+            ? `${localizePath("/" + segments.slice(0, 1).join("/"), lang)}#frameworks`
+            : localizePath("/" + segments.slice(0, index + 1).join("/"), lang);
     return { label: getLabel(segment, index), href };
 });
 ---
