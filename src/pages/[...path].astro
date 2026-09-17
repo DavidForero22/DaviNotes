@@ -1,8 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from "astro:content";
 import HomePage from "../components/HomePage.astro";
-import NextLesson from "../components/NextLesson.astro";
-import DiscoverFrameworks from "../components/DiscoverFrameworks.astro";
+import LessonNav from "../components/LessonNav.astro";
 import DocIndexLayout from "../layouts/DocIndexLayout.astro";
 import DocInfoLayout from "../layouts/DocInfoLayout.astro";
 import { INSTALLATION_GUIDE_SLUG, languages, type LanguageItem } from "../data/languages";
@@ -24,12 +23,14 @@ import { getAllLanguageItems, getFrameworksForLanguage, languageHref } from "../
  * exist yet, the English version is shown with a notice.
  *
  * The learning path of each language follows the order of its `concepts` in `languages.ts`.
- * Every guide links to the next lesson of that path; the installation guide leads to the first
- * lesson, and the last lesson links to the language's frameworks instead, when it has any.
+ * Every guide links to the previous and next lesson of that path; the installation guide is
+ * the first page (no previous lesson) and leads to the first concept, and the last concept
+ * links to the language's frameworks instead of a next lesson, when it has any.
  * Frameworks (`data/frameworks.ts`) have their own, separate learning path made of their own
- * `concepts`; they have no installation guide and their last lesson has no next one.
+ * `concepts`; they have no installation guide, so their first concept has no previous lesson,
+ * and their last concept has no next one.
  */
-type NextLessonLink = { href: string; title: string };
+type LessonLink = { href: string; title: string };
 type DiscoverFrameworksLink = { href: string; languageName: string };
 
 type Props =
@@ -40,7 +41,8 @@ type Props =
 			lang: Lang;
 			entry: CollectionEntry<"docs">;
 			untranslated: boolean;
-			next?: NextLessonLink;
+			previous?: LessonLink;
+			next?: LessonLink;
 			discoverFrameworks?: DiscoverFrameworksLink;
 	  };
 
@@ -54,6 +56,8 @@ export async function getStaticPaths() {
 			params: { path: lang === defaultLang ? undefined : lang },
 			props: { kind: "home", lang } as const,
 		};
+
+		const t = useTranslations(lang);
 
 		const languagePages = getAllLanguageItems(languages).flatMap((item) => {
 			const index = {
@@ -70,10 +74,23 @@ export async function getStaticPaths() {
 			const slugs = [...item.concepts.map((concept) => concept.slug), INSTALLATION_GUIDE_SLUG];
 
 			/**
-			 * Returns the lesson that comes after the given page in the learning path.
-			 * The installation guide is not part of the path, so it points to the first lesson.
+			 * Returns the lesson that comes before/after the given page in the learning path.
+			 * The installation guide is not part of the path: it has no previous lesson, and
+			 * points forward to the first concept; the first concept points back to it.
 			 */
-			const getNextLesson = (slug: string): NextLessonLink | undefined => {
+			const getPreviousLesson = (slug: string): LessonLink | undefined => {
+				if (slug === INSTALLATION_GUIDE_SLUG) return undefined;
+
+				const position = item.concepts.findIndex((concept) => concept.slug === slug);
+				if (position === 0) {
+					return { href: languageHref(item, lang, INSTALLATION_GUIDE_SLUG), title: t("index.installGuide") };
+				}
+
+				const previous = item.concepts[position - 1];
+				return { href: languageHref(item, lang, previous.slug), title: pick(previous.title, lang) };
+			};
+
+			const getNextLesson = (slug: string): LessonLink | undefined => {
 				const position = item.concepts.findIndex((concept) => concept.slug === slug);
 				const next = slug === INSTALLATION_GUIDE_SLUG ? item.concepts[0] : item.concepts[position + 1];
 				if (!next) return undefined;
@@ -96,6 +113,7 @@ export async function getStaticPaths() {
 						lang,
 						entry,
 						untranslated: !translated,
+						previous: getPreviousLesson(slug),
 						next,
 						discoverFrameworks: next ? undefined : discoverFrameworks,
 					} as const,
@@ -104,18 +122,18 @@ export async function getStaticPaths() {
 
 			/**
 			 * Each framework has its own learning path, built the same way as a language's:
-			 * ordered by its own `concepts`, with no installation guide and no next lesson
-			 * after the last one.
+			 * ordered by its own `concepts`, with no installation guide, so the first concept
+			 * has no previous lesson and the last one has no next lesson.
 			 */
 			const frameworkGuides = itemFrameworks.flatMap((framework) => {
-				const getNextFrameworkLesson = (slug: string): NextLessonLink | undefined => {
+				const getFrameworkLesson = (slug: string, offset: 1 | -1): LessonLink | undefined => {
 					const position = framework.concepts.findIndex((concept) => concept.slug === slug);
-					const next = framework.concepts[position + 1];
-					if (!next) return undefined;
+					const target = framework.concepts[position + offset];
+					if (!target) return undefined;
 
 					return {
-						href: languageHref(item, lang, `${framework.slug}/${next.slug}`),
-						title: pick(next.title, lang),
+						href: languageHref(item, lang, `${framework.slug}/${target.slug}`),
+						title: pick(target.title, lang),
 					};
 				};
 
@@ -132,7 +150,8 @@ export async function getStaticPaths() {
 							lang,
 							entry,
 							untranslated: !translated,
-							next: getNextFrameworkLesson(concept.slug),
+							previous: getFrameworkLesson(concept.slug, -1),
+							next: getFrameworkLesson(concept.slug, 1),
 						} as const,
 					}];
 				});
@@ -159,16 +178,12 @@ const Content = props.kind === "doc" ? (await render(props.entry)).Content : nul
 		<DocInfoLayout title={props.entry.data.title} lang={props.lang}>
 			{props.untranslated && <p class="untranslated-notice">{t("doc.untranslated")}</p>}
 			<Content />
-			{props.next && <NextLesson lang={props.lang} href={props.next.href} title={props.next.title} />}
-			{
-				!props.next && props.discoverFrameworks && (
-					<DiscoverFrameworks
-						lang={props.lang}
-						href={props.discoverFrameworks.href}
-						languageName={props.discoverFrameworks.languageName}
-					/>
-				)
-			}
+			<LessonNav
+				lang={props.lang}
+				previous={props.previous}
+				next={props.next}
+				discoverFrameworks={props.discoverFrameworks}
+			/>
 		</DocInfoLayout>
 	)
 }

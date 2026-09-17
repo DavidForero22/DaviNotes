@@ -263,3 +263,76 @@ const itemFrameworks = getFrameworksForLanguage(frameworks, item.slug);
 		background-color: var(--themeColorDark);
 	}
 </style>
+
+<script>
+	/**
+	 * Animates the open/close of each `<details class="framework-item">` row, since native
+	 * `<details>` toggling has no transition of its own. Intercepts the click on `<summary>`,
+	 * runs a height animation with the Web Animations API, and only flips the `open` attribute
+	 * once it finishes (closing) or right before it starts (opening), so CSS driven by `[open]`
+	 * (border color, chevron rotation) stays in sync with what is visually happening.
+	 */
+	function setupFrameworkAccordions() {
+		document.querySelectorAll<HTMLDetailsElement>(".framework-item").forEach((details) => {
+			if (details.dataset.animated) return;
+			details.dataset.animated = "true";
+
+			const summary = details.querySelector("summary");
+			const content = details.querySelector<HTMLElement>(".framework-concepts");
+			if (!summary || !content) return;
+
+			let animation: Animation | null = null;
+			let isClosing = false;
+			let isExpanding = false;
+
+			summary.addEventListener("click", (event) => {
+				event.preventDefault();
+				details.style.overflow = "hidden";
+
+				if (isClosing || !details.open) {
+					open();
+				} else if (isExpanding || details.open) {
+					shrink();
+				}
+			});
+
+			function shrink() {
+				isClosing = true;
+				const startHeight = `${details.offsetHeight}px`;
+				const endHeight = `${summary!.offsetHeight}px`;
+
+				animation?.cancel();
+				animation = details.animate({ height: [startHeight, endHeight] }, { duration: 250, easing: "ease-out" });
+				animation.onfinish = () => onAnimationFinish(false);
+				animation.oncancel = () => (isClosing = false);
+			}
+
+			function open() {
+				details.style.height = `${details.offsetHeight}px`;
+				details.open = true;
+				requestAnimationFrame(expand);
+			}
+
+			function expand() {
+				isExpanding = true;
+				const startHeight = `${details.offsetHeight}px`;
+				const endHeight = `${summary!.offsetHeight + content!.offsetHeight}px`;
+
+				animation?.cancel();
+				animation = details.animate({ height: [startHeight, endHeight] }, { duration: 250, easing: "ease-out" });
+				animation.onfinish = () => onAnimationFinish(true);
+				animation.oncancel = () => (isExpanding = false);
+			}
+
+			function onAnimationFinish(isOpen: boolean) {
+				details.open = isOpen;
+				animation = null;
+				isClosing = false;
+				isExpanding = false;
+				details.style.height = details.style.overflow = "";
+			}
+		});
+	}
+
+	document.addEventListener("astro:page-load", setupFrameworkAccordions);
+</script>

@@ -1,0 +1,157 @@
+---
+import type { Lang } from "../i18n/ui";
+import { useTranslations } from "../i18n/utils";
+
+/**
+ * Navigation row shown at the bottom of a guide, with a "previous lesson" link on the left
+ * and, on the right, either a "next lesson" link or — on a language's very last guide, when
+ * that language has at least one framework — a "discover frameworks" prompt instead.
+ */
+interface Props {
+	lang: Lang;
+	previous?: { href: string; title: string };
+	next?: { href: string; title: string };
+	discoverFrameworks?: { href: string; languageName: string };
+}
+
+const { lang, previous, next, discoverFrameworks } = Astro.props;
+const t = useTranslations(lang);
+---
+
+{
+	(previous || next || discoverFrameworks) && (
+		<nav class="lesson-nav">
+			{previous && (
+				<a class="lesson-link prev" href={previous.href} title={t("doc.previousLessonTitle", { lesson: previous.title })}>
+					<span class="arrow">&larr;</span>
+					<span class="text">
+						<span class="label">{t("doc.previousLesson")}</span>
+						<span class="lesson">{previous.title}</span>
+					</span>
+				</a>
+			)}
+
+			{next ? (
+				<a class="lesson-link next" href={next.href} title={t("doc.nextLessonTitle", { lesson: next.title })}>
+					<span class="text">
+						<span class="label">{t("doc.nextLesson")}</span>
+						<span class="lesson">{next.title}</span>
+					</span>
+					<span class="arrow">&rarr;</span>
+				</a>
+			) : (
+				discoverFrameworks && (
+					<a
+						class="lesson-link next"
+						href={discoverFrameworks.href}
+						title={t("doc.discoverFrameworksTitle", { lang: discoverFrameworks.languageName })}
+					>
+						<span class="text">
+							<span class="label">{t("doc.discoverFrameworks")}</span>
+							<span class="lesson">{t("doc.discoverFrameworksCta", { lang: discoverFrameworks.languageName })}</span>
+						</span>
+						<span class="arrow">&rarr;</span>
+					</a>
+				)
+			)}
+		</nav>
+	)
+}
+
+<style>
+	.lesson-nav {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		margin-top: 4rem;
+		padding-top: 2rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.lesson-link {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		min-width: 0;
+		padding: 1rem 1.5rem;
+		background: #1e2127;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 8px;
+		text-decoration: none;
+		transition: transform 0.2s, border-color 0.2s;
+	}
+
+	.lesson-link:hover {
+		transform: translateY(-3px);
+		border-color: #a78bfa;
+	}
+
+	.lesson-link.prev {
+		grid-column: 1;
+		justify-self: start;
+	}
+
+	.lesson-link.next {
+		grid-column: 2;
+		justify-self: end;
+		margin-left: auto;
+	}
+
+	.text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		min-width: 0;
+	}
+
+	.lesson-link.prev .text {
+		align-items: flex-start;
+	}
+
+	.lesson-link.next .text {
+		align-items: flex-end;
+	}
+
+	.label {
+		color: #888;
+		font-size: 0.85rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.lesson {
+		color: white;
+		font-size: 1.1rem;
+		font-weight: bold;
+	}
+
+	.arrow {
+		flex-shrink: 0;
+		color: #a78bfa;
+		transition: margin 0.2s;
+	}
+
+	.lesson-link.prev:hover .arrow {
+		margin-right: 0.25rem;
+	}
+
+	.lesson-link.next:hover .arrow {
+		margin-left: 0.25rem;
+	}
+
+	@media (max-width: 600px) {
+		.lesson-nav {
+			grid-template-columns: 1fr;
+		}
+
+		.lesson-link.prev,
+		.lesson-link.next {
+			grid-column: 1;
+			justify-self: stretch;
+		}
+
+		.lesson-link.next {
+			margin-left: 0;
+		}
+	}
+</style>
