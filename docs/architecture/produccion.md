@@ -1,0 +1,53 @@
+# Paso a producción · checklist
+
+Estado: **no se aplica todavía.** Mientras el proyecto esté en desarrollo, todo es local (decisión D1 del [roadmap](./roadmap.md)).
+Este documento recoge lo que hay que cambiar el día que se elija dominio y hosting, y quién lo hace.
+Cada agente añade aquí cualquier ajuste que detecte y que solo tenga sentido en producción.
+
+## 0. Decisiones previas del usuario
+- [ ] Dominio de producción (p. ej. `https://…`) → se usará como `site`.
+- [ ] Hosting para Node (`@astrojs/node` en modo `standalone`): VPS, Render, Railway, Fly.io… Si se elige una plataforma con adaptador propio (Vercel, Netlify, Cloudflare), Backend cambia el adaptador.
+- [ ] Proyecto Supabase remoto (región y plan).
+- [ ] ¿Se mantiene el registro sin confirmación de email (D3) en producción?
+
+## 1. Configuración de Astro (Backend + SEO, un solo commit en `astro.config.mjs`)
+- [ ] Añadir `site: "https://<dominio>"`.
+- [ ] Instalar `@astrojs/sitemap` y excluir `/api/**` y las rutas privadas de `learn` (dashboard, ejercicios, auth).
+- [ ] Revisar `trailingSlash` y `build.format` para que los canonical coincidan con las URLs servidas.
+
+## 2. SEO técnico (SEO/A11y)
+- [ ] `src/pages/robots.txt.ts` con la URL absoluta del sitemap y `Disallow: /api/`.
+- [ ] Canonical absoluto en cada página (desde `BaseHead.astro`, tarea de la Fase D).
+- [ ] `hreflang` absolutos: hoy `AlternateLinks.astro` genera rutas relativas (`/es/java/`) y Google exige URLs absolutas.
+- [ ] Open Graph y Twitter Cards (`og:url`, `og:title`, `og:description`, `og:image`, `og:locale` + `og:locale:alternate`).
+- [ ] Imagen social por defecto (1200×630) en `public/`.
+- [ ] Quitar el `noindex` de la portada `/learn` si pasa a ser una landing pública. Las páginas privadas (dashboard, ejercicios) mantienen `noindex`.
+- [ ] Dar de alta el dominio en Google Search Console y enviar el sitemap.
+
+## 3. Supabase (Backend)
+- [ ] Crear el proyecto remoto y enlazarlo: `npx supabase link --project-ref <ref>`.
+- [ ] Aplicar las migraciones: `npx supabase db push`. **No** ejecutar el seed de desarrollo en producción.
+- [ ] Ejecutar el script de ejercicios del usuario (D4) contra la base remota.
+- [ ] Auth → URL Configuration: `Site URL` = dominio y `Redirect URLs` para login/logout (en local lo define `supabase/config.toml` con `http://127.0.0.1`).
+- [ ] Si se activa la confirmación de email: SMTP propio (el SMTP integrado de Supabase tiene un límite muy bajo) y plantillas de email en en/es/fr.
+- [ ] Revisar las políticas RLS con el Security Advisor de Supabase; comprobar que ninguna columna de monedas, XP o nivel se puede escribir desde el cliente (T11).
+- [ ] Copias de seguridad automáticas y, si el plan lo permite, PITR.
+- [ ] Revisar el rate limiting de Auth (registro y login).
+
+## 4. Variables de entorno y secretos (Backend)
+- [ ] `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY` con los valores del proyecto remoto, en el panel del hosting (nunca en el repo).
+- [ ] Si algún día hace falta `SUPABASE_SERVICE_ROLE_KEY`: sin prefijo `PUBLIC_`, solo se lee en `src/lib/server/` y nunca llega al cliente (T9).
+- [ ] `HOST` y `PORT` del servidor Node standalone (`node ./dist/server/entry.mjs`).
+
+## 5. Servidor y seguridad (Backend)
+- [ ] HTTPS obligatorio y redirección de `http` y de `www`/sin `www` al dominio canónico.
+- [ ] Cookies de sesión con `Secure`, `HttpOnly` y `SameSite=Lax` (revisar las opciones de `@supabase/ssr`).
+- [ ] Cabeceras de seguridad: `Content-Security-Policy` (permitiendo el dominio de Supabase en `connect-src`), `Strict-Transport-Security`, `X-Content-Type-Options`, `Referrer-Policy`.
+- [ ] Caché larga para `/_astro/*` (los nombres llevan hash) y corta para el HTML.
+- [ ] Protección CSRF en los `POST` de `/api/**` (comprobar `Origin` o usar la opción `security.checkOrigin` de Astro).
+
+## 6. Calidad y despliegue continuo (PM)
+- [ ] Pipeline de CI: `npm ci`, `npm run typecheck`, `npm run check:content`, `npm run build`.
+- [ ] Hacer el merge de `renovacion` en `master` y desplegar desde `master`.
+- [ ] Monitorización de errores del servidor y de la disponibilidad.
+- [ ] Pasada final de accesibilidad (Lighthouse/axe) sobre el dominio real.

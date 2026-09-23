@@ -1,5 +1,7 @@
 # Fase A: base técnica y layout de dos modos
 
+> **Estado: cerrada** (merge final en `renovacion`, `5b08dcb`). Progreso global en [`roadmap.md`](./roadmap.md).
+
 Objetivo: dejar lista la infraestructura (Vue, adaptador Node, Supabase local) y el layout
 que diferencia el modo **Documentación** del modo **Aprender**. La fase no incluye lógica de
 ejercicios, ruleta, autenticación ni datos reales (eso son las fases B y C).

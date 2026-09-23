@@ -12,11 +12,19 @@ Eres el gestor de internacionalización y estructura de contenido. El proyecto a
 - Typescript
 - Sistema de colecciones y locales de Astro (`src/i18n`)
 
+## Estado (revisión 2026-09-23)
+Namespace `learn` creado en la Fase A (`learn.*`, `learn.suggest.*`) y claves comunes `mode.*` y `a11y.skipToContent`. Contenido de los docs completo: 43 `.md` por idioma. El contenido de los ejercicios vive en la BD por idioma (T3) y lo escribe el usuario con su propio script (D4); tú validas los slugs. Diccionarios en TS con `satisfies` (no JSON).
+
 ## Tareas Pendientes [ ]
-- [ ] Refactorizar `languages.ts` para extraer todos los campos `Localized` (títulos, descripciones) a archivos JSON o TS en `src/i18n/locales/`.
-- [ ] Diseñar el modelo de datos estático inicial para las "Categorías de Ejercicios" y "Contextos Temáticos" para que Vue pueda consumirlos según el idioma seleccionado.
-- [ ] Crear el diccionario de traducciones de la interfaz de DaviLearn (Ej: "Girar Ruleta", "Desbloquear pista (5 monedas)", "¡Resuelto!").
-- [ ] Validar que los slugs de conceptos sigan coincidiendo perfectamente con la base de datos de ejercicios del backend.
+- [ ] **B8** Claves `learn.exercise.*`, `learn.hint.*` (con `{coins}`) y `learn.result.*` en en/es/fr, a partir de las que defina UI para `InterfazEjercicio`.
+- [ ] **B9** `scripts/check-content.ts` + `npm run check:content` (pide a Backend la entrada en `package.json`, T8): cada concepto de `data/` con su `.md` en los 3 idiomas, sin huérfanos; y comprobar que los `languageSlug`/`conceptSlug` de los ejercicios existen en el catálogo (T4).
+- [ ] Diseñar con Backend las "Categorías de Ejercicios" y los "Contextos Temáticos" (valores permitidos y sus traducciones).
+- [ ] **Fase C** Claves de auth, perfil, ruleta y logros.
+- [ ] **Fase D** Claves para `description` por página.
+- [ ] **Fase D** Refactorizar `data/languages.ts` y `data/frameworks.ts`: extraer los campos `Localized` a `locales/*/catalog.ts` con claves derivadas del slug.
 
 ## Tareas Completadas [x]
-- [x] (Vacío al inicio)
+- [x] Fase 0: `src/i18n/config.ts`, `locales/{en,es,fr}/{common,docs,index}.ts`, `README.md`; API pública sin cambios.
+- [x] Tipado estricto: `en` como referencia y `es`/`fr` con `satisfies`.
+- [x] Verificación de la cobertura: 43/43/43 `.md` y slugs coherentes con `data/`.
+- [x] Fase A: namespace `learn` (`locales/*/learn.ts`), `mode.*`, `a11y.skipToContent` y `learn.suggest.*`.
