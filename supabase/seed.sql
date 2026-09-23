@@ -1,0 +1,2 @@
+-- Sample data for local development, loaded by `supabase db reset`.
+-- Empty until the schema migrations exist.

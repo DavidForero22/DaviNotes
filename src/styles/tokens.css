@@ -1,0 +1,13 @@
+/* ================================
+   Design Tokens
+   Colors and theme values shared by every part of the site
+   (documentation and, later, the learning area). Import this
+   file first: global.css already does.
+   ================================ */
+:root {
+	--accent: 136, 58, 234;
+	--accent-light: 224, 204, 250;
+	--dark-bg: #13151a;
+	--card-bg: #23262d;
+	--text-color: #ffffff;
+}

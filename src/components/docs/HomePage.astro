@@ -1,13 +1,13 @@
 ---
-import HomeLayout from "../layouts/HomeLayout.astro";
-import LanguageCard from "./LanguageCard.astro";
-import LanguagePicker from "./LanguagePicker.astro";
-import "../styles/global.css";
-import { languages } from "../data/languages";
-import type { Lang } from "../i18n/ui";
-import { pick, useTranslations } from "../i18n/utils";
-import { getSortedCategories, languageHref } from "../utils/utils";
-import HelpModal from "./HelpModal.astro";
+import HomeLayout from "@/layouts/home/HomeLayout.astro";
+import LanguageCard from "@/components/docs/LanguageCard.astro";
+import LanguagePicker from "@/components/shared/LanguagePicker.astro";
+import "@/styles/global.css";
+import { languages } from "@/data/languages";
+import type { Lang } from "@/i18n/ui";
+import { pick, useTranslations } from "@/i18n/utils";
+import { getSortedCategories, languageHref } from "@/utils/utils";
+import HelpModal from "@/components/shared/HelpModal.astro";
 
 interface Props {
 	lang: Lang;

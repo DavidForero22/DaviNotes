@@ -1,13 +1,4 @@
-/* ================================
-   CSS Variables & Theme Colors
-   ================================ */
-:root {
-	--accent: 136, 58, 234;
-	--accent-light: 224, 204, 250;
-	--dark-bg: #13151a;
-	--card-bg: #23262d;
-	--text-color: #ffffff;
-}
+@import "./tokens.css";
 
 /* ================================
    Base Document & Layout

@@ -1,8 +1,8 @@
 ---
-import type { LanguageItem } from "../data/languages";
-import type { Lang } from "../i18n/ui";
-import { useTranslations } from "../i18n/utils";
-import { buildSearchIndex } from "../utils/search";
+import type { LanguageItem } from "@/data/languages";
+import type { Lang } from "@/i18n/ui";
+import { useTranslations } from "@/i18n/utils";
+import { buildSearchIndex } from "@/utils/search";
 
 /**
  * Keyword search limited to the guides of one language (e.g. only PHP).
@@ -92,7 +92,7 @@ const indexJson = JSON.stringify(index).replace(/</g, "\\u003c");
 </div>
 
 <script>
-	import { CELL_SEPARATOR } from "../utils/search-shared";
+	import { CELL_SEPARATOR } from "@/utils/search-shared";
 
 	type SearchSection = {
 		page: string;

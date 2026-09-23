@@ -1,18 +1,18 @@
 ---
 import { ClientRouter } from "astro:transitions";
-import SideBar from "../components/SideBar.astro";
-import ScrollToTop from "../components/ScrollToTop.astro";
-import Breadcrumbs from "../components/Breadcrumbs.astro";
-import Footer from "../components/Footer.astro";
+import SideBar from "@/components/docs/SideBar.astro";
+import ScrollToTop from "@/components/shared/ScrollToTop.astro";
+import Breadcrumbs from "@/components/docs/Breadcrumbs.astro";
+import Footer from "@/components/shared/Footer.astro";
 
-import LanguagePicker from "../components/LanguagePicker.astro";
-import AlternateLinks from "../components/AlternateLinks.astro";
-import "../styles/global.css";
-import "../styles/doc-layout.css";
-import { languages } from "../data/languages";
-import type { Lang } from "../i18n/ui";
-import { useTranslations } from "../i18n/utils";
-import HelpModal from "../components/HelpModal.astro";
+import LanguagePicker from "@/components/shared/LanguagePicker.astro";
+import AlternateLinks from "@/components/shared/AlternateLinks.astro";
+import "@/styles/global.css";
+import "@/styles/docs.css";
+import { languages } from "@/data/languages";
+import type { Lang } from "@/i18n/ui";
+import { useTranslations } from "@/i18n/utils";
+import HelpModal from "@/components/shared/HelpModal.astro";
 
 interface Props {
   title: string;

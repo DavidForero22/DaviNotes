@@ -1,14 +1,14 @@
 ---
 import { getCollection, render, type CollectionEntry } from "astro:content";
-import HomePage from "../components/HomePage.astro";
-import LessonNav from "../components/LessonNav.astro";
-import DocIndexLayout from "../layouts/DocIndexLayout.astro";
-import DocInfoLayout from "../layouts/DocInfoLayout.astro";
-import { INSTALLATION_GUIDE_SLUG, languages, type LanguageItem } from "../data/languages";
-import { frameworks } from "../data/frameworks";
-import { defaultLang, type Lang } from "../i18n/ui";
-import { langs, pick, useTranslations } from "../i18n/utils";
-import { getAllLanguageItems, getFrameworksForLanguage, languageHref } from "../utils/utils";
+import HomePage from "@/components/docs/HomePage.astro";
+import LessonNav from "@/components/docs/LessonNav.astro";
+import DocIndexLayout from "@/layouts/docs/DocIndexLayout.astro";
+import DocInfoLayout from "@/layouts/docs/DocInfoLayout.astro";
+import { INSTALLATION_GUIDE_SLUG, languages, type LanguageItem } from "@/data/languages";
+import { frameworks } from "@/data/frameworks";
+import { defaultLang, type Lang } from "@/i18n/ui";
+import { langs, pick, useTranslations } from "@/i18n/utils";
+import { getAllLanguageItems, getFrameworksForLanguage, languageHref } from "@/utils/utils";
 
 /**
  * Generates every page of the site for every language from a single file:

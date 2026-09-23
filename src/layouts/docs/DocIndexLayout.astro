@@ -1,13 +1,13 @@
 ---
 import DocsLayout from "./DocInfoLayout.astro";
-import InfoBox from "../components/InfoBox.astro";
-import DocSearch from "../components/DocSearch.astro";
-import DifficultyBadge from "../components/DifficultyBadge.astro";
-import { INSTALLATION_GUIDE_SLUG, type LanguageItem } from "../data/languages";
-import { frameworks } from "../data/frameworks";
-import type { Lang } from "../i18n/ui";
-import { pick, useTranslations } from "../i18n/utils";
-import { getFrameworksForLanguage, getTextColorForBackground, languageHref } from "../utils/utils";
+import InfoBox from "@/components/shared/InfoBox.astro";
+import DocSearch from "@/components/docs/DocSearch.astro";
+import DifficultyBadge from "@/components/shared/DifficultyBadge.astro";
+import { INSTALLATION_GUIDE_SLUG, type LanguageItem } from "@/data/languages";
+import { frameworks } from "@/data/frameworks";
+import type { Lang } from "@/i18n/ui";
+import { pick, useTranslations } from "@/i18n/utils";
+import { getFrameworksForLanguage, getTextColorForBackground, languageHref } from "@/utils/utils";
 
 /**
  * Defines the essential configuration properties required to render the landing page.
