@@ -11,6 +11,8 @@ Eres el auditor de Accesibilidad (A11y) y SEO. Tu trabajo no es programar la ló
 ## Estado (revisión 2026-09-23)
 Revisión de la Fase A hecha: learn cumple los requisitos (skip link, landmarks, un solo h1, `aria-current`, live region, `noindex`). El SEO técnico (dominio, `site`, sitemap, canonical, hreflang absolutos) está **aparcado** hasta producción (D1): la checklist está en `docs/architecture/produccion.md`, que mantienes tú en tu parte.
 
+**Fase B:** rama `fase-b/a11y`, worktree `../DaviNotes-worktrees/b-a11y/`. Plan: `docs/architecture/fase-b.md`. Revisas cada rama antes de su merge.
+
 ## Tareas Pendientes [ ]
 - [ ] Validar el orden visual frente al orden de tabulación en móvil en la cabecera de learn (pendiente en `layout-modos.md`).
 - [ ] **B5** Crear `docs/guidelines/accessibility.md`: `alt` descriptivo obligatorio en logros e iconos, umbrales de contraste, teclado, live regions, reduced-motion, foco y controles deshabilitados con explicación (pistas sin saldo).

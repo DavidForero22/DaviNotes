@@ -15,6 +15,8 @@ Eres el Arquitecto de Backend encargado de transformar un proyecto estático en 
 ## Estado (revisión 2026-09-23)
 Fase A cerrada en `renovacion`: dependencias, adaptador Node, `supabase/config.toml`, esqueleto de `middleware.ts`, `lib/server/supabase.ts` y `env.d.ts`. Siguen sin existir migraciones y endpoints. Las reglas de progresión están **cerradas** (roadmap §4) y la tabla `exercises` empieza **vacía** (D4). Desarrollo solo local (D1); lo que solo aplica a producción se anota en `docs/architecture/produccion.md`.
 
+**Fase B:** rama `fase-b/db`, worktree `../DaviNotes-worktrees/b-db/`. Plan y orden de merge: `docs/architecture/fase-b.md`.
+
 ## Tareas Pendientes [ ]
 - [ ] **B1** Migración inicial (`profiles`, `exercises`, `exercise_translations`, `hints`, `hint_translations`, `attempts`, `hint_unlocks`, `achievements`, `user_achievements`) con RLS, trigger que crea el perfil al registrarse y RPC `submit_result`/`unlock_hint` según el roadmap §4. `difficulty smallint CHECK 1-10` (T5); las monedas, la XP y el nivel solo cambian vía RPC (T11). Necesita Docker (`npx supabase start`).
 - [ ] **B2** `npx supabase gen types` → `src/types/database.ts`; DTOs en `src/types/api.ts` (contrato v2, roadmap §5).

@@ -21,15 +21,12 @@ Cuando el usuario interactúe contigo, debes:
 3. Generar un prompt exacto que el usuario pueda copiar y pegar en el chat del agente especialista que deba ejecutar la tarea.
 
 ## Estado (revisión 2026-09-23)
-Fuente de verdad del progreso global: `docs/architecture/roadmap.md`. Rama de integración: `renovacion` (worktree `../DaviNotes-worktrees/renovacion/`). Fase A cerrada; **siguiente sprint: Fase B · Esquema y ejercicios**. Desarrollo solo local (D1).
+Fuente de verdad del progreso global: `docs/architecture/roadmap.md`. Rama de integración: `renovacion` (worktree `../DaviNotes-worktrees/renovacion/`). Fase A cerrada; **sprint actual: Fase B · Esquema y ejercicios** (`docs/architecture/fase-b.md`). Desarrollo solo local (D1).
 
 ## Tareas Pendientes [ ]
-- [ ] Avisar al usuario para que instale Docker Desktop antes de que Backend empiece B1 (D5).
-- [ ] Abrir la Fase B: crear las ramas `fase-b/*` con sus worktrees y dar a cada agente su prompt.
 - [ ] Validar con UI e i18n el contrato de ejercicios v2 (roadmap §5) antes de que Backend lo congele en `src/types/api.ts`.
 - [ ] Supervisar el traspaso de los endpoints de Backend a UI (B3 → B7, y en la Fase C).
 - [ ] Pedir a SEO la validación pendiente del orden visual frente al orden de tabulación en móvil (Fase A).
-- [ ] Proponer el borrado de las ramas `fase-a/*` y sus worktrees (ya integradas).
 - [ ] Mantener `docs/architecture/produccion.md` al día con lo que vayan detectando los agentes.
 - [ ] Consolidar el progreso en el roadmap al cerrar cada sprint.
 
@@ -40,3 +37,5 @@ Fuente de verdad del progreso global: `docs/architecture/roadmap.md`. Rama de in
 - [x] Decisiones del usuario D1-D5 registradas; reglas de progresión cerradas (roadmap §4).
 - [x] Contrato de ejercicios v2 redactado (roadmap §5).
 - [x] Checklist de paso a producción en `docs/architecture/produccion.md`.
+- [x] Fase A archivada: ramas `fase-a/*` borradas; Docker confirmado (v29.7).
+- [x] Fase B abierta: plan en `docs/architecture/fase-b.md`, ramas `fase-b/*` y worktrees `b-*` creados; `master` y `renovacion` publicadas en GitHub.
