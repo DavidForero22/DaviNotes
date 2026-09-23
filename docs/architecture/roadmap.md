@@ -14,10 +14,10 @@ Leyenda: ✅ hecho · 🟡 parcial · ⏳ pendiente · ⛔ bloqueado
 
 | Área | Estado | Evidencia (rama `renovacion`) |
 |------|--------|-------------------------------|
-| Build | ✅ | `npm run build` → 166 páginas (163 de docs + 3 de learn); `npm run typecheck` OK |
+| Build | ✅ | `renovacion`: 166 páginas (163 docs + 3 learn). `fase-b/ui-exercise`: 169 (+3 de demo). `typecheck` OK en todas las ramas |
 | DaviNotes (docs) | ✅ Funcional; solo cambia el `ModeSwitch` en la cabecera | 43 `.md` por idioma (en/es/fr), sin huecos |
 | Infraestructura | ✅ Vue, `@astrojs/node` con `output: 'static'`, Supabase SDK + CLI (devDependency), `supabase/config.toml` | `astro.config.mjs`, `package.json` |
-| Backend | 🟡 Solo el esqueleto: `middleware.ts` (sin sesión), `lib/server/supabase.ts`, `env.d.ts` | Sin migraciones ni endpoints |
+| Backend | 🟡 Esquema, RLS, RPC de progresión (36/36 tests pgTAP) y `GET /api/exercises` en `fase-b/db`, **sin integrar** | Falta auth/sesión (Fase C) |
 | Modo Aprender | 🟡 Layout, conmutador, rutas localizadas y una isla Vue de prueba | `LearnLayout.astro`, `ModeSwitch.astro`, `LanguageSuggestion.vue` |
 | i18n | 🟡 Namespace `learn` con las claves iniciales | `locales/*/learn.ts` |
 | SEO técnico | ⏸ Aparcado hasta producción | Ver `produccion.md` |
@@ -45,22 +45,22 @@ Plan en [`fase-a.md`](./fase-a.md) y diseño en [`layout-modos.md`](./layout-mod
 - ✅ SEO/A11y: requisitos de `ModeSwitch` y `LearnLayout` (skip link, landmarks, un solo h1, `aria-current`, live region) y correcciones de contraste en learn (`5e7e43d`).
 - 🟡 Queda pendiente la validación de SEO del orden visual frente al orden de tabulación en móvil (en `layout-modos.md`).
 
-### Fase B · Esquema y ejercicios 🟡 ← **SPRINT ACTUAL** (plan: [`fase-b.md`](./fase-b.md))
+### Fase B · Esquema y ejercicios 🟡 ← **SPRINT ACTUAL** (plan y punto de parada: [`fase-b.md`](./fase-b.md#punto-de-parada-2026-09-23))
 Objetivo: la base de datos con las reglas de progresión cerradas (§4) y la pantalla de ejercicio funcionando con datos de prueba.
 
 | # | Tarea | Agente | Depende de | Estado |
 |---|-------|--------|-----------|--------|
-| B1 | Migración inicial: tablas + RLS + trigger de perfil + RPC `submit_result` y `unlock_hint` según §4. **Tabla `exercises` vacía** (D4). | Backend | — (Docker ya instalado) | ⏳ |
-| B2 | `supabase gen types` → `types/database.ts`; DTOs en `types/api.ts` (§5). | Backend | B1 | ⏳ |
-| B3 | `GET /api/exercises` (filtros `language`, `concept`, `difficulty`, `locale`) + `docs/architecture/api.md`. | Backend | B2 | ⏳ |
-| B4 | Plantilla documentada del script de inserción de ejercicios que escribirá el usuario (`supabase/exercises/README.md` + ejemplo comentado, **sin datos**). | Backend | B1 | ⏳ |
-| B5 | `docs/guidelines/accessibility.md` (alt, contraste, teclado, live regions, reduced-motion, foco). | SEO/A11y | — | ⏳ |
-| B6 | Ampliar `tokens.css` (hoy hay ~79 hex sueltos) + estados de éxito y error accesibles. | UI | B5 | ⏳ |
-| B7 | `InterfazEjercicio.vue` con **fixtures** que cumplan `types/api.ts` (pistas, "Resuelto / No resuelto"). | UI | B6 (B2 para pasar de fixtures a los tipos definitivos) | ⏳ |
-| B8 | Claves `learn.exercise.*`, `learn.hint.*` (`{coins}`) y `learn.result.*`. | i18n | B7 (UI define las claves) | ⏳ |
-| B9 | `scripts/check-content.ts` + `npm run check:content` (slug ↔ `.md` en 3 idiomas; slugs de ejercicios ↔ catálogo). | i18n | — | ⏳ |
-| B10 | Revisión a11y de `InterfazEjercicio` (teclado en pistas, anuncio del resultado). | SEO/A11y | B7 | ⏳ |
-| B11 | Categorías iniciales de ejercicios (slugs + nombres en en/es/fr) para `seed.sql`. | i18n → Backend | — | ⏳ |
+| B1 | Migración inicial: tablas + RLS + trigger de perfil + RPC `submit_result` y `unlock_hint` según §4. **Tabla `exercises` vacía** (D4). | Backend | — (Docker ya instalado) | ✅ `fase-b/db` (`60cd66f`) |
+| B2 | `supabase gen types` → `types/database.ts`; DTOs en `types/api.ts` (§5). | Backend | B1 | ✅ `fase-b/db` (`32746d0`) |
+| B3 | `GET /api/exercises` (filtros `language`, `concept`, `difficulty`, `locale`) + `docs/architecture/api.md`. | Backend | B2 | ✅ `fase-b/db` (`32746d0`) |
+| B4 | Plantilla documentada del script de inserción de ejercicios que escribirá el usuario (`supabase/exercises/README.md` + ejemplo comentado, **sin datos**). | Backend | B1 | ✅ `fase-b/db` (`e369f50`) |
+| B5 | `docs/guidelines/accessibility.md` (alt, contraste, teclado, live regions, reduced-motion, foco). | SEO/A11y | — | ✅ integrada (`803a4c7`) |
+| B6 | Ampliar `tokens.css` (hoy hay ~79 hex sueltos) + estados de éxito y error accesibles. | UI | B5 | ✅ `fase-b/ui-exercise` (`62e4e18`) |
+| B7 | `InterfazEjercicio.vue` con **fixtures** que cumplan `types/api.ts` (pistas, "Resuelto / No resuelto"). | UI | B6 (B2 para pasar de fixtures a los tipos definitivos) | ✅ `fase-b/ui-exercise` (`18704bb`) |
+| B8 | Claves `learn.exercise.*`, `learn.hint.*` (`{coins}`) y `learn.result.*`. | i18n | B7 (UI define las claves) | ⏳ 35 claves en inglés listas; faltan es/fr |
+| B9 | `scripts/check-content.ts` + `npm run check:content` (slug ↔ `.md` en 3 idiomas; slugs de ejercicios ↔ catálogo). | i18n | — | ✅ `fase-b/i18n` (`d0aa03a`) |
+| B10 | Revisión a11y de `InterfazEjercicio` (teclado en pistas, anuncio del resultado). | SEO/A11y | B7 | ⏳ siguiente paso |
+| B11 | Categorías iniciales de ejercicios (slugs + nombres en en/es/fr) para `seed.sql`. | i18n → Backend | — | ✅ `fase-b/i18n` + seed en `fase-b/db` |
 
 ### Fase C · Cuenta y progreso ⏳
 - ⏳ Auth: `api/auth/{register,login,logout,session}` **sin confirmación de email** (D3); `middleware.ts` con sesión real (`locals.user`, `locals.supabase`).
@@ -96,6 +96,7 @@ Checklist completa en [`produccion.md`](./produccion.md).
 | **D2** | Reglas de progresión **cerradas** (ver §4). El esquema de la BD se diseña sobre ellas. |
 | **D3** | El registro **no exige** confirmar el email. |
 | **D4** | El contenido real de los ejercicios lo escribe el usuario en un script de inserción propio. **La tabla `exercises` empieza vacía**: el seed no incluye ejercicios. |
+| **D6** ⚠️ | **Pendiente del usuario.** `submit_result` acepta el `correct` que declara el navegador, así que un usuario con sesión podría otorgarse monedas y XP llamando a la RPC. Recomendación del Tech Lead: en la Fase C la RPC recibe la **respuesta** y la valida contra `exercise_answers` dentro de la BD. |
 | **D5** | El usuario instalará las herramientas locales cuando haga falta. Supabase CLI ya viene como devDependency (`npx supabase`). Docker Desktop ya está instalado (v29.7), así que `supabase start` está disponible. |
 
 ### Decisiones del Tech Lead (vigentes salvo que el usuario diga lo contrario)
@@ -188,4 +189,5 @@ interface ResultResponse {
 ## 7. Historial de revisiones
 - **2026-09-23 (v1)**: primer roadmap, basado solo en `master`.
 - **2026-09-23 (v2)**: corregido tras revisar `renovacion` (Fase A ya completada). Se incorporan D1-D5 y las reglas de progresión, se renumeran las fases (0, A, B, C, D, Producción) y se crea `produccion.md`.
+- **2026-09-23 (v4)**: punto de parada de la Fase B. B1-B7, B9 y B11 hechas en sus ramas; B5 integrada; pendientes B10, merges y B8. Nueva decisión pendiente D6. Contrato v2.1 (en `fase-b/db`).
 - **2026-09-23 (v3)**: Fase A archivada (ramas y worktrees `fase-a/*` borrados); abierta la Fase B con sus ramas y worktrees; `renovacion` publicada en GitHub.
