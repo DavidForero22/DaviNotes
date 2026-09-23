@@ -1,5 +1,6 @@
 import common from "./common";
 import docs from "./docs";
+import learn from "./learn";
 
 /**
  * Every interface string of this locale, merged into one flat dictionary.
@@ -7,4 +8,5 @@ import docs from "./docs";
 export default {
 	...common,
 	...docs,
+	...learn,
 };

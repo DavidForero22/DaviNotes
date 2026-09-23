@@ -9,8 +9,9 @@ i18n/
 ├─ config.ts      # supported locales and the shared types
 └─ locales/
    ├─ en/         # reference language: defines the keys
-   │  ├─ common.ts   # shared by the whole site (nav, footer, help, 404, difficulty)
+   │  ├─ common.ts   # shared by the whole site (nav, mode switch, a11y, footer, help, 404, difficulty)
    │  ├─ docs.ts     # documentation only (index pages, lessons, search)
+   │  ├─ learn.ts    # learning mode only (DaviLearn)
    │  └─ index.ts    # merges the namespaces into one flat dictionary
    ├─ es/         # same files as en/
    └─ fr/         # same files as en/
@@ -26,7 +27,7 @@ Import from `@/i18n/ui` and `@/i18n/utils` only. Everything else in this folder 
    `satisfies Record<keyof typeof en, string>`, so a missing or misspelled key fails type checking
    (`npx tsc --noEmit`). `astro build` does not type-check, so run it before committing.
 
-## Adding a namespace (e.g. `learn`)
+## Adding a namespace
 
 Create `locales/<lang>/learn.ts` for every locale, following the existing files, and spread it
 in each `locales/<lang>/index.ts`. Key prefixes must not repeat across namespaces.
