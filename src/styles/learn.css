@@ -15,6 +15,11 @@
 	outline: none;
 }
 
+.learn ::selection {
+	background: rgba(167, 139, 250, 0.35);
+	color: white;
+}
+
 /* ================================
    Skip link
    Hidden until it receives keyboard focus.
@@ -39,17 +44,14 @@
 
 /* ================================
    Header
+   Transparent over the dotted grid, like the home page top bar.
    ================================ */
 .learn-header {
-	position: sticky;
-	top: 0;
-	z-index: 10;
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: 1rem;
 	padding: 1rem 3rem;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-	background-color: rgba(13, 15, 20, 0.95);
 }
 
 .learn-brand {
@@ -65,64 +67,78 @@
 
 .learn-header-end {
 	display: flex;
-	flex-wrap: wrap;
-	justify-content: flex-end;
 	align-items: center;
 	gap: 0.75rem;
 	margin-left: auto;
 }
 
 /* ================================
-   Content
+   Content: centered composition, like the home page hero
    ================================ */
 .learn-main {
 	flex: 1;
 	width: 100%;
 	max-width: 60rem;
 	margin: 0 auto;
-	padding: 3rem;
+	padding: 3rem 3rem 4rem;
 	box-sizing: border-box;
+	text-align: center;
 }
 
 .learn-main h1 {
-	margin-top: 0;
-	font-size: 2.5rem;
+	margin: 0 0 0.75rem;
+	font-size: 3rem;
+	line-height: 1.05;
+	letter-spacing: -0.02em;
+	text-wrap: balance;
 }
 
 .learn-intro {
-	color: #a1a1aa;
+	max-width: 46ch;
+	margin: 0 auto 3rem;
 	font-size: 1.1rem;
 	line-height: 1.6;
 }
 
-.learn-notice {
-	margin-top: 2rem;
-	padding: 1.25rem 1.5rem;
-	border: 1px solid rgba(255, 255, 255, 0.1);
-	border-radius: 12px;
-	background: var(--card-bg);
-	color: #d4d4d8;
+.learn-section h2 {
+	margin: 0 0 1.25rem;
+	color: #e4e4e7;
+	font-size: 1.15rem;
+}
+
+.learn-note {
+	margin-top: 3rem;
+	color: #71717a;
+	font-size: 0.9rem;
 }
 
 /* Same breakpoint as the documentation layout */
 @media (max-width: 846px) {
 	.learn-header {
-		flex-wrap: wrap;
 		padding: 0.75rem 1.25rem;
 	}
 
-	/* The mode switch gets its own full-width row on small screens */
+	/* Brand and language picker share the first row; the mode switch gets
+	   its own full-width row so both halves stay readable at 320px */
 	.learn-header-end {
+		display: contents;
+	}
+
+	.learn-header-end .lang-picker {
+		order: 1;
+		margin-left: auto;
+	}
+
+	.learn-header-end .mode-switch {
+		order: 2;
 		flex-basis: 100%;
-		justify-content: space-between;
-		margin-left: 0;
 	}
 
 	.learn-main {
-		padding: 2rem 1.25rem;
+		padding: 2rem 1.25rem 3rem;
 	}
 
 	.learn-main h1 {
-		font-size: 2rem;
+		font-size: 2.1rem;
 	}
 }

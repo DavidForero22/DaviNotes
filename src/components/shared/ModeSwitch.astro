@@ -24,7 +24,12 @@ const options = [
 ] as const;
 ---
 
-<nav class="mode-switch" aria-label={t("mode.switcher")}>
+<nav class:list={["mode-switch", { learn: mode === "learn" }]} aria-label={t("mode.switcher")}>
+	{
+		/* The thumb shares a view-transition name across pages, so the ClientRouter
+		   slides it from one half to the other when switching section. */
+	}
+	<span class="thumb" aria-hidden="true" transition:name="mode-switch-thumb"></span>
 	{
 		options.map((option) => (
 			<a
@@ -39,10 +44,11 @@ const options = [
 </nav>
 
 <style>
-	/* Same pill shape as the language picker, so both controls read as one family */
+	/* Same pill as the language picker; both halves share the width of the longest label */
 	.mode-switch {
-		display: inline-flex;
-		gap: 0.25rem;
+		position: relative;
+		display: inline-grid;
+		grid-template-columns: 1fr 1fr;
 		padding: 0.25rem;
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: 99px;
@@ -50,27 +56,41 @@ const options = [
 		white-space: nowrap;
 	}
 
+	.thumb {
+		position: absolute;
+		top: 0.25rem;
+		bottom: 0.25rem;
+		left: 0.25rem;
+		width: calc(50% - 0.25rem);
+		border-radius: 99px;
+		background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+	}
+
+	.mode-switch.learn .thumb {
+		left: 50%;
+	}
+
 	.mode-switch a {
+		position: relative;
 		/* 0.35rem vertical padding keeps the target above 24px tall (WCAG 2.5.8) */
-		padding: 0.35rem 0.8rem;
+		padding: 0.35rem 0.9rem;
 		border-radius: 99px;
 		color: #a1a1aa;
 		font-size: 0.8rem;
-		font-weight: 500;
+		font-weight: 600;
+		text-align: center;
 		text-decoration: none;
-		transition: 0.2s ease;
+		transition: color 0.2s ease;
 	}
 
-	.mode-switch a:hover {
+	.mode-switch a:not(.active):hover {
 		color: white;
-		background: rgba(255, 255, 255, 0.05);
 	}
 
-	/* The active section is filled and bold, so it does not rely on color alone */
+	/* The active section sits on the thumb and turns heavier, so it does not rely on color alone */
 	.mode-switch a.active {
 		color: #13151a;
-		background: #a78bfa;
-		font-weight: bold;
+		font-weight: 800;
 	}
 
 	.mode-switch a:focus-visible {

@@ -35,6 +35,8 @@ const t = useTranslations(lang);
 	</head>
 	<body class="learn">
 		<a href="#main-content" class="skip-link">{t("a11y.skipToContent")}</a>
+		{/* Same dotted grid as the home page, so both areas read as one site */}
+		<div class="background-grid"></div>
 
 		{/* Unlike the docs, the header is a top-level landmark (banner), not part of <main> */}
 		<header class="learn-header">

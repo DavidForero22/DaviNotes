@@ -1,7 +1,10 @@
 ---
 import LearnLayout from "@/layouts/learn/LearnLayout.astro";
+import LanguageSuggestion from "@/components/learn/LanguageSuggestion.vue";
+import { languages } from "@/data/languages";
 import type { Lang } from "@/i18n/ui";
 import { useTranslations } from "@/i18n/utils";
+import { getAllLanguageItems } from "@/utils/utils";
 
 interface Props {
 	lang: Lang;
@@ -9,6 +12,10 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+const suggestedLanguages = getAllLanguageItems(languages).map((item) => ({
+	name: item.title,
+	color: item.color,
+}));
 ---
 
 {/* Placeholder until the roulette and exercises exist (phase B): kept out of search results */}
@@ -20,5 +27,17 @@ const t = useTranslations(lang);
 >
 	<h1>{t("learn.heading")}</h1>
 	<p class="learn-intro">{t("learn.intro")}</p>
-	<p class="learn-notice">{t("learn.comingSoon")}</p>
+
+	<section class="learn-section" aria-labelledby="suggest-heading">
+		<h2 id="suggest-heading">{t("learn.suggest.heading")}</h2>
+		{/* Texts are passed already translated so the island does not ship the dictionaries */}
+		<LanguageSuggestion
+			client:visible
+			languages={suggestedLanguages}
+			buttonLabel={t("learn.suggest.button")}
+			resultTemplate={t("learn.suggest.result")}
+		/>
+	</section>
+
+	<p class="learn-note">{t("learn.comingSoon")}</p>
 </LearnLayout>
