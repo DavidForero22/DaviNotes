@@ -111,7 +111,21 @@ Móvil (≤ 846 px)
 - **Sin ayuda (`HelpModal`) en learn:** su contenido explica la documentación. Learn tendrá su propia ayuda.
 - **Orden en móvil:** en learn, el HTML mantiene el orden que pide SEO (marca, conmutador, idioma), pero en
   móvil el idioma se muestra en la primera fila con `order`. Visualmente el conmutador aparece después del
-  idioma, aunque en el orden de tabulación va antes. Pendiente de validar por SEO.
+  idioma, aunque en el orden de tabulación va antes.
+  - **Validado por SEO (Fase B, 2026-09-23): cumple 2.4.3 y 1.3.2, no hay que cambiar el código.**
+    - Orden de Tab en móvil: marca → Documentación → Aprender → EN/ES/FR. Orden visual: marca, idioma (fila 1), conmutador (fila 2).
+    - 2.4.3 (orden del foco) pide un orden que conserve el significado y la operabilidad, no una copia exacta
+      del orden visual. Son tres controles independientes, el foco es visible y el salto es uno solo y corto
+      (fila 2 → final de la fila 1). No se pierde nada.
+    - 1.3.2 (secuencia significativa) no se ve afectada: el orden de lectura del DOM es el lógico y el mismo en
+      todos los anchos, y el `order` no cambia el significado de nada.
+    - Se mantiene el orden del DOM porque así el conmutador va siempre antes del idioma, en escritorio y en los
+      docs (3.2.3, navegación coherente). Cambiarlo solo en learn rompería esa coherencia.
+    - `display: contents` va en un `<div>` sin rol, así que no borra semántica (el problema conocido solo afecta a elementos con rol).
+  - **Revalidar en la Fase C** cuando se añada la cuenta del usuario a la cabecera: tendrá que ir después del idioma
+    en el DOM **y** en la misma fila visual que el idioma, para que no aparezca un segundo salto.
+  - Mejora opcional, no bloqueante: si en la Fase D se rehace la cabecera, preferir un diseño sin `order`
+    (p. ej. marca sola en la fila 1, y conmutador + idioma en la fila 2 si caben a 320 px).
 - **Accesibilidad (requisitos de SEO/A11y):**
   - Skip link como primer elemento enfocable.
   - `<header>` → `<main id="main-content">` → `<footer>` como hermanos.
