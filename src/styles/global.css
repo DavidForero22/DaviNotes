@@ -61,6 +61,9 @@ main {
 @media (max-width: 846px) {
 	.home-top-bar {
 		padding: 0.75rem 1.25rem;
+		/* The mode switch, help and language picker wrap onto a second line when they do not fit (320px) */
+		flex-wrap: wrap;
+		justify-content: flex-end;
 	}
 }
 

@@ -1,0 +1,86 @@
+---
+import type { Lang } from "@/i18n/ui";
+import { localizePath, useTranslations } from "@/i18n/utils";
+
+export type SiteMode = "docs" | "learn";
+
+interface Props {
+	lang: Lang;
+	/** Section of the site the current page belongs to. */
+	mode: SiteMode;
+}
+
+const { lang, mode } = Astro.props;
+const t = useTranslations(lang);
+
+/**
+ * Both links lead to the entry page of each section in the current language.
+ * The active one uses aria-current="true" rather than "page" because, on a guide
+ * such as /java/oop/, it points to the documentation home and not to the page itself.
+ */
+const options = [
+	{ mode: "docs", label: t("mode.docs"), href: localizePath("/", lang) },
+	{ mode: "learn", label: t("mode.learn"), href: localizePath("/learn/", lang) },
+] as const;
+---
+
+<nav class="mode-switch" aria-label={t("mode.switcher")}>
+	{
+		options.map((option) => (
+			<a
+				href={option.href}
+				class={option.mode === mode ? "active" : ""}
+				aria-current={option.mode === mode ? "true" : undefined}
+			>
+				{option.label}
+			</a>
+		))
+	}
+</nav>
+
+<style>
+	/* Same pill shape as the language picker, so both controls read as one family */
+	.mode-switch {
+		display: inline-flex;
+		gap: 0.25rem;
+		padding: 0.25rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 99px;
+		background: rgba(19, 21, 26, 0.8);
+		white-space: nowrap;
+	}
+
+	.mode-switch a {
+		/* 0.35rem vertical padding keeps the target above 24px tall (WCAG 2.5.8) */
+		padding: 0.35rem 0.8rem;
+		border-radius: 99px;
+		color: #a1a1aa;
+		font-size: 0.8rem;
+		font-weight: 500;
+		text-decoration: none;
+		transition: 0.2s ease;
+	}
+
+	.mode-switch a:hover {
+		color: white;
+		background: rgba(255, 255, 255, 0.05);
+	}
+
+	/* The active section is filled and bold, so it does not rely on color alone */
+	.mode-switch a.active {
+		color: #13151a;
+		background: #a78bfa;
+		font-weight: bold;
+	}
+
+	.mode-switch a:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.mode-switch a {
+			transition: none;
+		}
+	}
+</style>

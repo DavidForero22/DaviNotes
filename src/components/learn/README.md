@@ -1,7 +1,10 @@
 # components/learn
 
-Interactive components of the learning area (DaviLearn), written as **Vue 3 islands**
-(`.vue`, Composition API) and hydrated with `client:*` directives.
+Components of the learning area (DaviLearn):
+
+- **Interactive parts** are **Vue 3 islands** (`.vue`, Composition API) hydrated with `client:*` directives.
+- **Static page sections** (e.g. `LearnHome.astro`) are plain Astro components that wrap
+  `layouts/learn/LearnLayout.astro` and are rendered by the routes in `pages/learn/` and `pages/[lang]/learn/`.
 
 - Owner: UI Frontend Designer.
 - Planned: `DashboardPerfil.vue`, `RuletaLenguajes.vue`, `InterfazEjercicio.vue`.

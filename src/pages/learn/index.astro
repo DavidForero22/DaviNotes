@@ -1,0 +1,11 @@
+---
+import LearnHome from "@/components/learn/LearnHome.astro";
+import { defaultLang } from "@/i18n/ui";
+
+/**
+ * /learn — the learning area in the default language, served without a prefix
+ * like the documentation. Other languages: `pages/[lang]/learn/index.astro`.
+ */
+---
+
+<LearnHome lang={defaultLang} />
