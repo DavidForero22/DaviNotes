@@ -14,10 +14,10 @@ Revisión de la Fase A hecha: learn cumple los requisitos (skip link, landmarks,
 **Fase B:** rama `fase-b/a11y`, worktree `../DaviNotes-worktrees/b-a11y/`. Plan: `docs/architecture/fase-b.md`. Revisas cada rama antes de su merge.
 
 ## Tareas Pendientes [ ]
-- [ ] Validar el orden visual frente al orden de tabulación en móvil en la cabecera de learn (pendiente en `layout-modos.md`).
-- [ ] **B5** Crear `docs/guidelines/accessibility.md`: `alt` descriptivo obligatorio en logros e iconos, umbrales de contraste, teclado, live regions, reduced-motion, foco y controles deshabilitados con explicación (pistas sin saldo).
+- [ ] Revisar cada rama de la Fase B antes de su merge (el HTML de los docs no debe cambiar).
 - [ ] **B10** Revisar `InterfazEjercicio.vue`: teclado en las pistas, anuncio del resultado, estados de éxito y error sin depender solo del color.
-- [ ] **Fase C** Auditar los formularios de auth, `DashboardPerfil`, `RuletaLenguajes` (live region) y la gestión de monedas; jerarquía H1-H6; `noindex` en la zona privada.
+- [ ] **Fase C** Revalidar el orden de la cabecera de learn al añadir la cuenta del usuario (ver `layout-modos.md`).
+- [ ] **Fase C** Auditar los formularios de auth (con la §9 de `docs/guidelines/accessibility.md`), `DashboardPerfil`, `RuletaLenguajes` (live region) y la gestión de monedas; jerarquía H1-H6; `noindex` en la zona privada.
 - [ ] **Fase D** Tomar una línea base nueva y corregir la deuda de los docs: contraste `#666`/`#888`, foco de DocSearch, `alt=""` en el logo del framework, `aria-expanded` en el menú, orden de encabezados, skip link en los docs.
 - [ ] **Fase D** `components/shared/seo/BaseHead.astro`: `<head>` unificado + `description` por página (con i18n).
 - [ ] **Producción** ⏸ Los puntos SEO de `produccion.md` (§1-2).
@@ -27,3 +27,5 @@ Revisión de la Fase A hecha: learn cumple los requisitos (skip link, landmarks,
 - [x] Verificación de la Fase 0: HTML idéntico a la línea base.
 - [x] Fase A: requisitos de accesibilidad de `ModeSwitch` y `LearnLayout`; decisión de `noindex` en el `/learn` provisional; revisión de las ramas antes del merge.
 - [x] Informe de deuda SEO/A11y de los docs priorizado (volcado en la Fase D del roadmap).
+- [x] **B5** `docs/guidelines/accessibility.md`: alt, contraste, teclado, foco, live regions, reduced-motion, estados sin color, controles deshabilitados con explicación, formularios y checklist de PR.
+- [x] Orden visual frente a orden de tabulación en móvil en la cabecera de learn: cumple 2.4.3 y 1.3.2, sin cambios de código (conclusión en `layout-modos.md`).
