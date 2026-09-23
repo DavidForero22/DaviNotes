@@ -142,7 +142,7 @@ const isActive = (href: string) => {
      Base Sidebar Layout (Desktop)
      ========================================= */
 	.sidebar {
-		background: #13151a;
+		background: var(--dark-bg);
 		border-right: 1px solid rgba(255, 255, 255, 0.1);
 		padding: 2rem;
 		display: flex;
@@ -167,7 +167,7 @@ const isActive = (href: string) => {
 	.logo {
 		font-size: 1.5rem;
 		font-weight: bold;
-		color: #fff;
+		color: var(--text-color);
 		padding-left: 0.5rem;
 		transition: 0.2s;
 	}
@@ -203,7 +203,7 @@ const isActive = (href: string) => {
 		font-size: 0.75rem;
 		text-transform: uppercase;
 		letter-spacing: 0.1em;
-		color: #666;
+		color: var(--text-faint);
 		margin-bottom: 0.75rem;
 		padding-left: 1rem;
 		font-weight: 600;
@@ -232,7 +232,7 @@ const isActive = (href: string) => {
 		display: none;
 		background: none;
 		border: none;
-		color: #fff;
+		color: var(--text-color);
 		cursor: pointer;
 	}
 

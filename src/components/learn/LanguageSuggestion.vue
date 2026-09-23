@@ -78,7 +78,7 @@ onBeforeUnmount(() => clearInterval(timer));
 			<span v-else class="reel-name idle">?</span>
 		</div>
 		<!-- Rendered empty on the server so screen readers already track it when it changes -->
-		<p class="visually-hidden" aria-live="polite">{{ announcement }}</p>
+		<p class="sr-only" aria-live="polite">{{ announcement }}</p>
 		<button type="button" class="suggest-button" :aria-disabled="spinning" @click="suggest">
 			{{ buttonLabel }}
 		</button>
@@ -129,7 +129,7 @@ onBeforeUnmount(() => clearInterval(timer));
 }
 
 .reel-name.idle {
-	color: #a1a1aa;
+	color: var(--text-muted);
 	font-size: 2rem;
 }
 
@@ -142,8 +142,8 @@ onBeforeUnmount(() => clearInterval(timer));
 	padding: 0.6rem 1.75rem;
 	border: none;
 	border-radius: 99px;
-	background: #a78bfa;
-	color: #13151a;
+	background: var(--brand);
+	color: var(--on-brand);
 	font: inherit;
 	font-size: 1.05rem;
 	font-weight: bold;
@@ -154,7 +154,7 @@ onBeforeUnmount(() => clearInterval(timer));
 }
 
 .suggest-button:hover:not([aria-disabled="true"]) {
-	background: #c4b5fd;
+	background: var(--brand-hover);
 }
 
 .suggest-button:active:not([aria-disabled="true"]) {
@@ -164,15 +164,6 @@ onBeforeUnmount(() => clearInterval(timer));
 /* Only during the ~0.6s spin; aria-disabled keeps keyboard focus on the button */
 .suggest-button[aria-disabled="true"] {
 	cursor: progress;
-}
-
-.visually-hidden {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-	clip-path: inset(50%);
-	white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {

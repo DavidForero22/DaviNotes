@@ -1,15 +1,56 @@
 /* ================================
    Design Tokens
    Colors and theme values shared by every part of the site
-   (documentation and, later, the learning area). Import this
-   file first: global.css already does.
+   (documentation and the learning area). Import this file first:
+   global.css already does.
+
+   Contrast ratios follow docs/guidelines/accessibility.md (WCAG 2.2 AA):
+   text 4.5:1 (3:1 if large); UI parts, icons, borders and focus 3:1.
+   Measured against --dark-bg (#13151a) / --card-bg (#23262d) unless stated.
    ================================ */
 :root {
 	--accent: 136, 58, 234;
 	--accent-light: 224, 204, 250;
+
+	/* ---------- Surfaces (darkest to lightest) ---------- */
+	--surface-deep: #0d0f14;
 	--dark-bg: #13151a;
+	--surface-sunken: #1e2127;
 	--card-bg: #23262d;
-	--text-color: #ffffff;
+	/* Dots of the background grid: decorative, no contrast requirement */
+	--grid-dot: #2d313a;
+
+	/* ---------- Text ---------- */
+	--text-color: #ffffff; /* 18.3:1 / 15.1:1 */
+	--text-secondary: #e4e4e7; /* 14.4:1 / 11.9:1 */
+	--text-muted: #a1a1aa; /* 7.1:1 / 5.9:1 */
+	--text-subtle: #71717a; /* 3.8:1 / 3.1:1: only large text, icons or borders */
+	/* Legacy greys of the documentation (contrast debt tracked in the roadmap, phase D) */
+	--text-dim: #888; /* 5.2:1 / 4.3:1: not enough for small text on card-bg */
+	--text-faint: #666; /* 3.2:1 / 2.6:1: not valid for text */
+
+	/* ---------- Brand ---------- */
+	--brand: #a78bfa; /* 6.7:1 / 5.6:1 */
+	--brand-hover: #c4b5fd;
+	/* End of the mode switch thumb gradient, so --on-brand keeps 4.5:1 (5.4:1) across it */
+	--brand-strong: #9775f8;
+	/* Text on a --brand fill: 6.7:1 on --brand, 9.9:1 on --brand-hover */
+	--on-brand: #13151a;
+	--highlight: #2dd4bf;
+
 	/* Keyboard focus outline: 3:1+ contrast against the dark backgrounds (WCAG 1.4.11) */
 	--focus-ring: #a78bfa;
+
+	/* ---------- States (learning area) ----------
+	   Never on their own: always with an icon and a text (guide, section 7).
+	   Each color passes 4.5:1 as text on dark-bg, card-bg and its own -bg,
+	   so it also passes 3:1 as an icon or border. */
+	--success: #34d399; /* 9.5:1 / 7.9:1, 8.2:1 on --success-bg */
+	--success-bg: #10271f;
+	--error: #f87171; /* 6.6:1 / 5.5:1, 6.2:1 on --error-bg */
+	--error-bg: #2a1719;
+	--warning: #fbbf24; /* 10.9:1 / 9.1:1, 9.5:1 on --warning-bg */
+	--warning-bg: #2a2111;
+	/* Body text on every state background: --text-color 15.8:1+,
+	   --text-secondary 12.4:1+, --text-muted 6.1:1+ */
 }

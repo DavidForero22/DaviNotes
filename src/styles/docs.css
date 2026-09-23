@@ -5,7 +5,7 @@
     display: grid;
     grid-template-columns: 250px 1fr;
     min-height: 100vh;
-    background-color: #0d0f14;
+    background-color: var(--surface-deep);
     color: white;
 }
 
@@ -29,7 +29,7 @@
 }
 
 .intro {
-    color: #a1a1aa;
+    color: var(--text-muted);
     font-size: 1.1rem;
     max-width: 60ch;
 }
@@ -83,7 +83,7 @@
     border: 1px solid rgba(245, 158, 11, 0.4);
     border-radius: 8px;
     background: rgba(245, 158, 11, 0.08);
-    color: #fbbf24;
+    color: var(--warning);
 }
 
 /* Navigation Buttons (Back & Menu) */
@@ -108,7 +108,7 @@
     display: none; /* Hidden on desktop by default */
     background: transparent;
     border: none;
-    color: #a1a1aa;
+    color: var(--text-muted);
     cursor: pointer;
     padding: 0.25rem;
     margin-right: 0.5rem;
@@ -138,7 +138,7 @@
 .topic-list a {
     display: block;
     padding: 1.5rem;
-    background: #1e2127;
+    background: var(--surface-sunken);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     text-decoration: none;
@@ -156,7 +156,7 @@
 
 .topic-list p {
     margin: 0;
-    color: #888;
+    color: var(--text-dim);
     font-size: 0.9rem;
 }
 
@@ -166,7 +166,7 @@
 
 #content-table a,
 .doc-link {
-    color: #ffffff;
+    color: var(--text-color);
     position: relative;
     text-decoration: none;
     font-weight: bold;
@@ -180,7 +180,7 @@
 
 #content-table a:hover,
 .doc-link:hover {
-    color: #a78bfa;
+    color: var(--brand);
 }
 
 /* Underline Animation Logic */
@@ -192,7 +192,7 @@
     bottom: -2px;
     width: 100%;
     height: 2px;
-    background-color: #a78bfa;
+    background-color: var(--brand);
     transform: scaleX(0);
     transform-origin: left;
 }
@@ -211,7 +211,7 @@
 
 .cta-container p {
     margin-bottom: 1.5rem;
-    color: #888;
+    color: var(--text-dim);
 }
 
 .install-btn {
