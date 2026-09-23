@@ -1,0 +1,33 @@
+---
+import LearnLayout from "@/layouts/learn/LearnLayout.astro";
+import EjercicioDemo from "@/components/learn/EjercicioDemo.vue";
+import { buildExerciseTexts } from "@/components/learn/exercise-ui";
+import { languages } from "@/data/languages";
+import type { Lang } from "@/i18n/ui";
+import { useTranslations } from "@/i18n/utils";
+import { getAllLanguageItems } from "@/utils/utils";
+
+interface Props {
+	lang: Lang;
+}
+
+/**
+ * Exercise screen with sample data (phase B). Prerendered, without a session, and kept
+ * out of search results. Routes: /learn/demo/exercise/, /es/..., /fr/...
+ */
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const catalog = Object.fromEntries(
+	getAllLanguageItems(languages).map((item) => [item.slug, { name: item.title, color: item.color }]),
+);
+---
+
+<LearnLayout
+	title={`${t("learn.exercise.demoTitle")} · DaviNotes`}
+	lang={lang}
+	description={t("learn.exercise.demoDescription")}
+	noindex
+>
+	{/* Texts are passed already translated so the island does not ship the dictionaries (T6) */}
+	<EjercicioDemo client:load lang={lang} texts={buildExerciseTexts(t)} languages={catalog} />
+</LearnLayout>
