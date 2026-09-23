@@ -141,10 +141,16 @@ Consecuencia: con 0 monedas iniciales, las pistas no están disponibles hasta co
 
 ---
 
-## 5. Contrato de datos de ejercicios (v2 · a fijar en `src/types/api.ts`)
+## 5. Contrato de datos de ejercicios (v2.1 · fijado en `src/types/api.ts`)
+
+Fuente de verdad: [`src/types/api.ts`](../../src/types/api.ts). Detalle de los endpoints: [`api.md`](./api.md).
+Cambios respecto a v2 (Fase B, Backend): `categoryName` en `ExerciseDTO`; `Locale` y `ExerciseType` salen de los enums de la BD;
+tipos nuevos `ExerciseListQuery`, `ExerciseListResponse` (= `ExerciseDTO[]`), `ResultRequest`, `UnlockHintRequest`,
+`UnlockHintResponse` y `ApiError`. Los opcionales se **omiten** cuando no hay valor (nunca `null`).
 
 ```ts
-type Locale = "en" | "es" | "fr";
+type Locale = "en" | "es" | "fr";                                   // enum public.locale
+type ExerciseType = "multiple_choice" | "fill_blank" | "code_output"; // enum public.exercise_type
 
 interface HintDTO { id: string; order: number; cost: 1; unlocked: boolean; text?: string } // text solo si unlocked
 
@@ -154,26 +160,32 @@ interface ExerciseDTO {
   languageSlug: string;       // = slug de data/languages.ts
   frameworkSlug?: string;     // p. ej. "laravel"
   conceptSlug?: string;       // enlaza con la lección (T4)
-  category: string;
+  category: string;           // slug (seed: syntax, data-structures, …)
+  categoryName: string;       // nombre de la categoría en `locale`   ← nuevo en v2.1
   difficulty: number;         // 1-10 (T5)
-  type: "multiple_choice" | "fill_blank" | "code_output";
+  type: ExerciseType;
   locale: Locale;
   title: string; context?: string; objective: string; prompt: string; code?: string;
   options?: string[];         // solo multiple_choice
   reward: { coins: 1 | 2 | 3; xp: number }; // derivado de difficulty (§4)
   hints: HintDTO[];
-  completed: boolean;         // por usuario
+  completed: boolean;         // por usuario (false sin sesión)
 }
 
-// POST /api/exercises/[id]/result → la respuesta correcta NUNCA viaja al cliente
+// GET /api/exercises?language&framework&concept&category&difficulty&locale&limit&offset → ExerciseDTO[]
+
+// POST /api/exercises/[id]/result · body { correct: boolean } → la respuesta correcta NUNCA viaja al cliente
 interface ResultResponse {
   correct: boolean; firstCompletion: boolean;
   coinsAwarded: number; xpAwarded: number;
   coins: number; xp: number; level: number; xpToNextLevel: number;
-  newAchievements: string[];
+  newAchievements: string[];  // slugs; vacío hasta que se definan los logros (Fase C)
 }
 
-// POST /api/exercises/[id]/hints → { hint: HintDTO; coins: number } | 402 si no hay saldo
+// POST /api/exercises/[id]/hints · body { hintId: string } → { hint: HintDTO; coins: number } | 402 insufficient_coins
+
+// Error (cualquier no-2xx)
+interface ApiError { error: { code: "invalid_query" | "invalid_body" | "unauthorized" | "insufficient_coins" | "not_found" | "internal_error"; message: string; field?: string } }
 ```
 
 ---
