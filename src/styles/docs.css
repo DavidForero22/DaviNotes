@@ -305,4 +305,10 @@
         order: 1;
         flex-basis: 100%;
     }
+
+    /* The mode switch, help and language picker wrap onto a second line when they do not fit (320px) */
+    .top-bar-end {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
 }

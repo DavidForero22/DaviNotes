@@ -10,4 +10,6 @@
 	--dark-bg: #13151a;
 	--card-bg: #23262d;
 	--text-color: #ffffff;
+	/* Keyboard focus outline: 3:1+ contrast against the dark backgrounds (WCAG 1.4.11) */
+	--focus-ring: #a78bfa;
 }

@@ -1,0 +1,21 @@
+---
+import type { GetStaticPaths } from "astro";
+import LearnHome from "@/components/learn/LearnHome.astro";
+import { defaultLang, type Lang } from "@/i18n/ui";
+import { langs } from "@/i18n/utils";
+
+/**
+ * /es/learn, /fr/learn — the learning area in every language except the default
+ * one, which lives at /learn (`pages/learn/index.astro`). The static "learn"
+ * segment takes priority over the docs catch-all `[...path].astro`.
+ *
+ * When these pages stop being prerendered (phase C), getStaticPaths no longer
+ * applies: validate with `isLang(lang) && lang !== defaultLang` and return a 404.
+ */
+export const getStaticPaths = (() =>
+	langs.filter((lang) => lang !== defaultLang).map((lang) => ({ params: { lang } }))) satisfies GetStaticPaths;
+
+const lang = Astro.params.lang as Lang;
+---
+
+<LearnHome lang={lang} />

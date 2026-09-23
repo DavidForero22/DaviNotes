@@ -1,0 +1,144 @@
+/* ================================
+   Learning area (DaviLearn)
+   Loaded only by LearnLayout, after global.css. Rules here must not
+   leak into the documentation pages.
+   ================================ */
+
+/* Visible keyboard focus for everything in the learning area (WCAG 2.4.7) */
+.learn :focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}
+
+/* <main> receives focus from the skip link; it needs no outline of its own */
+.learn-main:focus {
+	outline: none;
+}
+
+.learn ::selection {
+	background: rgba(167, 139, 250, 0.35);
+	color: white;
+}
+
+/* ================================
+   Skip link
+   Hidden until it receives keyboard focus.
+   ================================ */
+.skip-link {
+	position: absolute;
+	top: 0.5rem;
+	left: 0.5rem;
+	z-index: 100;
+	padding: 0.5rem 1rem;
+	border-radius: 8px;
+	background: #a78bfa;
+	color: #13151a;
+	font-weight: bold;
+	text-decoration: none;
+	transform: translateY(-200%);
+}
+
+.skip-link:focus {
+	transform: none;
+}
+
+/* ================================
+   Header
+   Transparent over the dotted grid, like the home page top bar.
+   ================================ */
+.learn-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1rem;
+	padding: 1rem 3rem;
+}
+
+.learn-brand {
+	color: var(--text-color);
+	font-size: 1.25rem;
+	font-weight: 800;
+	text-decoration: none;
+}
+
+.learn-brand span {
+	color: #a78bfa;
+}
+
+.learn-header-end {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin-left: auto;
+}
+
+/* ================================
+   Content: centered composition, like the home page hero
+   ================================ */
+.learn-main {
+	flex: 1;
+	width: 100%;
+	max-width: 60rem;
+	margin: 0 auto;
+	padding: 3rem 3rem 4rem;
+	box-sizing: border-box;
+	text-align: center;
+}
+
+.learn-main h1 {
+	margin: 0 0 0.75rem;
+	font-size: 3rem;
+	line-height: 1.05;
+	letter-spacing: -0.02em;
+	text-wrap: balance;
+}
+
+.learn-intro {
+	max-width: 46ch;
+	margin: 0 auto 3rem;
+	font-size: 1.1rem;
+	line-height: 1.6;
+}
+
+.learn-section h2 {
+	margin: 0 0 1.25rem;
+	color: #e4e4e7;
+	font-size: 1.15rem;
+}
+
+.learn-note {
+	margin-top: 3rem;
+	color: #a1a1aa;
+	font-size: 0.9rem;
+}
+
+/* Same breakpoint as the documentation layout */
+@media (max-width: 846px) {
+	.learn-header {
+		padding: 0.75rem 1.25rem;
+	}
+
+	/* Brand and language picker share the first row; the mode switch gets
+	   its own full-width row so both halves stay readable at 320px */
+	.learn-header-end {
+		display: contents;
+	}
+
+	.learn-header-end .lang-picker {
+		order: 1;
+		margin-left: auto;
+	}
+
+	.learn-header-end .mode-switch {
+		order: 2;
+		flex-basis: 100%;
+	}
+
+	.learn-main {
+		padding: 2rem 1.25rem 3rem;
+	}
+
+	.learn-main h1 {
+		font-size: 2.1rem;
+	}
+}
