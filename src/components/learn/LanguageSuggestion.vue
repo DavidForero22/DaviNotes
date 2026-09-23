@@ -129,7 +129,7 @@ onBeforeUnmount(() => clearInterval(timer));
 }
 
 .reel-name.idle {
-	color: #52525b;
+	color: #a1a1aa;
 	font-size: 2rem;
 }
 
