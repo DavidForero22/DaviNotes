@@ -8,4 +8,7 @@ export default {
 	"learn.heading": "Empieza a aprender",
 	"learn.intro": "Elige un lenguaje, resuelve ejercicios y sigue tu progreso.",
 	"learn.comingSoon": "La ruleta de lenguajes y los ejercicios llegarán pronto.",
+	"learn.suggest.heading": "¿No sabes por dónde empezar?",
+	"learn.suggest.button": "Sugerir un lenguaje",
+	"learn.suggest.result": "¿Qué tal {lang}?",
 } as const satisfies Record<keyof typeof en, string>;
