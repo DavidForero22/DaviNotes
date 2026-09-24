@@ -34,8 +34,8 @@ const t = useTranslations(Astro.props.lang);
 		position: fixed;
 		bottom: 2rem;
 		right: 2rem;
-		background-color: #a78bfa;
-		color: #13151a;
+		background-color: var(--brand);
+		color: var(--on-brand);
 		border: none;
 		border-radius: 50%;
 		width: 3rem;
@@ -53,7 +53,7 @@ const t = useTranslations(Astro.props.lang);
 	}
 
 	.scroll-btn:hover {
-		background-color: #2dd4bf;
+		background-color: var(--highlight);
 		transform: translateY(-2px);
 	}
 
