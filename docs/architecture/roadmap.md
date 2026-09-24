@@ -62,15 +62,21 @@ Objetivo: la base de datos con las reglas de progresión cerradas (§4) y la pan
 | B10 | Revisión a11y de `InterfazEjercicio` (teclado en pistas, anuncio del resultado). | SEO/A11y | B7 | ✅ APTA sin bloqueantes (`docs/reviews/fase-b-b10.md`) |
 | B11 | Categorías iniciales de ejercicios (slugs + nombres en en/es/fr) para `seed.sql`. | i18n → Backend | — | ✅ `fase-b/i18n` + seed en `fase-b/db` |
 
-### Fase C · Cuenta y progreso ⏳ ← **SIGUIENTE SPRINT**
-Arrastra de la Fase B: `role="alert"` ya aplicado; pendientes de B10 no bloqueantes 5-8 (borde de opciones si se oculta el radio, `X-Robots-Tag` en `/api/**`, reflow 320 px y zoom 200 %). Añadir `vue-tsc` al `typecheck` (hoy `tsc` no revisa los `.vue`).
-- ⏳ Auth: `api/auth/{register,login,logout,session}` **sin confirmación de email** (D3); `middleware.ts` con sesión real (`locals.user`, `locals.supabase`).
-- ⏳ `POST /api/exercises/[id]/result` y `POST /api/exercises/[id]/hints` a través de las RPC (las monedas nunca se escriben desde el cliente).
-- ⏳ `GET /api/profile` (nivel, XP, monedas, estadísticas, lenguajes activos, logros).
-- ⏳ Las páginas de learn pasan a `prerender = false` (validar `[lang]` con `isLang`, ver `pages/learn/_README.md`).
-- ⏳ UI: páginas de Login y Registro, `DashboardPerfil.vue`, `RuletaLenguajes.vue` (evoluciona el rodillo de `LanguageSuggestion`), hueco de la cuenta en la cabecera, conexión de `InterfazEjercicio` con la API real.
-- ⏳ i18n: claves de auth, perfil y ruleta.
-- ⏳ SEO/A11y: auditoría de formularios de auth, dashboard, ruleta y monedas; jerarquía H1-H6; `noindex` en la zona privada.
+### Fase C · Cuenta y progreso 🟡 ← **SPRINT ACTUAL: C1-C6** (plan: [`fase-c.md`](./fase-c.md))
+Objetivo de C1-C6: registrarse, iniciar sesión, resolver un ejercicio real y ganar monedas y XP, con la interfaz en en/es/fr.
+
+| # | Tarea | Agente | Depende de | Estado |
+|---|-------|--------|-----------|--------|
+| C1 | Auth sin confirmación de email (D3) + sesión en `middleware.ts` + `checkOrigin` + `X-Robots-Tag` en `/api/**` | Backend | — | ⏳ |
+| C2 | `POST .../result`, `POST .../hints`, `GET /api/exercises/[id]`, `GET /api/profile` + `ProfileDTO`, `vue-tsc`, `_dev_sample.sql` (solo local) | Backend | C1 | ⏳ |
+| C3 | Requisitos a11y de login/registro, menú de cuenta, página de ejercicio y `noindex` | SEO/A11y | — | ⏳ |
+| C4 | Páginas de login y registro, cuenta en la cabecera, learn en SSR | UI | C1, C3 | ⏳ |
+| C5 | `/learn/exercise/[id]` con `InterfazEjercicio` conectado a la API real; se retira la demo | UI | C2, C4 | ⏳ |
+| C6 | Traducciones es/fr de C4-C5 y errores de auth; `check:content --db` | i18n | C4, C5 | ⏳ |
+| C7+ | `DashboardPerfil.vue`, `RuletaLenguajes.vue` (necesita definir los "lenguajes activos"), logros | UI/Backend/i18n | C6 | ⏳ |
+
+Arrastra de la Fase B: no bloqueantes 5, 6 y 8 de B10 (borde de las opciones, reflow a 320 px y zoom al 200 %).
+**Riesgo:** los previews de `renovacion` en Vercel fallan desde que se usa `@astrojs/node`. No se hace merge a `master` hasta decidir el hosting.
 
 ### Fase D · Pulido y deuda de DaviNotes ⏳
 Cambia el HTML de los docs **a propósito**: SEO toma una línea base nueva antes de empezar.
@@ -202,6 +208,7 @@ interface ApiError { error: { code: "invalid_query" | "invalid_body" | "unauthor
 ## 7. Historial de revisiones
 - **2026-09-23 (v1)**: primer roadmap, basado solo en `master`.
 - **2026-09-23 (v2)**: corregido tras revisar `renovacion` (Fase A ya completada). Se incorporan D1-D5 y las reglas de progresión, se renumeran las fases (0, A, B, C, D, Producción) y se crea `produccion.md`.
+- **2026-09-24 (v6)**: abierta la Fase C (C1-C6) con [`fase-c.md`](./fase-c.md), ramas `fase-c/*` y decisiones T12-T15. Detectado el fallo de los previews de Vercel.
 - **2026-09-24 (v5)**: **Fase B cerrada.** PRs #23-#27 fusionadas en `renovacion` en GitHub; B8 y B10 hechas; verificación final (build 169, typecheck, check:content, `db reset` 8/24/0, 36/36 tests, API 200/400). D6 decidida: el cliente decide la corrección en desarrollo.
 - **2026-09-23 (v4)**: punto de parada de la Fase B. B1-B7, B9 y B11 hechas en sus ramas; B5 integrada; pendientes B10, merges y B8. Nueva decisión pendiente D6. Contrato v2.1 (en `fase-b/db`).
 - **2026-09-23 (v3)**: Fase A archivada (ramas y worktrees `fase-a/*` borrados); abierta la Fase B con sus ramas y worktrees; `renovacion` publicada en GitHub.
