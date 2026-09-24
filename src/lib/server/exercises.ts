@@ -37,6 +37,60 @@ const EXERCISE_COLUMNS = `
 	attempts ( id )
 `;
 
+
+/**
+ * Exercises with their texts in `locale`, filtered for the current user (RLS: unlocked hint
+ * texts and own attempts only), ordered by difficulty and slug, hints by position.
+ */
+function selectExercises(supabase: Client, locale: Locale) {
+	return supabase
+		.from('exercises')
+		.select(EXERCISE_COLUMNS)
+		.eq('exercise_translations.locale', locale)
+		.eq('exercise_categories.exercise_category_translations.locale', locale)
+		.eq('hints.hint_translations.locale', locale)
+		.eq('attempts.first_completion', true)
+		.order('difficulty')
+		.order('slug')
+		.order('position', { referencedTable: 'hints' });
+}
+
+type ExerciseRow = NonNullable<Awaited<ReturnType<typeof selectExercises>>['data']>[number];
+
+function toExerciseDTO(row: ExerciseRow, locale: Locale): ExerciseDTO {
+	const t = row.exercise_translations[0]!;
+	const hints = row.hints.map((h): HintDTO => {
+		const unlocked = h.hint_unlocks.length > 0;
+		const text = h.hint_translations[0]?.text;
+		return unlocked && text !== undefined
+			? { id: h.id, order: h.position, cost: 1, unlocked, text }
+			: { id: h.id, order: h.position, cost: 1, unlocked };
+	});
+
+	const dto: ExerciseDTO = {
+		id: row.id,
+		slug: row.slug,
+		languageSlug: row.language_slug,
+		category: row.category,
+		categoryName: row.exercise_categories.exercise_category_translations[0]?.name ?? row.category,
+		difficulty: row.difficulty,
+		type: row.type,
+		locale,
+		title: t.title,
+		objective: t.objective,
+		prompt: t.prompt,
+		reward: rewardFor(row.difficulty),
+		hints,
+		completed: row.attempts.length > 0,
+	};
+	if (row.framework_slug) dto.frameworkSlug = row.framework_slug;
+	if (row.concept_slug) dto.conceptSlug = row.concept_slug;
+	if (t.context) dto.context = t.context;
+	if (t.code) dto.code = t.code;
+	if (row.type === 'multiple_choice' && t.options) dto.options = t.options;
+	return dto;
+}
+
 /**
  * Lists the exercises that have a translation in `query.locale`, ordered by difficulty
  * and slug. Returns an empty array when nothing matches (the table starts empty, D4).
@@ -49,18 +103,7 @@ export async function listExercises(
 	const limit = query.limit ?? DEFAULT_LIMIT;
 	const offset = query.offset ?? 0;
 
-	let request = supabase
-		.from('exercises')
-		.select(EXERCISE_COLUMNS)
-		.eq('exercise_translations.locale', locale)
-		.eq('exercise_categories.exercise_category_translations.locale', locale)
-		.eq('hints.hint_translations.locale', locale)
-		.eq('attempts.first_completion', true)
-		.order('difficulty')
-		.order('slug')
-		.order('position', { referencedTable: 'hints' })
-		.range(offset, offset + limit - 1);
-
+	let request = selectExercises(supabase, locale).range(offset, offset + limit - 1);
 	if (query.language) request = request.eq('language_slug', query.language);
 	if (query.framework) request = request.eq('framework_slug', query.framework);
 	if (query.concept) request = request.eq('concept_slug', query.concept);
@@ -69,38 +112,59 @@ export async function listExercises(
 
 	const { data, error } = await request;
 	if (error) throw error;
+	return data.map((row) => toExerciseDTO(row, locale));
+}
 
-	return data.map((row): ExerciseDTO => {
-		const t = row.exercise_translations[0]!;
-		const hints = row.hints.map((h): HintDTO => {
-			const unlocked = h.hint_unlocks.length > 0;
-			const text = h.hint_translations[0]?.text;
-			return unlocked && text !== undefined
-				? { id: h.id, order: h.position, cost: 1, unlocked, text }
-				: { id: h.id, order: h.position, cost: 1, unlocked };
-		});
+/**
+ * One exercise by id in `locale`. If it has no translation in `locale`, it falls back to
+ * English (`dto.locale` says which one was served: the page marks that content with
+ * `lang="en"`). Returns `null` if the exercise does not exist or has no text at all.
+ */
+export async function getExercise(supabase: Client, id: string, locale: Locale): Promise<ExerciseDTO | null> {
+	const candidates: Locale[] = locale === 'en' ? ['en'] : [locale, 'en'];
+	for (const candidate of candidates) {
+		const { data, error } = await selectExercises(supabase, candidate).eq('id', id).maybeSingle();
+		if (error) throw error;
+		if (data) return toExerciseDTO(data, candidate);
+	}
+	return null;
+}
 
-		const dto: ExerciseDTO = {
-			id: row.id,
-			slug: row.slug,
-			languageSlug: row.language_slug,
-			category: row.category,
-			categoryName: row.exercise_categories.exercise_category_translations[0]?.name ?? row.category,
-			difficulty: row.difficulty,
-			type: row.type,
-			locale,
-			title: t.title,
-			objective: t.objective,
-			prompt: t.prompt,
-			reward: rewardFor(row.difficulty),
-			hints,
-			completed: row.attempts.length > 0,
-		};
-		if (row.framework_slug) dto.frameworkSlug = row.framework_slug;
-		if (row.concept_slug) dto.conceptSlug = row.concept_slug;
-		if (t.context) dto.context = t.context;
-		if (t.code) dto.code = t.code;
-		if (row.type === 'multiple_choice' && t.options) dto.options = t.options;
-		return dto;
-	});
+/** Id and position of a hint, only if it belongs to `exerciseId` (else `null`). */
+export async function findHint(
+	supabase: Client,
+	exerciseId: string,
+	hintId: string,
+): Promise<{ id: string; position: number } | null> {
+	const { data, error } = await supabase
+		.from('hints')
+		.select('id, position')
+		.eq('id', hintId)
+		.eq('exercise_id', exerciseId)
+		.maybeSingle();
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Text of a hint the user unlocked, in `locale` or else in English (RLS hides the texts of
+ * locked hints, so this returns `undefined` for them).
+ */
+export async function unlockedHintText(supabase: Client, hintId: string, locale: Locale): Promise<string | undefined> {
+	const { data, error } = await supabase
+		.from('hint_translations')
+		.select('locale, text')
+		.eq('hint_id', hintId)
+		.in('locale', locale === 'en' ? ['en'] : [locale, 'en']);
+	if (error) throw error;
+	return (data.find((row) => row.locale === locale) ?? data[0])?.text;
+}
+
+/**
+ * `?locale=` of the exercise endpoints: the value (default "en"), or `null` if it is not
+ * one of `LOCALES`.
+ */
+export function parseLocale(value: string | null): Locale | null {
+	if (value === null || value === '') return 'en';
+	return LOCALES.includes(value as Locale) ? (value as Locale) : null;
 }

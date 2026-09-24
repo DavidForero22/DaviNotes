@@ -14,6 +14,15 @@ export default defineConfig({
 	adapter: node({ mode: 'standalone' }),
 	integrations: [vue()],
 	/**
+	 * T15: the Origin check of POST/PUT/PATCH/DELETE lives in src/middleware.ts. It follows the
+	 * rules of Astro's `checkOrigin` and also covers JSON, and its 403 carries
+	 * `X-Robots-Tag: noindex`. Astro's own check is turned off because it runs before the
+	 * middleware.
+	 */
+	security: {
+		checkOrigin: false,
+	},
+	/**
 	 * English is served without a prefix (/java/oop), while the other
 	 * languages live under their own folder (/es/java/oop, /fr/java/oop).
 	 */
