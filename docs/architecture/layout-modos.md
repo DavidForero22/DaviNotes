@@ -124,6 +124,9 @@ Móvil (≤ 846 px)
     - `display: contents` va en un `<div>` sin rol, así que no borra semántica (el problema conocido solo afecta a elementos con rol).
   - **Revalidar en la Fase C** cuando se añada la cuenta del usuario a la cabecera: tendrá que ir después del idioma
     en el DOM **y** en la misma fila visual que el idioma, para que no aparezca un segundo salto.
+    - **Revalidado por SEO (Fase C, C3, 2026-09-24):** con la cuenta después del idioma en el DOM y en la fila 1
+      (mismo `order: 1`), el orden de Tab en móvil es marca → conmutador → idioma → cuenta: sigue habiendo un solo
+      salto y **se mantiene la conclusión**. Detalle y requisitos del menú en `docs/guidelines/account-a11y.md` §2.
   - Mejora opcional, no bloqueante: si en la Fase D se rehace la cabecera, preferir un diseño sin `order`
     (p. ej. marca sola en la fila 1, y conmutador + idioma en la fila 2 si caben a 320 px).
 - **Accesibilidad (requisitos de SEO/A11y):**

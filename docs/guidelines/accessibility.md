@@ -128,15 +128,19 @@ anuncian al recorrer con Tab y no explica nada.
 
 ## 9. Formularios (Fase C: login y registro) (1.3.1, 1.3.5, 3.3.1, 3.3.2, 3.3.7, 3.3.8)
 
+> Los requisitos concretos de login, registro, menú de cuenta y página de ejercicio, con HTML de ejemplo, están en
+> [`account-a11y.md`](./account-a11y.md) (C3). Para esas páginas manda ese documento.
+
 - **Cada campo tiene `<label for>` visible.** El placeholder no sustituye a la etiqueta.
 - **`autocomplete`** en los campos de datos personales (1.3.5):
-  - Login: `autocomplete="email"` (o `username`) y `autocomplete="current-password"`.
-  - Registro: `email`, `new-password`, `username` / `nickname`.
+  - Login: `autocomplete="email"` y `autocomplete="current-password"`.
+  - Registro: `email`, `new-password` y `nickname` (nombre visible).
 - **Tipos correctos**: `type="email"`, `type="password"`; permite pegar en las contraseñas y ofrece un botón para mostrarla (con `aria-pressed`).
 - **Errores asociados al campo**:
   - Texto del error junto al campo, con `id`, y el campo con `aria-invalid="true"` + `aria-describedby="<id-del-error>"`.
   - El error dice cómo arreglarlo ("La contraseña debe tener al menos 8 caracteres"), no solo "Campo no válido".
-  - Al enviar con errores: resumen al principio del formulario en una región `role="alert"` y foco al primer campo con error.
+  - Al enviar con errores: resumen al principio del formulario, con enlaces a cada campo, y **foco al resumen** al cargar
+    (`tabindex="-1"` + `autofocus`), sin `role="alert"`. Detalle y motivo en `account-a11y.md` §1.5.
   - Icono + texto, no solo borde rojo (§7).
 - **Requisitos antes de fallar**: si la contraseña tiene reglas, se muestran antes de escribir, asociadas con `aria-describedby`.
 - **Campos obligatorios**: `required` + indicación visible (texto, no solo un asterisco de color).
