@@ -1,0 +1,186 @@
+---
+import LearnLayout from "@/layouts/learn/LearnLayout.astro";
+import EjercicioConectado from "@/components/learn/EjercicioConectado.vue";
+import { buildExerciseTexts, type ProfileSnapshot } from "@/components/learn/exercise-ui";
+import { languages } from "@/data/languages";
+import type { Lang } from "@/i18n/ui";
+import { localizePath, useTranslations } from "@/i18n/utils";
+import type { ExerciseDTO } from "@/types/api";
+import { getAllLanguageItems } from "@/utils/utils";
+
+type State =
+	| { kind: "ok"; exercise: ExerciseDTO; profile: ProfileSnapshot }
+	| { kind: "notFound" }
+	| { kind: "error" };
+
+interface Props {
+	lang: Lang;
+	/** Loaded by the page on the server (`loadExercisePage`), which also set the HTTP status. */
+	state: State;
+}
+
+/**
+ * Real exercise screen (C5, guide account-a11y §3). The island renders the only <h1> (the
+ * exercise title); the 404 and 500 states have their own <h1> and no island.
+ */
+const { lang, state } = Astro.props;
+const t = useTranslations(lang);
+const learnHref = localizePath("/learn", lang);
+
+const language =
+	state.kind === "ok"
+		? getAllLanguageItems(languages).find((item) => item.slug === state.exercise.languageSlug)
+		: undefined;
+const loginHref = `${localizePath("/learn/login", lang)}?next=${encodeURIComponent(Astro.url.pathname)}`;
+const untranslated = state.kind === "ok" && state.exercise.locale !== lang;
+
+const title =
+	state.kind === "ok"
+		? state.exercise.title
+		: t(state.kind === "notFound" ? "learn.exercise.notFoundTitle" : "learn.exercise.loadErrorTitle");
+---
+
+<LearnLayout
+	title={`${title} · DaviLearn`}
+	lang={lang}
+	description={t("learn.exercise.description")}
+	noindex
+	profile={state.kind === "ok" ? state.profile : undefined}
+>
+	{
+		state.kind === "ok" ? (
+			<div class="exercise-page">
+				<a href={learnHref} class="back-link">
+					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<path d="M19 12H5M11 18l-6-6 6-6" />
+					</svg>
+					{t("learn.exercise.backToLearn")}
+				</a>
+				{untranslated && <p class="page-note">{t("learn.exercise.untranslated")}</p>}
+				<noscript>
+					<p class="page-note page-note--warning">{t("learn.exercise.noscript")}</p>
+				</noscript>
+				{/* Texts are passed already translated so the island does not ship the dictionaries (T6) */}
+				<EjercicioConectado
+					client:load
+					lang={lang}
+					exercise={state.exercise}
+					profile={state.profile}
+					texts={buildExerciseTexts(t)}
+					language={language && { name: language.title, color: language.color }}
+					loginHref={loginHref}
+				/>
+			</div>
+		) : (
+			<div class="exercise-missing">
+				<h1>{title}</h1>
+				<p>{t(state.kind === "notFound" ? "learn.exercise.notFoundText" : "learn.exercise.loadErrorText")}</p>
+				<div class="missing-actions">
+					{state.kind === "error" && (
+						<a href={Astro.url.pathname} class="missing-primary">
+							{t("learn.exercise.reload")}
+						</a>
+					)}
+					<a href={learnHref} class:list={[state.kind === "error" ? "missing-secondary" : "missing-primary"]}>
+						{t("learn.exercise.backToLearn")}
+					</a>
+				</div>
+			</div>
+		)
+	}
+</LearnLayout>
+
+<style>
+	.exercise-page {
+		max-width: 44rem;
+		margin: 0 auto;
+		text-align: start;
+	}
+
+	.back-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		min-height: 2rem;
+		margin-bottom: 1.75rem;
+		color: var(--text-muted);
+		font-size: 0.92rem;
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.back-link:hover {
+		color: var(--text-color);
+	}
+
+	.back-link svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.page-note {
+		margin: 0 0 1.5rem;
+		padding: 0.7rem 1rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 12px;
+		background: var(--surface-sunken);
+		color: var(--text-secondary);
+		font-size: 0.95rem;
+	}
+
+	.page-note--warning {
+		border-color: var(--warning);
+		background: var(--warning-bg);
+	}
+
+	.exercise-missing p {
+		max-width: 44ch;
+		margin: 0 auto 2rem;
+		color: var(--text-muted);
+		font-size: 1.1rem;
+		line-height: 1.6;
+	}
+
+	.missing-actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.75rem;
+	}
+
+	.missing-primary,
+	.missing-secondary {
+		box-sizing: border-box;
+		display: inline-flex;
+		align-items: center;
+		min-height: 3rem;
+		padding: 0.6rem 1.6rem;
+		border-radius: 99px;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.missing-primary {
+		background: var(--brand);
+		color: var(--on-brand);
+	}
+
+	.missing-primary:hover {
+		background: var(--brand-hover);
+	}
+
+	.missing-secondary {
+		border: 1px solid var(--text-subtle);
+		color: var(--text-secondary);
+	}
+
+	.missing-secondary:hover {
+		border-color: var(--text-muted);
+		color: var(--text-color);
+	}
+</style>

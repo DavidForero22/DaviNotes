@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref } from "vue";
 import type { ExerciseDTO, HintDTO, Locale, ResultResponse } from "@/types/api";
-import type { ProfileSnapshot } from "./fixtures/exercises";
-import type { ExerciseAnswer, ExerciseApi, ExerciseTexts } from "./exercise-ui";
+import type { ExerciseAnswer, ExerciseApi, ExerciseTexts, ProfileSnapshot } from "./exercise-ui";
 
 /**
  * Exercise screen: context, technical goal, question, answer, 1-coin hints and the
  * "Solved / Not solved" result with the coins and XP earned.
  *
  * - Texts arrive translated by props (T6); placeholders such as {coins} are filled here.
- * - Rewards and balances always come from `api` (the server in phase C, a simulation in
- *   the demo). This component never computes them and never knows the solution.
+ * - Rewards and balances always come from `api` (the server). This component never computes
+ *   them and never knows the solution. Every new balance is emitted (`balance`) so the page
+ *   can update the account menu.
+ * - Errors of an action go to the `role="alert"` container: 401 with a link to sign in
+ *   again (`loginHref`), 403 `forbidden_origin`, anything else a generic retry message.
  * - Accessibility follows docs/guidelines/accessibility.md: one polite live region rendered
  *   empty on the server (§5), locked hints with aria-disabled + visible explanation (§8),
  *   states with icon + text (§7), focus moved to the new content after each action (§3).
@@ -24,7 +26,21 @@ const props = defineProps<{
 	api: ExerciseApi;
 	/** Name and brand color of the exercise language, from `data/languages.ts`. */
 	language?: { name: string; color: string };
+	/** Login page with `?next=` back to this exercise, linked when the session has expired. */
+	loginHref?: string;
 }>();
+
+const emit = defineEmits<{ balance: [balance: ProfileSnapshot] }>();
+
+/** Why the last action failed, shown in the alert container. */
+type Failure = "generic" | "unauthorized" | "forbidden";
+
+function failureOf(error: unknown): Failure {
+	const status = (error as { status?: number }).status;
+	if (status === 401) return "unauthorized";
+	if (status === 403) return "forbidden";
+	return "generic";
+}
 
 type ResultKind = "correct" | "incorrect" | "notSolved";
 interface ShownResult {
@@ -45,7 +61,7 @@ const typed = ref("");
 const sending = ref(false);
 const pendingHint = ref<string | null>(null);
 const result = ref<ShownResult | null>(null);
-const failed = ref(false);
+const failure = ref<Failure | null>(null);
 const announcement = ref("");
 
 const resultHeading = ref<HTMLElement | null>(null);
@@ -105,6 +121,17 @@ const resultLines = computed(() => {
 
 const leveledUp = computed(() => !!result.value && result.value.response.level > result.value.levelBefore);
 
+/** "Your session has expired. {signIn} to save your result." split around the link. */
+const sessionExpiredParts = computed(() => {
+	const [before = "", after = ""] = props.texts.sessionExpired.split("{signIn}");
+	return { before, after };
+});
+
+function setBalance(next: ProfileSnapshot) {
+	balance.value = next;
+	emit("balance", { ...next });
+}
+
 // ---------- Live region ----------
 
 let announceTimer: ReturnType<typeof setTimeout> | undefined;
@@ -135,17 +162,25 @@ async function unlockHint(hint: HintDTO) {
 		return;
 	}
 	pendingHint.value = hint.id;
+	failure.value = null;
 	try {
 		const response = await props.api.unlockHint(hint.id);
-		balance.value = { ...balance.value, coins: response.coins };
+		setBalance({ ...balance.value, coins: response.coins });
 		hints.value = hints.value.map((item) => (item.id === hint.id ? response.hint : item));
 		announce(fill(props.texts.hintUnlocked, { n: hint.order, coins: coins(response.coins) }));
 		await nextTick();
 		// The button is gone: focus the text that replaced it
 		hintTextEls.get(hint.id)?.focus();
 	} catch (error) {
-		const status = (error as { status?: number }).status;
-		announce(status === 402 ? fill(props.texts.hintNoCoins, { coins: coins(HINT_COST) }) : props.texts.error);
+		if ((error as { status?: number }).status === 402) {
+			// The server has fewer coins than this page thought (e.g. spent in another tab):
+			// show the "no coins" state of the hints, with its visible reason (guide §8)
+			setBalance({ ...balance.value, coins: 0 });
+			announce(fill(props.texts.hintNoCoins, { coins: coins(HINT_COST) }));
+		} else {
+			// Shown in the role="alert" container, which announces it (guide §5)
+			failure.value = failureOf(error);
+		}
 	} finally {
 		pendingHint.value = null;
 	}
@@ -166,12 +201,12 @@ async function submit(solved: boolean) {
 			: typed.value.trim();
 
 	sending.value = true;
-	failed.value = false;
+	failure.value = null;
 	const levelBefore = balance.value.level;
 	try {
 		const response = await props.api.submitResult(answer);
 		const { coins: newCoins, xp, level, xpToNextLevel } = response;
-		balance.value = { coins: newCoins, xp, level, xpToNextLevel };
+		setBalance({ coins: newCoins, xp, level, xpToNextLevel });
 		if (response.correct) completed.value = true;
 		result.value = {
 			kind: !solved ? "notSolved" : response.correct ? "correct" : "incorrect",
@@ -185,9 +220,9 @@ async function submit(solved: boolean) {
 		await nextTick();
 		// The action buttons were replaced by the result: move focus to it (guide §3)
 		resultHeading.value?.focus();
-	} catch {
+	} catch (error) {
 		// Shown in the role="alert" container, which announces it (guide §5)
-		failed.value = true;
+		failure.value = failureOf(error);
 	} finally {
 		sending.value = false;
 	}
@@ -354,9 +389,14 @@ async function retry() {
 		<!-- Always rendered (empty on the server) so the alert is announced when its text
 		     appears. Errors are the accepted exception to "one live region" (guide §5, B10) -->
 		<div class="submit-error" role="alert">
-			<p v-if="failed && answering" class="why error-text">
+			<p v-if="failure" class="why error-text">
 				<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7l10 10M17 7L7 17" /></svg>
-				{{ texts.error }}
+				<span v-if="failure === 'unauthorized' && loginHref">
+					{{ sessionExpiredParts.before }}<a :href="loginHref" data-astro-reload>{{ texts.signIn }}</a>{{ sessionExpiredParts.after }}
+				</span>
+				<span v-else-if="failure === 'unauthorized'">{{ fill(texts.sessionExpired, { signIn: texts.signIn }) }}</span>
+				<span v-else-if="failure === 'forbidden'">{{ texts.forbidden }}</span>
+				<span v-else>{{ texts.error }}</span>
 			</p>
 		</div>
 
@@ -795,6 +835,13 @@ h2:focus-visible {
 
 .error-text {
 	color: var(--error);
+}
+
+.error-text a {
+	color: var(--text-color);
+	font-weight: 700;
+	text-decoration: underline;
+	text-underline-offset: 3px;
 }
 
 /* ---------- Actions ---------- */
