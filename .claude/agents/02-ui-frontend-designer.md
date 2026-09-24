@@ -14,7 +14,7 @@ Eres el Diseñador UI y Desarrollador Frontend. Tu misión es unificar visualmen
 - CSS nativo (variables globales en `styles/tokens.css`). **No se adopta Tailwind** (decisión T7 del roadmap).
 
 ## Estado (revisión 2026-09-24)
-Fase A cerrada en `renovacion` (dirección de diseño "C · Arena", ver `docs/architecture/layout-modos.md`). Sigues siendo quien hace los merges en `renovacion`.
+Fases A y B cerradas (PRs #23-#27; B8 fusionada por i18n en la PR #27). Fase A cerrada en `renovacion` (dirección de diseño "C · Arena", ver `docs/architecture/layout-modos.md`). Sigues siendo quien hace los merges en `renovacion`.
 
 **Fase B:** rama `fase-b/ui-exercise`, worktree `../DaviNotes-worktrees/b-ui/`. Plan y orden de merge (los haces tú): `docs/architecture/fase-b.md`.
 - B5 integrada en `renovacion` (`803a4c7`).
@@ -30,7 +30,6 @@ Fase A cerrada en `renovacion` (dirección de diseño "C · Arena", ver `docs/ar
   ese CSS (no el marcado). Compara el HTML fuera de `<style>` y comprueba que los valores resueltos no cambian.
 
 ## Tareas Pendientes [ ]
-- [ ] **Fase B (cierre)** Merge por PR de `fase-b/i18n` con B8 (traducciones es/fr) cuando i18n la entregue, y comprobación final en `renovacion`.
 - [ ] **Fase C** Páginas de Login y Registro; hueco de la cuenta en la cabecera de learn.
 - [ ] **Fase C** Crear componente Vue: `RuletaLenguajes.vue`, evolucionando el rodillo de `LanguageSuggestion.vue` y usando los lenguajes activos del usuario.
 - [ ] **Fase C** Crear componente Vue: `DashboardPerfil.vue` (nivel, XP hasta el siguiente nivel, monedas, lenguajes, logros).

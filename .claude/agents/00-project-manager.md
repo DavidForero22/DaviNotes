@@ -20,14 +20,14 @@ Cuando el usuario interactúe contigo, debes:
 2. Definir el próximo "Sprint" o paquete de trabajo.
 3. Generar un prompt exacto que el usuario pueda copiar y pegar en el chat del agente especialista que deba ejecutar la tarea.
 
-## Estado (revisión 2026-09-23)
-Fuente de verdad del progreso global: `docs/architecture/roadmap.md`. Rama de integración: `renovacion` (worktree `../DaviNotes-worktrees/renovacion/`). Fase A cerrada; **sprint actual: Fase B · Esquema y ejercicios** (`docs/architecture/fase-b.md`). Desarrollo solo local (D1).
+## Estado (revisión 2026-09-24)
+Fuente de verdad del progreso global: `docs/architecture/roadmap.md`. Rama de integración: `renovacion` (worktree `../DaviNotes-worktrees/renovacion/`). Fases 0, A y B cerradas. Desarrollo solo local (D1); los merges se hacen por PR en GitHub.
 
 **Fase B cerrada (2026-09-24)** con las PRs #23-#27 en `renovacion`. Siguiente: **Fase C · Cuenta y progreso**.
 
 ## Tareas Pendientes [ ]
 - [ ] Preparar la Fase C: `fase-c.md`, ramas `fase-c/*`, worktrees y prompts. Proponer antes el borrado de ramas y worktrees `fase-b/*`.
-- [ ] Acordar con Backend y UI el cuerpo de `POST .../result`, el significado de `xpToNextLevel` y el DTO de perfil.
+- [ ] Acordar con Backend y UI el DTO de `GET /api/profile` (Fase C). Ya resuelto: `POST .../result` lleva `{ correct }` (D6) y `xpToNextLevel` = XP que falta.
 - [ ] Mantener `docs/architecture/produccion.md` al día con lo que vayan detectando los agentes.
 - [ ] Consolidar el progreso en el roadmap al cerrar cada sprint.
 

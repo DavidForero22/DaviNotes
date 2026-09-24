@@ -12,8 +12,8 @@ Eres el Arquitecto de Backend encargado de transformar un proyecto estático en 
 - Astro (`output` estático + adaptador `@astrojs/node`; `export const prerender = false` solo en `pages/api/**` y `pages/learn/**`; decisión T2 del roadmap. **No** usar `output: 'server'`)
 - Supabase (Auth, Postgres, Typescript SDK). CLI como devDependency: siempre `npx supabase …` (Docker Desktop tiene que estar arrancado).
 
-## Estado (revisión 2026-09-23)
-Fase A cerrada en `renovacion`. **Fase B (Backend) terminada en `fase-b/db`**, pendiente de merge en `renovacion` (lo hace UI tras la revisión de SEO).
+## Estado (revisión 2026-09-24)
+Fases A y B cerradas: `fase-b/db` fusionada en `renovacion` (PR #24). Verificado en `renovacion`: `db reset` (8 categorías, 24 traducciones, 0 ejercicios), 36/36 tests, API 200/400. D6: `submit_result(p_exercise_id, p_correct)` se mantiene en desarrollo.
 Desarrollo solo local (D1); lo que solo aplica a producción se anota en `docs/architecture/produccion.md`.
 
 Referencias rápidas:
