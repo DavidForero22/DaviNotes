@@ -14,6 +14,8 @@ Eres el Diseñador UI y Desarrollador Frontend. Tu misión es unificar visualmen
 - CSS nativo (variables globales en `styles/tokens.css`). **No se adopta Tailwind** (decisión T7 del roadmap).
 
 ## Estado (revisión 2026-09-24)
+> **D7 (2026-09-24): SEO/A11y e i18n en pausa.** La interfaz se desarrolla **solo en español** hasta consolidar la base. Claves nuevas: texto en español en `es` y la misma clave con el texto español + `// TODO(i18n)` en `en`/`fr`. Las ramas se fusionan sin revisión de SEO. Lo aplazado está en `docs/backlog/i18n.md` y `docs/backlog/seo-a11y.md`. Aplica tú las guías de accesibilidad (sus DEBE y la checklist §5 de `account-a11y.md`) y apunta cada pantalla nueva o cambiada en `docs/backlog/seo-a11y.md` ("Pantallas futuras"). Sigues haciendo los merges por PR, sin esperar la revisión de SEO.
+
 Fases A y B cerradas (PRs #23-#27). Sigues siendo quien hace los merges en `renovacion` (por PR en GitHub con `gh`,
 commit de merge, sin squash).
 

@@ -1,7 +1,7 @@
 # Roadmap global · DaviNotes → DaviLearn
 
 Mantenido por: **Project Manager & Tech Lead** (`.claude/agents/00-project-manager.md`).
-Última revisión: **2026-09-24**, sobre la rama de integración `renovacion` (`d6afdef`).
+Última revisión: **2026-09-24**, sobre la rama de integración `renovacion` (`55be0db`).
 
 Leyenda: ✅ hecho · 🟡 parcial · ⏳ pendiente · ⛔ bloqueado
 
@@ -19,9 +19,9 @@ Leyenda: ✅ hecho · 🟡 parcial · ⏳ pendiente · ⛔ bloqueado
 | Infraestructura | ✅ Vue, `@astrojs/node` con `output: 'static'`, Supabase SDK + CLI (devDependency), `supabase/config.toml` | `astro.config.mjs`, `package.json` |
 | Backend | 🟡 Esquema + RLS + RPC de progresión (36/36 tests pgTAP), seed de 8 categorías, `GET /api/exercises` | Falta auth/sesión y los POST (Fase C) |
 | Modo Aprender | 🟡 Layout, conmutador, rutas localizadas, `LanguageSuggestion.vue` y `InterfazEjercicio.vue` con demo (`/learn/demo/exercise/`) sobre fixtures | Sin datos reales ni sesión (Fase C) |
-| i18n | ✅ `learn.*` completo en en/es/fr (incluidas las 35 claves de ejercicio); `npm run check:content` | `locales/*/learn.ts`, `scripts/check-content.ts` |
+| i18n | ⏸ En pausa (D7). `learn.*` y `account.*` completos en en/es/fr hasta C6 (incluidas las 35 claves de ejercicio); `npm run check:content` | `locales/*/learn.ts`, `scripts/check-content.ts` |
 | SEO técnico | ⏸ Aparcado hasta producción | Ver `produccion.md` |
-| A11y | 🟡 Guía `docs/guidelines/accessibility.md`; learn revisado (B10: APTA); los docs arrastran deuda | Ver Fase D |
+| A11y | ⏸ En pausa (D7); revisión de la Fase C pendiente en `docs/backlog/seo-a11y.md`. Guías `accessibility.md` + `account-a11y.md`; learn revisado (B10: APTA); los docs arrastran deuda | Ver Fase D |
 
 ### Ramas y worktrees
 | Rama | Worktree | Uso |
@@ -62,18 +62,18 @@ Objetivo: la base de datos con las reglas de progresión cerradas (§4) y la pan
 | B10 | Revisión a11y de `InterfazEjercicio` (teclado en pistas, anuncio del resultado). | SEO/A11y | B7 | ✅ APTA sin bloqueantes (`docs/reviews/fase-b-b10.md`) |
 | B11 | Categorías iniciales de ejercicios (slugs + nombres en en/es/fr) para `seed.sql`. | i18n → Backend | — | ✅ `fase-b/i18n` + seed en `fase-b/db` |
 
-### Fase C · Cuenta y progreso 🟡 ← **SPRINT ACTUAL: C1-C6** (plan: [`fase-c.md`](./fase-c.md))
+### Fase C · Cuenta y progreso 🟡 **C1-C6 ✅** (PRs #29-#32) · siguiente: **C7+** (plan: [`fase-c.md`](./fase-c.md))
 Objetivo de C1-C6: registrarse, iniciar sesión, resolver un ejercicio real y ganar monedas y XP, con la interfaz en en/es/fr.
 
 | # | Tarea | Agente | Depende de | Estado |
 |---|-------|--------|-----------|--------|
-| C1 | Auth sin confirmación de email (D3) + sesión en `middleware.ts` + `checkOrigin` + `X-Robots-Tag` en `/api/**` | Backend | — | ⏳ |
-| C2 | `POST .../result`, `POST .../hints`, `GET /api/exercises/[id]`, `GET /api/profile` + `ProfileDTO`, `vue-tsc`, `_dev_sample.sql` (solo local) | Backend | C1 | ⏳ |
-| C3 | Requisitos a11y de login/registro, menú de cuenta, página de ejercicio y `noindex` | SEO/A11y | — | ⏳ |
-| C4 | Páginas de login y registro, cuenta en la cabecera, learn en SSR | UI | C1, C3 | ⏳ |
-| C5 | `/learn/exercise/[id]` con `InterfazEjercicio` conectado a la API real; se retira la demo | UI | C2, C4 | ⏳ |
-| C6 | Traducciones es/fr de C4-C5 y errores de auth; `check:content --db` | i18n | C4, C5 | ⏳ |
-| C7+ | `DashboardPerfil.vue`, `RuletaLenguajes.vue` (necesita definir los "lenguajes activos"), logros | UI/Backend/i18n | C6 | ⏳ |
+| C1 | Auth sin confirmación de email (D3) + sesión en `middleware.ts` + `checkOrigin` + `X-Robots-Tag` en `/api/**` | Backend | — | ✅ PR #30 |
+| C2 | `POST .../result`, `POST .../hints`, `GET /api/exercises/[id]`, `GET /api/profile` + `ProfileDTO`, `vue-tsc`, `_dev_sample.sql` (solo local) | Backend | C1 | ✅ PR #30 (48/48 tests) |
+| C3 | Requisitos a11y de login/registro, menú de cuenta, página de ejercicio y `noindex` | SEO/A11y | — | ✅ PR #29 |
+| C4 | Páginas de login y registro, cuenta en la cabecera, learn en SSR | UI | C1, C3 | ✅ PR #31 |
+| C5 | `/learn/exercise/[id]` con `InterfazEjercicio` conectado a la API real; se retira la demo | UI | C2, C4 | ✅ PR #31 |
+| C6 | Traducciones es/fr de C4-C5 y errores de auth; `check:content --db` | i18n | C4, C5 | ✅ PR #32 |
+| C7+ | `DashboardPerfil.vue`, `RuletaLenguajes.vue` (necesita definir los "lenguajes activos"), logros | UI/Backend/i18n | C6 | ⏳ siguiente sprint |
 
 Arrastra de la Fase B: no bloqueantes 5, 6 y 8 de B10 (borde de las opciones, reflow a 320 px y zoom al 200 %).
 **Despliegue:** Vercel está **pausado por completo** (decisión del usuario, 2026-09-24): los previews de `renovacion` fallaban con `@astrojs/node`, pero ahora ni `master` ni las ramas se despliegan. El hosting se decide antes de producción (`produccion.md` §0).
@@ -103,7 +103,8 @@ Checklist completa en [`produccion.md`](./produccion.md).
 | **D2** | Reglas de progresión **cerradas** (ver §4). El esquema de la BD se diseña sobre ellas. |
 | **D3** | El registro **no exige** confirmar el email. |
 | **D4** | El contenido real de los ejercicios lo escribe el usuario en un script de inserción propio. **La tabla `exercises` empieza vacía**: el seed no incluye ejercicios. |
-| **D6** | Durante el desarrollo **el cliente decide si la respuesta es correcta**: `submit_result(p_exercise_id, p_correct)` se queda como está, por simplicidad. Riesgo aceptado: un usuario con sesión podría otorgarse monedas y XP. **Se revisa antes de producción** (validar contra `exercise_answers` en la BD; ver `produccion.md`). |
+| **D6** | Durante el desarrollo **el cliente decide si la respuesta es correcta** (**autoevaluación**: el usuario marca «Resuelto» o «No resuelto», confirmado el 2026-09-24): `submit_result(p_exercise_id, p_correct)` se queda como está, por simplicidad. Riesgo aceptado: un usuario con sesión podría otorgarse monedas y XP. **Se revisa antes de producción** (validar contra `exercise_answers` en la BD; ver `produccion.md`). |
+| **D7** | **SEO/A11y e i18n en pausa.** La interfaz se desarrolla **solo en español** hasta consolidar la base. Claves nuevas: texto en español en `es` y la misma clave con el texto español + `// TODO(i18n)` en `en`/`fr`. Las ramas se fusionan sin revisión de SEO. Lo aplazado está en `docs/backlog/i18n.md` y `docs/backlog/seo-a11y.md`. |
 | **D5** | El usuario instalará las herramientas locales cuando haga falta. Supabase CLI ya viene como devDependency (`npx supabase`). Docker Desktop ya está instalado (v29.7), así que `supabase start` está disponible. |
 
 ### Decisiones del Tech Lead (vigentes salvo que el usuario diga lo contrario)
@@ -208,6 +209,7 @@ interface ApiError { error: { code: "invalid_query" | "invalid_body" | "unauthor
 ## 7. Historial de revisiones
 - **2026-09-23 (v1)**: primer roadmap, basado solo en `master`.
 - **2026-09-23 (v2)**: corregido tras revisar `renovacion` (Fase A ya completada). Se incorporan D1-D5 y las reglas de progresión, se renumeran las fases (0, A, B, C, D, Producción) y se crea `produccion.md`.
+- **2026-09-24 (v7)**: **C1-C6 cerradas** (PRs #29-#32; build 163, typecheck con vue-tsc, check:content OK; tests de BD 48/48 en la rama de Backend). Nueva decisión D7: SEO e i18n en pausa, interfaz solo en español, backlogs en `docs/backlog/`.
 - **2026-09-24 (v6)**: abierta la Fase C (C1-C6) con [`fase-c.md`](./fase-c.md), ramas `fase-c/*` y decisiones T12-T15. Detectado el fallo de los previews de Vercel.
 - **2026-09-24 (v5)**: **Fase B cerrada.** PRs #23-#27 fusionadas en `renovacion` en GitHub; B8 y B10 hechas; verificación final (build 169, typecheck, check:content, `db reset` 8/24/0, 36/36 tests, API 200/400). D6 decidida: el cliente decide la corrección en desarrollo.
 - **2026-09-23 (v4)**: punto de parada de la Fase B. B1-B7, B9 y B11 hechas en sus ramas; B5 integrada; pendientes B10, merges y B8. Nueva decisión pendiente D6. Contrato v2.1 (en `fase-b/db`).

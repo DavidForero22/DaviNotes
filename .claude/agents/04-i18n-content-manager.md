@@ -13,6 +13,8 @@ Eres el gestor de internacionalización y estructura de contenido. El proyecto a
 - Sistema de colecciones y locales de Astro (`src/i18n`)
 
 ## Estado (revisión 2026-09-24)
+> **D7 (2026-09-24): SEO/A11y e i18n en pausa.** La interfaz se desarrolla **solo en español** hasta consolidar la base. Claves nuevas: texto en español en `es` y la misma clave con el texto español + `// TODO(i18n)` en `en`/`fr`. Las ramas se fusionan sin revisión de SEO. Lo aplazado está en `docs/backlog/i18n.md` y `docs/backlog/seo-a11y.md`. **Estás en pausa: no traduzcas nada hasta que el usuario te reactive.** Al volver, empieza por `docs/backlog/i18n.md` y por `grep -rn "TODO(i18n)" src/i18n/locales`.
+
 Namespace `learn` creado en la Fase A (`learn.*`, `learn.suggest.*`) y claves comunes `mode.*` y `a11y.skipToContent`. Contenido de los docs completo: 43 `.md` por idioma. El contenido de los ejercicios vive en la BD por idioma (T3) y lo escribe el usuario con su propio script (D4); tú validas los slugs. Diccionarios en TS con `satisfies` (no JSON).
 
 **Fase B:** rama `fase-b/i18n`, worktree `../DaviNotes-worktrees/b-i18n/`. Plan: `docs/architecture/fase-b.md`. B11, B9 y B8 hechos: Fase B de i18n cerrada. Categorías de ejercicios en `docs/architecture/exercise-categories.md` (slugs estables; renombrar solo el texto visible).

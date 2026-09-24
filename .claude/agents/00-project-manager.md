@@ -21,12 +21,16 @@ Cuando el usuario interactúe contigo, debes:
 3. Generar un prompt exacto que el usuario pueda copiar y pegar en el chat del agente especialista que deba ejecutar la tarea.
 
 ## Estado (revisión 2026-09-24)
+> **D7 (2026-09-24): SEO/A11y e i18n en pausa.** La interfaz se desarrolla **solo en español** hasta consolidar la base. Claves nuevas: texto en español en `es` y la misma clave con el texto español + `// TODO(i18n)` en `en`/`fr`. Las ramas se fusionan sin revisión de SEO. Lo aplazado está en `docs/backlog/i18n.md` y `docs/backlog/seo-a11y.md`. Mantienes los backlogs al día al cerrar cada sprint.
+
 Fuente de verdad del progreso global: `docs/architecture/roadmap.md`. Rama de integración: `renovacion` (worktree `../DaviNotes-worktrees/renovacion/`). Fases 0, A y B cerradas. Desarrollo solo local (D1); los merges se hacen por PR en GitHub.
 
 **Fase B cerrada (2026-09-24)** con las PRs #23-#27 en `renovacion`. Siguiente: **Fase C · Cuenta y progreso**.
 
 ## Tareas Pendientes [ ]
-- [ ] Preparar la Fase C: `fase-c.md`, ramas `fase-c/*`, worktrees y prompts. Proponer antes el borrado de ramas y worktrees `fase-b/*`.
+- [ ] Preparar C7+ (dashboard, ruleta, logros): antes, que el usuario defina los "lenguajes activos". Proponer el borrado de las ramas y worktrees `fase-b/*` y `fase-c/*`.
+- [ ] Mantener `docs/backlog/i18n.md` y `docs/backlog/seo-a11y.md` con lo que añadan UI y Backend.
+- [x] Preparar la Fase C: `fase-c.md`, ramas `fase-c/*`, worktrees y prompts. Proponer antes el borrado de ramas y worktrees `fase-b/*`.
 - [ ] Acordar con Backend y UI el DTO de `GET /api/profile` (Fase C). Ya resuelto: `POST .../result` lleva `{ correct }` (D6) y `xpToNextLevel` = XP que falta.
 - [ ] Mantener `docs/architecture/produccion.md` al día con lo que vayan detectando los agentes.
 - [ ] Consolidar el progreso en el roadmap al cerrar cada sprint.

@@ -1,6 +1,6 @@
 # Fase C: cuenta y progreso
 
-> **Estado: abierta** (2026-09-24). Objetivo de este sprint: **C1-C6**. Progreso global en [`roadmap.md`](./roadmap.md).
+> **Estado: C1-C6 cerradas** (2026-09-24), integradas en `renovacion` con las PRs #29-#32 (merge final `55be0db`). C7+ en el siguiente sprint. Progreso global en [`roadmap.md`](./roadmap.md).
 
 Objetivo de C1-C6: **un usuario puede registrarse, iniciar sesión, resolver un ejercicio real y ganar monedas y XP**,
 con la interfaz en en/es/fr. El dashboard, la ruleta y los logros quedan para C7 en adelante.
@@ -107,3 +107,38 @@ o se cambia a `@astrojs/vercel` y se usa Supabase remoto, o se cambia de platafo
 - `npm run build` y `npm run typecheck` sin errores; los docs (163 páginas) con el mismo marcado.
 - Backend: `npx supabase db reset` + `npx supabase test db` en verde.
 - Commit en su rama, push y aviso al PM con un resumen de 3-5 líneas.
+
+## Cierre de C1-C6 (2026-09-24)
+
+| PR | Rama | Contenido | Merge |
+|----|------|-----------|-------|
+| #29 | `fase-c/a11y` | C3: `docs/guidelines/account-a11y.md` | `e995a65` |
+| #30 | `fase-c/api` | C1 + C2: auth, sesión, API de progreso, `vue-tsc`, `_dev_sample.sql` (48/48 tests) | `5b0609f` |
+| #31 | `fase-c/ui-account` | C4 + C5: login, registro, menú de cuenta, learn en SSR, ejercicio real (43/43 comprobaciones con Playwright) | `6148c61` |
+| #32 | `fase-c/i18n` | C6: 57 claves en es/fr, `check:content --db` | `55be0db` |
+
+Verificación en `renovacion`:
+- `npm run typecheck` (con `vue-tsc`): OK.
+- `npm run build`: 163 páginas prerenderizadas, solo los docs (learn es SSR).
+- `npm run check:content`: 43/43/43.
+- `npx supabase test db`: **no se ha podido ejecutar en `renovacion`** porque Docker Desktop estaba parado. Pasó 48/48 en `fase-c/api` y el merge no tuvo conflictos. Repetirlo al arrancar Docker.
+
+**Decisiones tomadas durante el sprint:**
+- Contraseña de 8 caracteres como mínimo (`src/lib/auth-rules.ts`).
+- Los errores tras la redirección 303 llegan en una cookie flash `dl_auth_flash`.
+- El foco va al resumen de errores, sin `role="alert"`.
+- `Cache-Control: private, no-store` en las páginas SSR.
+- `checkOrigin` de Astro sustituido por una comprobación de `Origin` en el middleware, para que el 403 también lleve `X-Robots-Tag`.
+- **D6:** confirmada como autoevaluación.
+
+**D7 (2026-09-24): SEO/A11y e i18n en pausa.** La interfaz se desarrolla **solo en español** hasta consolidar la base. Claves nuevas: texto en español en `es` y la misma clave con el texto español + `// TODO(i18n)` en `en`/`fr`. Las ramas se fusionan sin revisión de SEO. Lo aplazado está en `docs/backlog/i18n.md` y `docs/backlog/seo-a11y.md`.
+
+**Revisión de SEO de C1-C5:** quedó interrumpida por el límite de sesión y pasa a `docs/backlog/seo-a11y.md`.
+
+### Para C7+
+- Definir los "lenguajes activos" del usuario (lo necesita la ruleta): ¿los elige el usuario en su perfil, o se deducen de sus intentos?
+- `DashboardPerfil.vue`, `RuletaLenguajes.vue` y logros (`new_achievements` hoy es `{}`).
+- Limpieza técnica:
+  - `requireUser` debe devolver 303 en lugar de 302 (Backend).
+  - Error de escaneo de Vite en `DocSearch.astro` (UI).
+- Supabase local: arrancar Docker Desktop y ejecutar `npx supabase start` desde `renovacion`. Contiene los usuarios de prueba de UI y los 3 ejercicios de `_dev_sample.sql`.

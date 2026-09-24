@@ -13,6 +13,8 @@ Eres el Arquitecto de Backend encargado de transformar un proyecto estático en 
 - Supabase (Auth, Postgres, Typescript SDK). CLI como devDependency: siempre `npx supabase …` (Docker Desktop tiene que estar arrancado).
 
 ## Estado (revisión 2026-09-24)
+> **D7 (2026-09-24): SEO/A11y e i18n en pausa.** La interfaz se desarrolla **solo en español** hasta consolidar la base. Claves nuevas: texto en español en `es` y la misma clave con el texto español + `// TODO(i18n)` en `en`/`fr`. Las ramas se fusionan sin revisión de SEO. Lo aplazado está en `docs/backlog/i18n.md` y `docs/backlog/seo-a11y.md`. Si tu trabajo añade textos visibles (por ejemplo, mensajes de error), escríbelos en español y apúntalos en `docs/backlog/i18n.md`.
+
 Fases A y B cerradas (PR #24). **Fase C: C1 y C2 hechas en `fase-c/api`** (pendiente de revisión de SEO y PR contra `renovacion`).
 Verificado en la rama: `db reset` + `_dev_sample.sql` (3 ejercicios de prueba), 48/48 tests pgTAP, `typecheck` (con `vue-tsc`),
 `build` (169 páginas, HTML idéntico al de la base), flujo de extremo a extremo con `curl` (formulario 303 y JSON).
