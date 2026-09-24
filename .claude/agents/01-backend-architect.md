@@ -10,23 +10,32 @@ Eres el Arquitecto de Backend encargado de transformar un proyecto estático en 
 
 ## Stack Tecnológico
 - Astro (`output` estático + adaptador `@astrojs/node`; `export const prerender = false` solo en `pages/api/**` y `pages/learn/**`; decisión T2 del roadmap. **No** usar `output: 'server'`)
-- Supabase (Auth, Postgres, Typescript SDK)
+- Supabase (Auth, Postgres, Typescript SDK). CLI como devDependency: siempre `npx supabase …` (Docker Desktop tiene que estar arrancado).
 
 ## Estado (revisión 2026-09-23)
-Fase A cerrada en `renovacion`: dependencias, adaptador Node, `supabase/config.toml`, esqueleto de `middleware.ts`, `lib/server/supabase.ts` y `env.d.ts`. Siguen sin existir migraciones y endpoints. Las reglas de progresión están **cerradas** (roadmap §4) y la tabla `exercises` empieza **vacía** (D4). Desarrollo solo local (D1); lo que solo aplica a producción se anota en `docs/architecture/produccion.md`.
+Fase A cerrada en `renovacion`. **Fase B (Backend) terminada en `fase-b/db`**, pendiente de merge en `renovacion` (lo hace UI tras la revisión de SEO).
+Desarrollo solo local (D1); lo que solo aplica a producción se anota en `docs/architecture/produccion.md`.
 
-**Fase B:** rama `fase-b/db`, worktree `../DaviNotes-worktrees/b-db/`. Plan y orden de merge: `docs/architecture/fase-b.md`.
+Referencias rápidas:
+- Esquema: `supabase/migrations/20260923120000_initial_schema.sql` (resumen en `supabase/README.md`).
+- Tests: `supabase/tests/progression.test.sql` (pgTAP, 36 tests; `npx supabase test db`).
+- Contrato: `src/types/api.ts` (v2.1, roadmap §5); API: `docs/architecture/api.md`.
+- Tras cada migración: `npx supabase gen types typescript --local > src/types/database.ts`.
+- `.env` local (no se versiona): `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY` de `npx supabase status`.
+- Las RPC lanzan `SQLSTATE` `PTxxx` → PostgREST responde HTTP `xxx` (401, 400, 404, 402).
 
 ## Tareas Pendientes [ ]
-- [ ] **B1** Migración inicial (`profiles`, `exercises`, `exercise_translations`, `hints`, `hint_translations`, `attempts`, `hint_unlocks`, `achievements`, `user_achievements`) con RLS, trigger que crea el perfil al registrarse y RPC `submit_result`/`unlock_hint` según el roadmap §4. `difficulty smallint CHECK 1-10` (T5); las monedas, la XP y el nivel solo cambian vía RPC (T11). Necesita Docker (`npx supabase start`).
-- [ ] **B2** `npx supabase gen types` → `src/types/database.ts`; DTOs en `src/types/api.ts` (contrato v2, roadmap §5).
-- [ ] **B3** `GET /api/exercises` (filtros `language`, `concept`, `difficulty`, `locale`) + `docs/architecture/api.md`.
-- [ ] **B4** Plantilla documentada del script de inserción de ejercicios del usuario (`supabase/exercises/README.md` + ejemplo comentado, **sin datos**).
-- [ ] **Fase C** Auth sin confirmación de email (D3: `enable_confirmations = false` en `config.toml`) + sesión real en `middleware.ts`.
-- [ ] **Fase C** `POST /api/exercises/[id]/result` y `POST /api/exercises/[id]/hints` (402 si no hay saldo), vía RPC.
-- [ ] **Fase C** `GET /api/profile` (nivel, XP, monedas, estadísticas, lenguajes activos, logros).
+- [ ] **Fase C** Auth sin confirmación de email (D3, `enable_confirmations = false` ya está en `config.toml`) + `api/auth/{register,login,logout,session}` + sesión real en `middleware.ts` (`locals.user`, `locals.supabase`).
+- [ ] **Fase C** `POST /api/exercises/[id]/result` y `POST /api/exercises/[id]/hints` (402 si no hay saldo) sobre las RPC; comprobar que la pista pertenece al ejercicio.
+- [ ] **Fase C** `GET /api/profile` (nivel, XP, monedas, estadísticas, lenguajes activos, logros) y reglas de logros (`new_achievements` hoy devuelve `{}`).
+- [ ] **Fase C** Conectar `check:content` (i18n) con los slugs de `exercises` (T4).
 
 ## Tareas Completadas [x]
 - [x] Esqueleto de la Fase 0: `supabase/`, `.env.example`, `lib/server/`, `types/`, `pages/api/_README.md`.
 - [x] Fase A (`fase-a/infra`): `@astrojs/node`, `@astrojs/vue` + `vue`, `@supabase/supabase-js`, `@supabase/ssr`, `supabase` (CLI, devDependency); `output: 'static'` + adaptador; `supabase init`; `middleware.ts` (esqueleto), `lib/server/supabase.ts`, `env.d.ts`; script `typecheck`.
-- [x] Borrador del contrato `ExerciseDTO` (hoy v2 en el roadmap §5).
+- [x] **B1** Migración inicial: `profiles`, `exercise_categories` (+ traducciones), `exercises`, `exercise_translations`, `exercise_answers` (sin políticas: la respuesta no sale de la BD), `hints`, `hint_translations` (texto visible solo si se desbloqueó), `attempts`, `hint_unlocks`, `achievements` (+ traducciones), `user_achievements`. RLS en todas; privilegios de escritura retirados a `anon`/`authenticated` salvo `profiles.display_name` (T11). Trigger de perfil al registrarse. RPC `submit_result` y `unlock_hint` (`security definer`, `search_path = ''`) con las reglas §4; reglas puras en el esquema `private`. Tests pgTAP.
+- [x] Seed: 8 categorías × 3 idiomas (B11). Tabla `exercises` vacía (D4).
+- [x] **B2** `src/types/database.ts` (generado) y `src/types/api.ts` (contrato v2.1).
+- [x] **B3** `GET /api/exercises` (`language`, `framework`, `concept`, `category`, `difficulty`, `locale`, `limit`, `offset`) + `docs/architecture/api.md`. Ya refleja la sesión (pistas desbloqueadas, `completed`) cuando exista.
+- [x] **B4** `supabase/exercises/README.md` + `_template.sql`.
+- [x] `package.json`: `typecheck` = `astro sync && tsc --noEmit`, `check:content`, `@types/node` (devDependency).
