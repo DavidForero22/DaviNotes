@@ -15,11 +15,9 @@
  * Node 24 runs this file directly (type stripping), so it only uses erasable TypeScript syntax
  * (no `enum`, `namespace` or parameter properties) and relative imports with the `.ts` extension:
  * the `@/` alias only exists inside Astro/Vite.
- *
- * The project has no `@types/node`, so the Node APIs are loaded with `process.getBuiltinModule`
- * and typed with the minimal local interfaces below. That keeps `npm run typecheck` green without
- * new dependencies. If `@types/node` is added later, they can become regular `node:fs` imports.
  */
+import { readdirSync } from "node:fs";
+import process from "node:process";
 import { locales, type Lang } from "../src/i18n/config.ts";
 import { INSTALLATION_GUIDE_SLUG, languages } from "../src/data/languages.ts";
 import { frameworks } from "../src/data/frameworks.ts";
@@ -162,18 +160,6 @@ export function validateExerciseRefs(refs: readonly ExerciseRef[]): ExerciseRefI
 /* Docs coverage                                                      */
 /* ------------------------------------------------------------------ */
 
-/** Minimal slice of `node:fs` used here (see the note at the top of the file). */
-interface FsLike {
-	readdirSync(path: URL, options: { recursive: true }): string[];
-}
-
-interface ProcessLike {
-	exitCode?: number | string;
-	getBuiltinModule(id: string): unknown;
-}
-
-const nodeProcess = (globalThis as unknown as { process: ProcessLike }).process;
-
 const DOCS_ROOT = new URL("../src/content/docs/", import.meta.url);
 
 /** Every `.md` path the catalog expects, relative to `src/content/docs/<locale>/`, without extension. */
@@ -189,20 +175,19 @@ export function expectedDocPaths(): string[] {
 }
 
 /** Lists every `.md` under `src/content/docs/`, as `<locale>/<path>` without extension, with `/` separators. */
-function listDocFiles(fs: FsLike): string[] {
-	return fs
-		.readdirSync(DOCS_ROOT, { recursive: true })
+function listDocFiles(): string[] {
+	return readdirSync(DOCS_ROOT, { recursive: true, encoding: "utf8" })
 		.map((file) => file.replaceAll("\\", "/"))
 		.filter((file) => file.endsWith(".md"))
 		.map((file) => file.slice(0, -".md".length));
 }
 
 /** Missing translations and orphan files. */
-export function checkDocsCoverage(fs: FsLike): { issues: ContentIssue[]; filesPerLocale: Record<string, number> } {
+export function checkDocsCoverage(): { issues: ContentIssue[]; filesPerLocale: Record<string, number> } {
 	const issues: ContentIssue[] = [];
 	const langs = Object.keys(locales) as Lang[];
 	const expected = expectedDocPaths();
-	const actual = new Set(listDocFiles(fs));
+	const actual = new Set(listDocFiles());
 
 	const filesPerLocale: Record<string, number> = {};
 	for (const file of actual) {
@@ -233,10 +218,8 @@ export function checkDocsCoverage(fs: FsLike): { issues: ContentIssue[]; filesPe
 /* ------------------------------------------------------------------ */
 
 function main(): void {
-	const fs = nodeProcess.getBuiltinModule("node:fs") as FsLike;
-
 	const catalogIssues = checkCatalog();
-	const { issues: docsIssues, filesPerLocale } = checkDocsCoverage(fs);
+	const { issues: docsIssues, filesPerLocale } = checkDocsCoverage();
 	const issues = [...catalogIssues, ...docsIssues];
 
 	const expected = expectedDocPaths().length;
@@ -251,8 +234,8 @@ function main(): void {
 
 	console.error(`check:content found ${issues.length} problem(s). Docs: ${counts}.`);
 	for (const issue of issues) console.error(`  - ${issue.message}`);
-	nodeProcess.exitCode = 1;
+	process.exitCode = 1;
 }
 
 // Only run when executed directly, not when imported (e.g. by the Phase C exercise check).
-if ((import.meta as ImportMeta & { main?: boolean }).main) main();
+if (import.meta.main) main();
