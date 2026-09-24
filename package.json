@@ -7,7 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "typecheck": "astro sync && tsc --noEmit",
+    "typecheck": "astro sync && vue-tsc --noEmit",
     "check:content": "node scripts/check-content.ts"
   },
   "dependencies": {
@@ -21,6 +21,7 @@
   "devDependencies": {
     "@types/node": "^24.13.6",
     "supabase": "^2.117.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.3.11"
   }
 }

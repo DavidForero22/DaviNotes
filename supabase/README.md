@@ -8,8 +8,10 @@ Development runs against a **local** Supabase stack (Docker); there is no remote
 - `migrations/`: versioned SQL (schema + Row Level Security + RPC). One file per change, created
   with `npx supabase migration new <name>`. Never edit a migration that was already merged.
 - `seed.sql`: exercise categories only (local; never run in production). **No exercises** (D4).
-- `tests/`: pgTAP tests of the progression rules and of RLS (`npx supabase test db`).
-- `exercises/`: template and instructions for the user's exercise insertion scripts.
+- `tests/`: pgTAP tests of the progression rules and of RLS (`progression.test.sql`) and of the queries
+  the API relies on (`api.test.sql`). Run them with `npx supabase test db`.
+- `exercises/`: template and instructions for the user's exercise insertion scripts, and
+  `_dev_sample.sql` (fictitious exercises for local development only).
 
 Schema summary (`migrations/20260923120000_initial_schema.sql`):
 

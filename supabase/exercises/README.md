@@ -49,3 +49,36 @@ its `difficulty` (the rewards already given are not recalculated) or its `slug`.
 
 In production the same scripts are run against the remote database (see
 `docs/architecture/produccion.md`).
+
+## Development sample (`_dev_sample.sql`)
+
+Three **fictitious** exercises ("Test exercise 1" / "Ejercicio de prueba 1" / "Exercice de test 1"...)
+so the UI can test the real flow: exercise page, result, coins and hints. They are **not** learning
+content (D4) and **must never be loaded into production**. They are not in `seed.sql`, so
+`npx supabase db reset` removes them: load them again after every reset.
+
+```sh
+# Git Bash
+docker exec -i supabase_db_davilearn psql -U postgres -v ON_ERROR_STOP=1 < supabase/exercises/_dev_sample.sql
+```
+
+```powershell
+# PowerShell
+Get-Content supabase/exercises/_dev_sample.sql -Raw -Encoding UTF8 | docker exec -i supabase_db_davilearn psql -U postgres -v ON_ERROR_STOP=1
+```
+
+If accents end up as `?` in Windows PowerShell 5.1, run `$OutputEncoding = [System.Text.UTF8Encoding]::new($false)`
+first (it sets the encoding PowerShell uses to pipe text into `docker`), or use Git Bash.
+
+The file can be run any number of times: it deletes the previous sample (slugs `dev-sample-*`, with the
+attempts and unlocked hints of every user on them) and inserts it again with the same ids.
+
+| Id | Slug | Type | Difficulty (reward) | Hints | Locales |
+|----|------|------|---------------------|-------|---------|
+| `de000000-0000-4000-8000-000000000001` | `dev-sample-1` | `multiple_choice` (3 options) | 2 (1 coin, 20 XP) | 2 | en, es, fr |
+| `de000000-0000-4000-8000-000000000002` | `dev-sample-2` | `fill_blank` (with code) | 5 (2 coins, 50 XP) | 1 | en, es, fr |
+| `de000000-0000-4000-8000-000000000003` | `dev-sample-3` | `code_output` (with code) | 8 (3 coins, 80 XP) | 0 | en, es (fr falls back to en) |
+
+Hint ids: `…000000000111`, `…000000000112` (exercise 1) and `…000000000121` (exercise 2), with the
+prefix `de000000-0000-4000-8000-`. A new user has 0 coins, so the first hint gives `402` until an
+exercise is completed (e.g. `dev-sample-1` gives 1 coin).
