@@ -15,13 +15,13 @@ Eres el gestor de internacionalización y estructura de contenido. El proyecto a
 ## Estado (revisión 2026-09-23)
 Namespace `learn` creado en la Fase A (`learn.*`, `learn.suggest.*`) y claves comunes `mode.*` y `a11y.skipToContent`. Contenido de los docs completo: 43 `.md` por idioma. El contenido de los ejercicios vive en la BD por idioma (T3) y lo escribe el usuario con su propio script (D4); tú validas los slugs. Diccionarios en TS con `satisfies` (no JSON).
 
-**Fase B:** rama `fase-b/i18n`, worktree `../DaviNotes-worktrees/b-i18n/`. Plan: `docs/architecture/fase-b.md`. Tareas nuevas: B11 (categorías iniciales para Backend).
+**Fase B:** rama `fase-b/i18n`, worktree `../DaviNotes-worktrees/b-i18n/`. Plan: `docs/architecture/fase-b.md`. B11 y B9 hechos en `fase-b/i18n`; queda B8 (espera las claves de UI). Categorías de ejercicios en `docs/architecture/exercise-categories.md` (slugs estables; renombrar solo el texto visible).
 
 ## Tareas Pendientes [ ]
-- [ ] **B11** Proponer las categorías iniciales de ejercicios (slugs + nombres en en/es/fr) y pasárselas a Backend para `seed.sql`.
 - [ ] **B8** Claves `learn.exercise.*`, `learn.hint.*` (con `{coins}`) y `learn.result.*` en en/es/fr, a partir de las que defina UI para `InterfazEjercicio`.
-- [ ] **B9** `scripts/check-content.ts` + `npm run check:content` (pide a Backend la entrada en `package.json`, T8): cada concepto de `data/` con su `.md` en los 3 idiomas, sin huérfanos; y comprobar que los `languageSlug`/`conceptSlug` de los ejercicios existen en el catálogo (T4).
-- [ ] Diseñar con Backend las "Categorías de Ejercicios" y los "Contextos Temáticos" (valores permitidos y sus traducciones).
+- [ ] Confirmar que Backend añade `"check:content": "node scripts/check-content.ts"` a `package.json` (T8).
+- [ ] **Fase C** Conectar `validateExerciseRefs` (`scripts/check-content.ts`) a las filas de `exercises` de la BD.
+- [ ] Si Backend añade `@types/node`, pasar `check-content.ts` a imports `node:fs` normales (ahora usa `process.getBuiltinModule` con tipos mínimos locales).
 - [ ] **Fase C** Claves de auth, perfil, ruleta y logros.
 - [ ] **Fase D** Claves para `description` por página.
 - [ ] **Fase D** Refactorizar `data/languages.ts` y `data/frameworks.ts`: extraer los campos `Localized` a `locales/*/catalog.ts` con claves derivadas del slug.
@@ -31,3 +31,5 @@ Namespace `learn` creado en la Fase A (`learn.*`, `learn.suggest.*`) y claves co
 - [x] Tipado estricto: `en` como referencia y `es`/`fr` con `satisfies`.
 - [x] Verificación de la cobertura: 43/43/43 `.md` y slugs coherentes con `data/`.
 - [x] Fase A: namespace `learn` (`locales/*/learn.ts`), `mode.*`, `a11y.skipToContent` y `learn.suggest.*`.
+- [x] **B11** 8 categorías iniciales de ejercicios (slug + en/es/fr) y SQL para `seed.sql` en `docs/architecture/exercise-categories.md`. Los contextos temáticos no llevan catálogo: texto libre por idioma en `exercise_translations.context`.
+- [x] **B9** `scripts/check-content.ts`: `.md` en los 3 idiomas para cada concepto (incluidos `installation-guide` y frameworks), sin huérfanos, coherencia del catálogo y `validateExerciseRefs` (T4).

@@ -27,7 +27,11 @@ Cada agente añade aquí cualquier ajuste que detecte y que solo tenga sentido e
 ## 3. Supabase (Backend)
 - [ ] Crear el proyecto remoto y enlazarlo: `npx supabase link --project-ref <ref>`.
 - [ ] Aplicar las migraciones: `npx supabase db push`. **No** ejecutar el seed de desarrollo en producción.
-- [ ] Ejecutar el script de ejercicios del usuario (D4) contra la base remota.
+- [ ] Cargar las **categorías** de ejercicios: hoy solo están en `supabase/seed.sql` y el seed no se ejecuta en producción. Pasarlas a una migración (o ejecutar ese bloque a mano) **antes** de insertar ejercicios, porque `exercises.category` es una clave foránea.
+- [ ] Ejecutar el script de ejercicios del usuario (D4) contra la base remota (formato en `supabase/exercises/README.md`; el comando `docker exec` de ese README solo sirve en local: en remoto, el SQL editor del panel o `psql` con la cadena de conexión del proyecto).
+- [ ] Decidir si las recompensas siguen confiando en el botón "Resuelto / No resuelto": hoy `submit_result(p_exercise_id, p_correct)` acepta el `correct` que envía el cliente, y cualquier usuario con sesión puede llamar a la RPC directamente por PostgREST con la anon key. Si hace falta evitar trampas, validar la respuesta en la BD contra `exercise_answers` (ya existe y el cliente no puede leerla) y limitar la frecuencia de `submit_result`.
+- [ ] Regenerar los tipos contra el proyecto remoto tras cada migración (`npx supabase gen types typescript --linked > src/types/database.ts`) y comprobar que coinciden con los locales.
+- [ ] Ejecutar los tests de la BD (`npx supabase test db`) en CI antes de cada `db push`.
 - [ ] Auth → URL Configuration: `Site URL` = dominio y `Redirect URLs` para login/logout (en local lo define `supabase/config.toml` con `http://127.0.0.1`).
 - [ ] Si se activa la confirmación de email: SMTP propio (el SMTP integrado de Supabase tiene un límite muy bajo) y plantillas de email en en/es/fr.
 - [ ] Revisar las políticas RLS con el Security Advisor de Supabase; comprobar que ninguna columna de monedas, XP o nivel se puede escribir desde el cliente (T11).
@@ -51,3 +55,6 @@ Cada agente añade aquí cualquier ajuste que detecte y que solo tenga sentido e
 - [ ] Hacer el merge de `renovacion` en `master` y desplegar desde `master`.
 - [ ] Monitorización de errores del servidor y de la disponibilidad.
 - [ ] Pasada final de accesibilidad (Lighthouse/axe) sobre el dominio real.
+
+## 7. Integridad del progreso (decisión D6)
+- [ ] Hoy el navegador decide si una respuesta es correcta (`submit_result(p_exercise_id, p_correct)`), por simplicidad durante el desarrollo. Antes de producción: la RPC recibe la **respuesta** (`p_answer`) y la compara con `exercise_answers` dentro de la BD; `POST /api/exercises/[id]/result` pasa a `{ answer }` y `InterfazEjercicio` envía la respuesta en lugar de un booleano. Para `fill_blank`/`code_output`, el script de ejercicios debe incluir las variantes aceptadas en `accepted_answers`.

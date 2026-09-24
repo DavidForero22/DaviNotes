@@ -1,6 +1,6 @@
 # Fase B: esquema y ejercicios
 
-> **Estado: abierta** (2026-09-23). Progreso global en [`roadmap.md`](./roadmap.md).
+> **Estado: abierta, en pausa** (2026-09-23). Ver [Punto de parada](#punto-de-parada-2026-09-23) al final. Progreso global en [`roadmap.md`](./roadmap.md).
 
 Objetivo: tener la base de datos con las reglas de progresión cerradas (roadmap §4), la lectura de ejercicios
 por API y la pantalla de ejercicio funcionando con **datos de prueba** (fixtures). La fase **no incluye**
@@ -95,3 +95,38 @@ Es la única rama que toca `package.json`, `package-lock.json` y `astro.config.m
 - `npm run typecheck` sin errores.
 - Backend: `npx supabase db reset` aplica las migraciones sin errores y los tests de las RPC pasan.
 - Commit en su rama y aviso a UI (merge) y a SEO (revisión), con un resumen de 2-3 líneas.
+
+## Punto de parada (2026-09-23)
+
+Sesión cerrada aquí. En GitHub: `master`, `renovacion` (hasta `1cf6133`; este cierre y el merge de B5 solo en local) y `fase-b/db` (subida por el agente de Backend, pendiente de confirmar por el usuario).
+
+### Estado de cada rama
+| Rama | Último commit | Estado | Integrada en `renovacion` |
+|------|---------------|--------|----------------------------|
+| `fase-b/a11y` | `ead271b` | ✅ B5 + orden de tabulación en móvil validado (cumple, sin cambios) | ✅ `803a4c7` |
+| `fase-b/db` | `38aaf99` | ✅ B1-B4 + seed de categorías + `check:content` + `typecheck` con `astro sync` + `@types/node`. 36/36 tests pgTAP; docs idénticos | ⏳ |
+| `fase-b/i18n` | `d0aa03a` | ✅ B11 (8 categorías, `exercise-categories.md`) + B9 (`scripts/check-content.ts`: 43/43/43 OK) | ⏳ |
+| `fase-b/ui-exercise` | `5ea9f9a` | ✅ B6 (tokens de estado + `.sr-only`) + B7 (`InterfazEjercicio.vue`, demo en `/learn/demo/exercise/` ×3 idiomas). 169 páginas | ⏳ (espera B10) |
+
+Supabase local: el stack quedó arrancado desde `b-db`. `npx supabase stop` para pararlo.
+
+### Próximos pasos (en este orden)
+1. **SEO · B10**: revisar `fase-b/ui-exercise` (demo, live region, pistas con `aria-disabled`, `lang="en"` en contenido de fixtures) y `fase-b/db`.
+   Criterio actualizado: en los docs solo puede cambiar el bloque `<style>` incrustado (tokens nuevos que resuelven a los **mismos valores**); el marcado debe ser idéntico. UI dejó scripts de comparación en `%TEMP%/cmp.mjs` y `cmpstyles.mjs`.
+   Decidir si prefiere un texto de "sin monedas" por pista o el párrafo compartido actual.
+2. **UI · merges** en `renovacion`: `fase-b/db` → `fase-b/i18n` → `fase-b/ui-exercise` (tras B10). Conflictos esperables solo en `roadmap.md` (§5 lo cambió Backend) y en los archivos de agente.
+3. **UI · ajustes tras el merge**:
+   - Importar los tipos de `@/types/api` y borrar `fixtures/api-contract.ts`.
+   - Usar `UnlockHintResponse` (nombre de Backend) en lugar de `HintUnlockResponse`.
+   - Cambiar las categorías provisionales de los fixtures (`fundamentals`) por los slugs de B11, y mostrar `categoryName`.
+4. **i18n · B8**: traducir a es/fr las 35 claves `learn.exercise.*`, `learn.hint.*` y `learn.result.*` marcadas con `// TODO(i18n B8)`. `{coins}` llega formateado con `Intl.PluralRules`. Opcional: pasar `check-content.ts` a imports normales de `node:fs` (ya existe `@types/node`).
+5. **Comprobación final** en `renovacion`: `npm run build`, `npm run typecheck`, `npm run check:content`, `npx supabase db reset` + `npx supabase test db`. Después el PM cierra la Fase B en el roadmap.
+
+### Decisiones y acuerdos pendientes para la Fase C
+- **D6 (decidida, 2026-09-24):** en desarrollo el cliente decide si la respuesta es correcta; `POST /api/exercises/[id]/result` lleva `{ correct }`. Se revisará antes de producción.
+  UI hoy envía el índice de la opción, el texto escrito o `null` ("No resuelto").
+- **Backend + UI:** confirmar que `xpToNextLevel` = XP que **falta** (`level × 100 − xp`), que es como lo interpreta la barra de UI.
+- **Backend:** exportar `ProfileSnapshot` o el DTO de `GET /api/profile` (UI deriva hoy el saldo de `ResultResponse`).
+- **Backend (producción):** las categorías viven en `seed.sql`, que no se ejecuta en producción; pasarlas a una migración antes de desplegar (anotado en `produccion.md` de `fase-b/db`).
+- **Usuario:** `npx supabase db reset` borra los ejercicios; hay que volver a ejecutar los scripts de inserción (ver `supabase/exercises/README.md`).
+- **UI (Fase D):** hex sueltos de los docs sin token (`#444`, `#aaa`, `#7e678b`, `#e0e0e0`) y colores en línea de `DifficultyBadge`.

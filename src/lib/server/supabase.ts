@@ -1,5 +1,6 @@
 import { createServerClient, parseCookieHeader } from '@supabase/ssr';
 import type { AstroCookies } from 'astro';
+import type { Database } from '@/types/database';
 
 interface RequestContext {
 	request: Request;
@@ -12,7 +13,7 @@ interface RequestContext {
  * Create one per request; never share it between requests. Server-only.
  */
 export function createSupabaseServerClient({ request, cookies }: RequestContext) {
-	return createServerClient(
+	return createServerClient<Database>(
 		import.meta.env.PUBLIC_SUPABASE_URL,
 		import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
 		{

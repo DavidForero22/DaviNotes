@@ -7,7 +7,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "astro sync && tsc --noEmit",
+    "check:content": "node scripts/check-content.ts"
   },
   "dependencies": {
     "@astrojs/node": "^9.5.5",
@@ -18,6 +19,7 @@
     "vue": "^3.5.43"
   },
   "devDependencies": {
+    "@types/node": "^24.13.6",
     "supabase": "^2.117.0",
     "typescript": "^5.9.3"
   }
