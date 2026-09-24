@@ -17,9 +17,10 @@ Namespace `learn` creado en la Fase A (`learn.*`, `learn.suggest.*`) y claves co
 
 **Fase B:** rama `fase-b/i18n`, worktree `../DaviNotes-worktrees/b-i18n/`. Plan: `docs/architecture/fase-b.md`. B11, B9 y B8 hechos: Fase B de i18n cerrada. Categorías de ejercicios en `docs/architecture/exercise-categories.md` (slugs estables; renombrar solo el texto visible).
 
+**Fase C:** rama `fase-c/i18n`, worktree `../DaviNotes-worktrees/c-i18n/`. Plan: `docs/architecture/fase-c.md`. C6 hecho. Tipografía francesa del proyecto: espacio normal (no fino) antes de `: ; ? !` y apóstrofo recto. Tono de los errores: `docs/guidelines/account-a11y.md` (qué pasó y cómo arreglarlo, sin culpar). Evita adjetivos con género en es/fr ("Déconnexion effectuée", no "déconnecté").
+
 ## Tareas Pendientes [ ]
-- [ ] **Fase C** Conectar `validateExerciseRefs` (`scripts/check-content.ts`) a las filas de `exercises` de la BD.
-- [ ] **Fase C** Claves de auth, perfil, ruleta y logros.
+- [ ] **Fase C (C7+)** Claves de perfil, dashboard, ruleta y logros.
 - [ ] **Fase D** Claves para `description` por página.
 - [ ] **Fase D** Refactorizar `data/languages.ts` y `data/frameworks.ts`: extraer los campos `Localized` a `locales/*/catalog.ts` con claves derivadas del slug.
 
@@ -31,3 +32,4 @@ Namespace `learn` creado en la Fase A (`learn.*`, `learn.suggest.*`) y claves co
 - [x] **B11** 8 categorías iniciales de ejercicios (slug + en/es/fr) y SQL para `seed.sql` en `docs/architecture/exercise-categories.md`. Los contextos temáticos no llevan catálogo: texto libre por idioma en `exercise_translations.context`.
 - [x] **B9** `scripts/check-content.ts`: `.md` en los 3 idiomas para cada concepto (incluidos `installation-guide` y frameworks), sin huérfanos, coherencia del catálogo y `validateExerciseRefs` (T4). Usa imports normales de `node:fs` (ya hay `@types/node`).
 - [x] **B8** 35 claves `learn.exercise.*`, `learn.hint.*` y `learn.result.*` traducidas a es (tú) y fr (vous), sin TODO. `coinOne`/`coinOther` para el plural de `{coins}` (Intl.PluralRules; en fr el 0 va en singular).
+- [x] **C6** 57 claves `// TODO(i18n C6)` (`auth.*`, `account.*`, `learn.list.*`, `learn.guest.*`, `learn.exercise.*`) traducidas a es (tú) y fr (vous). `check:content -- --db`: lee `public.exercises` con supabase-js y la anon key (`.env` con `process.loadEnvFile`, import dinámico) y pasa las filas por `validateExerciseRefs`; sin el flag no necesita Supabase.

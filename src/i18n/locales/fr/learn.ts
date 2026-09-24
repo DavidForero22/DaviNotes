@@ -10,23 +10,23 @@ export default {
 	"learn.suggest.heading": "Vous ne savez pas par où commencer ?",
 	"learn.suggest.button": "Suggérer un langage",
 	"learn.suggest.result": "Et pourquoi pas {lang} ?",
-	"learn.list.heading": "Exercises", // TODO(i18n C6)
-	"learn.list.empty": "There are no exercises yet. Come back soon.", // TODO(i18n C6)
-	"learn.list.inEnglish": "In English", // TODO(i18n C6)
-	"learn.list.loadError": "We could not load the exercises. Reload the page to try again.", // TODO(i18n C6)
-	"learn.guest.heading": "Keep your progress", // TODO(i18n C6)
-	"learn.guest.text": "Create a free account to solve exercises, earn coins and XP, and level up.", // TODO(i18n C6)
-	"learn.exercise.description": "Solve this exercise to earn coins and XP.", // TODO(i18n C6)
-	"learn.exercise.notFoundTitle": "Exercise not found", // TODO(i18n C6)
-	"learn.exercise.notFoundText": "This exercise does not exist or is no longer available.", // TODO(i18n C6)
-	"learn.exercise.loadErrorTitle": "We could not load the exercise", // TODO(i18n C6)
-	"learn.exercise.loadErrorText": "Something failed on our side. Try again in a moment.", // TODO(i18n C6)
-	"learn.exercise.reload": "Try again", // TODO(i18n C6)
-	"learn.exercise.backToLearn": "Back to Learn", // TODO(i18n C6)
-	"learn.exercise.noscript": "You need JavaScript turned on to solve exercises.", // TODO(i18n C6)
-	"learn.exercise.untranslated": "This exercise is not translated yet, so it is shown in English.", // TODO(i18n C6)
-	"learn.exercise.sessionExpired": "Your session has expired. {signIn} to save your result.", // TODO(i18n C6)
-	"learn.exercise.signIn": "Sign in", // TODO(i18n C6)
+	"learn.list.heading": "Exercices",
+	"learn.list.empty": "Il n'y a pas encore d'exercices. Revenez bientôt.",
+	"learn.list.inEnglish": "En anglais",
+	"learn.list.loadError": "Nous n'avons pas pu charger les exercices. Rechargez la page pour réessayer.",
+	"learn.guest.heading": "Conservez votre progression",
+	"learn.guest.text": "Créez un compte gratuit pour résoudre des exercices, gagner des pièces et de l'XP, et monter de niveau.",
+	"learn.exercise.description": "Résolvez cet exercice pour gagner des pièces et de l'XP.",
+	"learn.exercise.notFoundTitle": "Exercice introuvable",
+	"learn.exercise.notFoundText": "Cet exercice n'existe pas ou n'est plus disponible.",
+	"learn.exercise.loadErrorTitle": "Nous n'avons pas pu charger l'exercice",
+	"learn.exercise.loadErrorText": "Un problème est survenu de notre côté. Réessayez dans un instant.",
+	"learn.exercise.reload": "Réessayer",
+	"learn.exercise.backToLearn": "Retour à Apprendre",
+	"learn.exercise.noscript": "Vous devez activer JavaScript pour résoudre les exercices.",
+	"learn.exercise.untranslated": "Cet exercice n'est pas encore traduit : il s'affiche donc en anglais.",
+	"learn.exercise.sessionExpired": "Votre session a expiré. {signIn} pour enregistrer votre résultat.",
+	"learn.exercise.signIn": "Connectez-vous",
 	"learn.exercise.progress": "Votre progression",
 	"learn.exercise.level": "Niveau {level}",
 	"learn.exercise.xpProgress": "{xp} sur {total} XP",
