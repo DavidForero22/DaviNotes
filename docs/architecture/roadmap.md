@@ -76,7 +76,7 @@ Objetivo de C1-C6: registrarse, iniciar sesión, resolver un ejercicio real y ga
 | C7+ | `DashboardPerfil.vue`, `RuletaLenguajes.vue` (necesita definir los "lenguajes activos"), logros | UI/Backend/i18n | C6 | ⏳ |
 
 Arrastra de la Fase B: no bloqueantes 5, 6 y 8 de B10 (borde de las opciones, reflow a 320 px y zoom al 200 %).
-**Riesgo:** los previews de `renovacion` en Vercel fallan desde que se usa `@astrojs/node`. No se hace merge a `master` hasta decidir el hosting.
+**Despliegue:** Vercel está **pausado por completo** (decisión del usuario, 2026-09-24): los previews de `renovacion` fallaban con `@astrojs/node`, pero ahora ni `master` ni las ramas se despliegan. El hosting se decide antes de producción (`produccion.md` §0).
 
 ### Fase D · Pulido y deuda de DaviNotes ⏳
 Cambia el HTML de los docs **a propósito**: SEO toma una línea base nueva antes de empezar.

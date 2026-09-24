@@ -96,6 +96,8 @@ y apuntan al mismo stack (`.env` con los valores de `npx supabase status`; no se
 
 ## Riesgo de despliegue (no se resuelve en C1-C6)
 
+> **Actualización 2026-09-24:** el usuario ha **pausado por completo el despliegue en Vercel**. Hacer merge o push ya no publica nada, así que el riesgo queda neutralizado. La elección de hosting sigue pendiente para producción.
+
 `master` se despliega en Vercel (`davi-notes.vercel.app`). Los despliegues *Preview* de `renovacion` fallan desde que
 se añadió `@astrojs/node`. **No hay que hacer merge a `master`** hasta decidir el hosting (ver `produccion.md` §0):
 o se cambia a `@astrojs/vercel` y se usa Supabase remoto, o se cambia de plataforma.

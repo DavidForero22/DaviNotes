@@ -6,6 +6,7 @@ Cada agente añade aquí cualquier ajuste que detecte y que solo tenga sentido e
 
 ## 0. Decisiones previas del usuario
 - [ ] Dominio de producción (p. ej. `https://…`) → se usará como `site`.
+- [ ] Reactivar el despliegue: Vercel está **pausado** desde el 2026-09-24. Con `@astrojs/node` sus builds fallan: o se pasa a `@astrojs/vercel`, o se cambia de plataforma.
 - [ ] Hosting para Node (`@astrojs/node` en modo `standalone`): VPS, Render, Railway, Fly.io… Si se elige una plataforma con adaptador propio (Vercel, Netlify, Cloudflare), Backend cambia el adaptador.
 - [ ] Proyecto Supabase remoto (región y plan).
 - [ ] ¿Se mantiene el registro sin confirmación de email (D3) en producción?
