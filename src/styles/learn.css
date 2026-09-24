@@ -129,10 +129,11 @@
 /* Same breakpoint as the documentation layout */
 @media (max-width: 846px) {
 	.learn-header {
+		column-gap: 0.5rem;
 		padding: 0.75rem 1.25rem;
 	}
 
-	/* Brand and language picker share the first row; the mode switch gets
+	/* Brand, language picker and account share the first row; the mode switch gets
 	   its own full-width row so both halves stay readable at 320px */
 	.learn-header-end {
 		display: contents;
@@ -141,6 +142,13 @@
 	.learn-header-end .lang-picker {
 		order: 1;
 		margin-left: auto;
+	}
+
+	/* Same order as the picker, so the DOM order (language, then account) is kept:
+	   one backward focus jump only, from row 2 to row 1 (guide account-a11y §2.4) */
+	.learn-header-end .account-menu,
+	.learn-header-end .account-signin {
+		order: 1;
 	}
 
 	.learn-header-end .mode-switch {
@@ -154,5 +162,24 @@
 
 	.learn-main h1 {
 		font-size: 2.1rem;
+	}
+}
+
+/* Row 1 (brand, language, account avatar) must fit in 320px without scrolling (WCAG 1.4.10).
+   Only the learn header is tightened: the picker keeps its size in the documentation. */
+@media (max-width: 420px) {
+	.learn-header .learn-header-end .lang-picker a {
+		padding-inline: 0.5rem;
+	}
+}
+
+@media (max-width: 360px) {
+	.learn-brand {
+		font-size: 1.1rem;
+	}
+
+	/* "Sign in" does not fit next to the picker: it takes its own row, aligned right */
+	.learn-header-end .account-signin {
+		margin-left: auto;
 	}
 }

@@ -12,6 +12,7 @@ i18n/
    │  ├─ common.ts   # shared by the whole site (nav, mode switch, a11y, footer, help, 404, difficulty)
    │  ├─ docs.ts     # documentation only (index pages, lessons, search)
    │  ├─ learn.ts    # learning mode only (DaviLearn)
+   │  ├─ account.ts  # account: sign in, sign up, account menu, auth error codes
    │  └─ index.ts    # merges the namespaces into one flat dictionary
    ├─ es/         # same files as en/
    └─ fr/         # same files as en/

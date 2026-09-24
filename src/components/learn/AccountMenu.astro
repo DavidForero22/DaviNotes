@@ -1,0 +1,435 @@
+---
+import type { ProfileSnapshot } from "@/components/learn/exercise-ui";
+import type { Lang } from "@/i18n/ui";
+import { localizePath, stripLang, useTranslations } from "@/i18n/utils";
+import type { SessionUser } from "@/types/api";
+
+interface Props {
+	lang: Lang;
+	/** Signed-in user, or null for the "Sign in" link. */
+	user: SessionUser | null;
+	/** Balance of the signed-in user (null if it could not be read: the panel shows no numbers). */
+	profile: ProfileSnapshot | null;
+}
+
+/**
+ * Account slot of the learn header (guide account-a11y §2): a native <details> disclosure
+ * with the display name (never the email) and, inside, level, XP and coins as sentences plus
+ * the sign-out form. Without a session, a "Sign in" link that comes back here (`?next=`).
+ * No live region: the exercise island announces its own changes, the header updates silently.
+ */
+const { lang, user, profile } = Astro.props;
+const t = useTranslations(lang);
+const number = new Intl.NumberFormat(lang);
+const plural = new Intl.PluralRules(lang);
+
+const bare = stripLang(Astro.url.pathname).replace(/\/$/, "");
+const loginPath = localizePath("/learn/login", lang);
+const onLogin = bare === "/learn/login";
+/** On the register page, keep its own `next`; anywhere else, come back to this page. */
+const next = bare === "/learn/register"
+	? Astro.url.searchParams.get("next")
+	: Astro.url.pathname + Astro.url.search;
+const signInHref = onLogin || !next ? loginPath : `${loginPath}?next=${encodeURIComponent(next)}`;
+
+const name = user?.displayName?.trim() || t("account.fallbackName");
+const initial = user?.displayName?.trim() ? Array.from(user.displayName.trim())[0]!.toLocaleUpperCase(lang) : "";
+
+const coinOne = t("learn.exercise.coinOne");
+const coinOther = t("learn.exercise.coinOther");
+const levelTemplate = t("account.level");
+const xpTemplate = t("account.xp");
+
+function fill(template: string, vars: Record<string, number>): string {
+	return template.replace(/\{(\w+)\}/g, (match, key: string) => (key in vars ? number.format(vars[key]!) : match));
+}
+
+const total = profile ? profile.xp + profile.xpToNextLevel : 0;
+const stats = profile && {
+	level: fill(levelTemplate, { level: profile.level }),
+	xp: fill(xpTemplate, { xp: profile.xp, total, next: profile.level + 1 }),
+	coins: fill(plural.select(profile.coins) === "one" ? coinOne : coinOther, { count: profile.coins }),
+	percent: total > 0 ? Math.min(100, (profile.xp / total) * 100) : 0,
+};
+const signedOutNext = `${localizePath("/learn", lang)}?signedout=1`;
+---
+
+{
+	user ? (
+		<details class="account-menu">
+			<summary class="account-summary">
+				<span class="account-avatar" aria-hidden="true">
+					{initial || (
+						<svg viewBox="0 0 24 24" focusable="false">
+							<circle cx="12" cy="8.5" r="3.5" />
+							<path d="M5 19.5c1.2-3.4 3.8-5 7-5s5.8 1.6 7 5" />
+						</svg>
+					)}
+				</span>
+				<span class="sr-only">{`${t("account.label")} `}</span>
+				<span class="account-name">{name}</span>
+				<svg class="account-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path d="M7 10l5 5 5-5" />
+				</svg>
+			</summary>
+			<div class="account-panel">
+				{stats && (
+					<ul
+						class="account-stats"
+						data-level-template={levelTemplate}
+						data-xp-template={xpTemplate}
+						data-coin-one={coinOne}
+						data-coin-other={coinOther}
+					>
+						<li class="account-level">
+							<span class="account-level-badge" data-account-level>{stats.level}</span>
+						</li>
+						<li class="account-xp">
+							<span class="account-xp-track" aria-hidden="true">
+								<span class="account-xp-fill" data-account-xpbar style={`transform: scaleX(${stats.percent / 100})`} />
+							</span>
+							<span data-account-xp>{stats.xp}</span>
+						</li>
+						<li class="account-coins">
+							<svg class="account-coin-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+								<circle cx="12" cy="12" r="9" />
+								<path d="M12 7.5v9M9.5 9.5h3.75a1.75 1.75 0 0 1 0 3.5h-2.5a1.75 1.75 0 0 0 0 3.5h3.75" />
+							</svg>
+							<span data-account-coins>{stats.coins}</span>
+						</li>
+					</ul>
+				)}
+				<form method="post" action="/api/auth/logout" novalidate data-astro-reload class="account-signout">
+					<input type="hidden" name="lang" value={lang} />
+					<input type="hidden" name="next" value={signedOutNext} />
+					<button type="submit">
+						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+							<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4" />
+						</svg>
+						{t("account.signOut")}
+					</button>
+				</form>
+			</div>
+		</details>
+	) : (
+		<a href={signInHref} class="account-signin" aria-current={onLogin ? "page" : undefined}>
+			{t("account.signIn")}
+		</a>
+	)
+}
+
+<script>
+	import { BALANCE_EVENT } from "@/components/learn/exercise-api";
+	import type { ProfileSnapshot } from "@/components/learn/exercise-ui";
+
+	/** Escape closes the open account menu and gives focus back to its <summary> (guide §2.3). */
+	document.addEventListener("keydown", (event) => {
+		if (event.key !== "Escape") return;
+		const menu = document.querySelector<HTMLDetailsElement>("details.account-menu[open]");
+		if (!menu || !menu.contains(document.activeElement)) return;
+		menu.open = false;
+		menu.querySelector("summary")?.focus();
+	});
+
+	/** A click outside closes it, without moving the focus. */
+	document.addEventListener("click", (event) => {
+		const menu = document.querySelector<HTMLDetailsElement>("details.account-menu[open]");
+		if (menu && event.target instanceof Node && !menu.contains(event.target)) menu.open = false;
+	});
+
+	/** New balance from the exercise island: same numbers in the panel, silently (guide §2.2). */
+	window.addEventListener(BALANCE_EVENT, (event) => {
+		const balance = (event as CustomEvent<ProfileSnapshot>).detail;
+		const stats = document.querySelector<HTMLElement>(".account-stats");
+		if (!stats || !balance) return;
+		const lang = document.documentElement.lang || "en";
+		const number = new Intl.NumberFormat(lang);
+		const fill = (template: string, vars: Record<string, number>) =>
+			template.replace(/\{(\w+)\}/g, (match, key: string) => (key in vars ? number.format(vars[key]!) : match));
+		const total = balance.xp + balance.xpToNextLevel;
+		const coinTemplate = new Intl.PluralRules(lang).select(balance.coins) === "one"
+			? stats.dataset.coinOne
+			: stats.dataset.coinOther;
+
+		const set = (selector: string, text: string | undefined) => {
+			const el = stats.querySelector(selector);
+			if (el && text !== undefined) el.textContent = text;
+		};
+		set("[data-account-level]", stats.dataset.levelTemplate && fill(stats.dataset.levelTemplate, { level: balance.level }));
+		set("[data-account-xp]", stats.dataset.xpTemplate && fill(stats.dataset.xpTemplate, { xp: balance.xp, total, next: balance.level + 1 }));
+		set("[data-account-coins]", coinTemplate && fill(coinTemplate, { count: balance.coins }));
+		const bar = stats.querySelector<HTMLElement>("[data-account-xpbar]");
+		if (bar) bar.style.transform = `scaleX(${total > 0 ? Math.min(1, balance.xp / total) : 0})`;
+	});
+</script>
+
+<style>
+	.account-menu {
+		position: relative;
+	}
+
+	/* Same pill as the language picker, so the three controls read as one group */
+	.account-summary {
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 2.25rem;
+		padding: 0.2rem 0.6rem 0.2rem 0.2rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 99px;
+		background: rgba(19, 21, 26, 0.8);
+		color: var(--text-secondary);
+		font-size: 0.85rem;
+		font-weight: 600;
+		list-style: none;
+		cursor: pointer;
+		user-select: none;
+		transition:
+			border-color 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.account-summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.account-summary:hover,
+	.account-menu[open] > .account-summary {
+		border-color: rgba(167, 139, 250, 0.55);
+		color: var(--text-color);
+	}
+
+	.account-avatar {
+		display: grid;
+		place-items: center;
+		width: 1.8rem;
+		height: 1.8rem;
+		flex: none;
+		border-radius: 50%;
+		background: var(--brand);
+		color: var(--on-brand);
+		font-size: 0.85rem;
+		font-weight: 800;
+	}
+
+	.account-avatar svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+	}
+
+	.account-name {
+		max-width: 12ch;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.account-chevron {
+		width: 1rem;
+		height: 1rem;
+		flex: none;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.account-menu[open] .account-chevron {
+		transform: rotate(180deg);
+	}
+
+	/* Overlays the page, aligned to the right edge of the summary; fits in 320px */
+	.account-panel {
+		position: absolute;
+		top: calc(100% + 0.5rem);
+		right: 0;
+		z-index: 50;
+		width: 17rem;
+		max-width: calc(100vw - 2rem);
+		padding: 1rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 16px;
+		background: var(--card-bg);
+		box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.7);
+		text-align: start;
+		animation: panel-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	@keyframes panel-in {
+		from {
+			opacity: 0;
+			transform: translateY(-4px);
+		}
+	}
+
+	.account-stats {
+		display: grid;
+		gap: 0.7rem;
+		margin: 0 0 1rem;
+		padding: 0 0 1rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		list-style: none;
+		color: var(--text-secondary);
+		font-size: 0.9rem;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.account-level-badge {
+		display: inline-block;
+		padding: 0.15rem 0.7rem;
+		border-radius: 99px;
+		background: var(--brand);
+		color: var(--on-brand);
+		font-size: 0.85rem;
+		font-weight: 800;
+	}
+
+	.account-xp {
+		display: grid;
+		gap: 0.4rem;
+		color: var(--text-muted);
+	}
+
+	.account-xp-track {
+		display: block;
+		height: 6px;
+		overflow: hidden;
+		border-radius: 6px;
+		background: var(--grid-dot);
+	}
+
+	.account-xp-fill {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background: var(--brand);
+		transform-origin: left center;
+		transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.account-coins {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		font-weight: 600;
+	}
+
+	.account-coin-icon {
+		width: 1.15rem;
+		height: 1.15rem;
+		flex: none;
+		fill: none;
+		stroke: var(--warning);
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.account-signout {
+		margin: 0;
+	}
+
+	.account-signout button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		width: 100%;
+		min-height: 2.75rem;
+		padding: 0.5rem 1rem;
+		border: 1px solid var(--text-subtle);
+		border-radius: 99px;
+		background: transparent;
+		color: var(--text-secondary);
+		font: inherit;
+		font-size: 0.92rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition:
+			border-color 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.account-signout button:hover {
+		border-color: var(--text-muted);
+		color: var(--text-color);
+	}
+
+	.account-signout svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.account-signin {
+		box-sizing: border-box;
+		display: inline-flex;
+		align-items: center;
+		min-height: 2.25rem;
+		padding: 0.2rem 1rem;
+		border: 1px solid rgba(167, 139, 250, 0.55);
+		border-radius: 99px;
+		background: rgba(19, 21, 26, 0.8);
+		color: var(--text-color);
+		font-size: 0.85rem;
+		font-weight: 700;
+		white-space: nowrap;
+		text-decoration: none;
+		transition:
+			background 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.account-signin:hover {
+		background: var(--brand);
+		color: var(--on-brand);
+	}
+
+	.account-signin[aria-current="page"] {
+		background: var(--brand);
+		color: var(--on-brand);
+	}
+
+	/* Narrow phones: only the avatar stays visible; the accessible name is unchanged */
+	@media (max-width: 420px) {
+		.account-name {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			margin: -1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+
+		.account-summary {
+			gap: 0.15rem;
+			padding: 0.15rem 0.3rem 0.15rem 0.15rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.account-summary,
+		.account-chevron,
+		.account-xp-fill,
+		.account-signin,
+		.account-signout button {
+			transition: none;
+		}
+
+		.account-panel {
+			animation: none;
+		}
+	}
+</style>

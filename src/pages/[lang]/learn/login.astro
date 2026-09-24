@@ -1,0 +1,20 @@
+---
+import AuthForm from "@/components/learn/AuthForm.astro";
+import { defaultLang } from "@/i18n/ui";
+import { isLang } from "@/i18n/utils";
+import { consumeAuthFlash, redirectIfSignedIn } from "@/lib/server/auth";
+
+/**
+ * /es/learn/login, /fr/learn/login — server-rendered (T14); see `pages/learn/login.astro`.
+ */
+export const prerender = false;
+
+const { lang } = Astro.params;
+if (!isLang(lang) || lang === defaultLang) return new Response(null, { status: 404 });
+
+const signedIn = redirectIfSignedIn(Astro);
+if (signedIn) return signedIn;
+const flash = consumeAuthFlash(Astro.cookies, "login");
+---
+
+<AuthForm lang={lang} page="login" flash={flash} />

@@ -3,32 +3,126 @@ import LearnLayout from "@/layouts/learn/LearnLayout.astro";
 import LanguageSuggestion from "@/components/learn/LanguageSuggestion.vue";
 import { languages } from "@/data/languages";
 import type { Lang } from "@/i18n/ui";
-import { useTranslations } from "@/i18n/utils";
+import { localizePath, useTranslations } from "@/i18n/utils";
+import type { ExerciseDTO } from "@/types/api";
 import { getAllLanguageItems } from "@/utils/utils";
 
 interface Props {
 	lang: Lang;
+	/** Exercises for the signed-in user; null without a session (the page invites to sign in). */
+	exercises: ExerciseDTO[] | null;
+	/** The list could not be read (database error). */
+	loadError?: boolean;
 }
 
-const { lang } = Astro.props;
+const { lang, exercises, loadError = false } = Astro.props;
 const t = useTranslations(lang);
-const suggestedLanguages = getAllLanguageItems(languages).map((item) => ({
-	name: item.title,
-	color: item.color,
-}));
+const languageItems = getAllLanguageItems(languages);
+const suggestedLanguages = languageItems.map((item) => ({ name: item.title, color: item.color }));
+const catalog = new Map(languageItems.map((item) => [item.slug, item]));
+
+const number = new Intl.NumberFormat(lang);
+const plural = new Intl.PluralRules(lang);
+const coins = (count: number) =>
+	t(plural.select(count) === "one" ? "learn.exercise.coinOne" : "learn.exercise.coinOther", { count: number.format(count) });
+
+const signedIn = exercises !== null || loadError;
+const signedOut = Astro.url.searchParams.has("signedout") && !Astro.locals.user;
 ---
 
-{/* Placeholder until the roulette and exercises exist (phase B): kept out of search results */}
-<LearnLayout
-	title={`${t("learn.title")} · DaviNotes`}
-	lang={lang}
-	description={t("learn.intro")}
-	noindex
->
+{/* Provisional landing of the learning area: kept out of search results (guide account-a11y §4) */}
+<LearnLayout title={`${t("learn.title")} · DaviLearn`} lang={lang} description={t("learn.intro")} noindex>
 	<h1>{t("learn.heading")}</h1>
 	<p class="learn-intro">{t("learn.intro")}</p>
 
-	<section class="learn-section" aria-labelledby="suggest-heading">
+	{
+		signedOut && (
+			<p class="learn-status">
+				<svg class="learn-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path d="M5 12.5l4.5 4.5L19 7.5" />
+				</svg>
+				{t("account.signedOut")}
+			</p>
+		)
+	}
+
+	{
+		signedIn ? (
+			<section class="learn-section exercise-section" aria-labelledby="exercises-heading">
+				<h2 id="exercises-heading">{t("learn.list.heading")}</h2>
+				{loadError ? (
+					<p class="list-message list-error">
+						<svg class="learn-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+							<circle cx="12" cy="12" r="9" />
+							<path d="M12 7.5v5.5M12 16.5v.01" />
+						</svg>
+						{t("learn.list.loadError")}
+					</p>
+				) : exercises && exercises.length > 0 ? (
+					<ul class="exercise-list">
+						{exercises.map((exercise) => {
+							const language = catalog.get(exercise.languageSlug);
+							const contentLang = exercise.locale !== lang ? exercise.locale : undefined;
+							return (
+								<li class="exercise-row">
+									<a href={localizePath(`/learn/exercise/${exercise.id}`, lang)} class="exercise-link">
+										<span class="exercise-title" lang={contentLang}>
+											{exercise.title}
+										</span>
+										<svg class="exercise-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+											<path d="M5 12h14M13 6l6 6-6 6" />
+										</svg>
+									</a>
+									<ul class="exercise-meta">
+										{language && (
+											<li>
+												<span class="lang-dot" style={`background: ${language.color}`} aria-hidden="true" />
+												{language.title}
+											</li>
+										)}
+										<li lang={contentLang}>{exercise.categoryName}</li>
+										<li>{t("learn.exercise.difficulty", { n: number.format(exercise.difficulty) })}</li>
+										<li>
+											{t("learn.exercise.reward", {
+												coins: coins(exercise.reward.coins),
+												xp: number.format(exercise.reward.xp),
+											})}
+										</li>
+										{contentLang && <li class="exercise-tag">{t("learn.list.inEnglish")}</li>}
+										{exercise.completed && (
+											<li class="exercise-done">
+												<svg class="learn-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+													<path d="M5 12.5l4.5 4.5L19 7.5" />
+												</svg>
+												{t("learn.exercise.completed")}
+											</li>
+										)}
+									</ul>
+								</li>
+							);
+						})}
+					</ul>
+				) : (
+					<p class="list-message">{t("learn.list.empty")}</p>
+				)}
+			</section>
+		) : (
+			<section class="learn-section guest" aria-labelledby="guest-heading">
+				<h2 id="guest-heading">{t("learn.guest.heading")}</h2>
+				<p>{t("learn.guest.text")}</p>
+				<div class="guest-actions">
+					<a class="guest-primary" href={localizePath("/learn/register", lang)}>
+						{t("auth.register.title")}
+					</a>
+					<a class="guest-secondary" href={localizePath("/learn/login", lang)}>
+						{t("account.signIn")}
+					</a>
+				</div>
+			</section>
+		)
+	}
+
+	<section class="learn-section suggest" aria-labelledby="suggest-heading">
 		<h2 id="suggest-heading">{t("learn.suggest.heading")}</h2>
 		{/* Texts are passed already translated so the island does not ship the dictionaries */}
 		<LanguageSuggestion
@@ -38,6 +132,222 @@ const suggestedLanguages = getAllLanguageItems(languages).map((item) => ({
 			resultTemplate={t("learn.suggest.result")}
 		/>
 	</section>
-
-	<p class="learn-note">{t("learn.comingSoon")}</p>
 </LearnLayout>
+
+<style>
+	.learn-icon {
+		width: 1.15em;
+		height: 1.15em;
+		flex: none;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.learn-status {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin: -1.5rem auto 2.5rem;
+		padding: 0.45rem 1rem;
+		border-radius: 99px;
+		background: var(--success-bg);
+		color: var(--success);
+		font-weight: 600;
+	}
+
+	.learn-section + .learn-section {
+		margin-top: 4rem;
+	}
+
+	/* ---------- Exercise list ---------- */
+	.exercise-section {
+		max-width: 44rem;
+		margin: 0 auto;
+		text-align: start;
+	}
+
+	.exercise-list {
+		margin: 0;
+		padding: 0;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+		list-style: none;
+	}
+
+	.exercise-row {
+		position: relative;
+		padding: 1.1rem 0.25rem 1.15rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		transition: background 0.15s ease;
+	}
+
+	.exercise-row:hover {
+		background: linear-gradient(90deg, rgba(167, 139, 250, 0.06), transparent 70%);
+	}
+
+	.exercise-link {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		color: var(--text-color);
+		font-size: 1.15rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	/* The whole row is the target; the focus ring stays on the link itself */
+	.exercise-link::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+	}
+
+	.exercise-arrow {
+		width: 1.25rem;
+		height: 1.25rem;
+		flex: none;
+		fill: none;
+		stroke: var(--text-subtle);
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		transition:
+			transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+			stroke 0.15s ease;
+	}
+
+	.exercise-row:hover .exercise-arrow {
+		stroke: var(--brand);
+		transform: translateX(3px);
+	}
+
+	.exercise-row:hover .exercise-title {
+		color: var(--brand-hover);
+	}
+
+	.exercise-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem 1.1rem;
+		margin: 0.45rem 0 0;
+		padding: 0;
+		list-style: none;
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+
+	.exercise-meta li {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.lang-dot {
+		width: 0.6rem;
+		height: 0.6rem;
+		border-radius: 50%;
+	}
+
+	.exercise-tag {
+		padding: 0 0.55rem;
+		border: 1px solid var(--text-subtle);
+		border-radius: 99px;
+		font-size: 0.8rem;
+	}
+
+	.exercise-done {
+		color: var(--success);
+		font-weight: 600;
+	}
+
+	.list-message {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 2rem 1rem;
+		border: 1px dashed var(--text-subtle);
+		border-radius: 14px;
+		color: var(--text-muted);
+	}
+
+	.list-error {
+		border-style: solid;
+		border-color: var(--error);
+		background: var(--error-bg);
+		color: var(--error);
+	}
+
+	/* ---------- Without a session ---------- */
+	.guest p {
+		max-width: 44ch;
+		margin: 0 auto 1.5rem;
+		color: var(--text-muted);
+		line-height: 1.6;
+	}
+
+	.guest-actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.75rem;
+	}
+
+	.guest-primary,
+	.guest-secondary {
+		box-sizing: border-box;
+		display: inline-flex;
+		align-items: center;
+		min-height: 3rem;
+		padding: 0.6rem 1.6rem;
+		border-radius: 99px;
+		font-weight: 700;
+		text-decoration: none;
+		transition:
+			background 0.15s ease,
+			border-color 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.guest-primary {
+		background: var(--brand);
+		color: var(--on-brand);
+	}
+
+	.guest-primary:hover {
+		background: var(--brand-hover);
+	}
+
+	.guest-secondary {
+		border: 1px solid var(--text-subtle);
+		color: var(--text-secondary);
+	}
+
+	.guest-secondary:hover {
+		border-color: var(--text-muted);
+		color: var(--text-color);
+	}
+
+	@media (max-width: 846px) {
+		.learn-section + .learn-section {
+			margin-top: 3rem;
+		}
+
+		.exercise-link {
+			font-size: 1.05rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.exercise-row,
+		.exercise-arrow,
+		.guest-primary,
+		.guest-secondary {
+			transition: none;
+		}
+	}
+</style>
