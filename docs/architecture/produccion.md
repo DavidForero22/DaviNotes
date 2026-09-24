@@ -17,7 +17,8 @@ Cada agente añade aquí cualquier ajuste que detecte y que solo tenga sentido e
 - [ ] Revisar `trailingSlash` y `build.format` para que los canonical coincidan con las URLs servidas.
 
 ## 2. SEO técnico (SEO/A11y)
-- [ ] `src/pages/robots.txt.ts` con la URL absoluta del sitemap y `Disallow: /api/`.
+- [ ] `src/pages/robots.txt.ts` con la URL absoluta del sitemap y `Disallow: /api/`. **Sin** `Disallow` para las páginas
+      con `noindex` (login, registro, ejercicios): si no se pueden rastrear, Google no ve el `noindex` (`account-a11y.md` §4).
 - [ ] Canonical absoluto en cada página (desde `BaseHead.astro`, tarea de la Fase D).
 - [ ] `hreflang` absolutos: hoy `AlternateLinks.astro` genera rutas relativas (`/es/java/`) y Google exige URLs absolutas.
 - [ ] Open Graph y Twitter Cards (`og:url`, `og:title`, `og:description`, `og:image`, `og:locale` + `og:locale:alternate`).
