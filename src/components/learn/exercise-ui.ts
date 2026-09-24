@@ -1,6 +1,9 @@
 import type { UIKey } from "@/i18n/ui";
 import type { ResultResponse, UnlockHintResponse } from "@/types/api";
 
+/** Balance shown by the exercise screen and the account menu (a subset of `ResultResponse`). */
+export type ProfileSnapshot = Pick<ResultResponse, "coins" | "xp" | "level" | "xpToNextLevel">;
+
 /**
  * Shared types of the exercise screen (`InterfazEjercicio.vue`) and the helper that
  * builds its texts on the Astro side, so the island never ships the dictionaries (T6).
@@ -10,9 +13,9 @@ import type { ResultResponse, UnlockHintResponse } from "@/types/api";
 export type ExerciseAnswer = number | string | null;
 
 /**
- * How the screen talks to the server. The demo passes a simulation
- * (`fixtures/demo-api.ts`); phase C passes `fetch` calls to the real endpoints.
- * `unlockHint` rejects with an error whose `status` is 402 when the balance is too low.
+ * How the screen talks to the server (`exercise-api.ts` builds it with `fetch`).
+ * Both methods reject with an `ApiRequestError`: `status` 401 without a session, 402 when
+ * the balance is too low for a hint, 403 `forbidden_origin` for a blocked request.
  */
 export interface ExerciseApi {
 	submitResult(answer: ExerciseAnswer): Promise<ResultResponse>;
@@ -39,6 +42,9 @@ const exerciseTextKeys = {
 	answerFirst: "learn.exercise.answerFirst",
 	sending: "learn.exercise.sending",
 	error: "learn.exercise.error",
+	sessionExpired: "learn.exercise.sessionExpired",
+	signIn: "learn.exercise.signIn",
+	forbidden: "auth.error.forbiddenOrigin",
 	hintHeading: "learn.hint.heading",
 	hintIntro: "learn.hint.intro",
 	hintLabel: "learn.hint.label",

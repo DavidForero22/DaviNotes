@@ -1,0 +1,20 @@
+---
+import ExercisePage from "@/components/learn/ExercisePage.astro";
+import { defaultLang } from "@/i18n/ui";
+import { isLang } from "@/i18n/utils";
+import { loadExercisePage, requireSignedIn } from "../../../learn/_exercises";
+
+/**
+ * /es/learn/exercise/[id], /fr/learn/exercise/[id] — see `pages/learn/exercise/[id].astro`.
+ */
+export const prerender = false;
+
+const { lang } = Astro.params;
+if (!isLang(lang) || lang === defaultLang) return new Response(null, { status: 404 });
+
+const user = requireSignedIn(Astro);
+if (user instanceof Response) return user;
+const state = await loadExercisePage(Astro.locals.supabase, user, Astro.params.id, lang, Astro.response);
+---
+
+<ExercisePage lang={lang} state={state} />

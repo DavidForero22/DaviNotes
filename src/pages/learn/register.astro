@@ -1,0 +1,18 @@
+---
+import AuthForm from "@/components/learn/AuthForm.astro";
+import { defaultLang } from "@/i18n/ui";
+import { consumeAuthFlash, redirectIfSignedIn } from "@/lib/server/auth";
+
+/**
+ * /learn/register — server-rendered (T14). A signed-in user goes to `next` or /learn (303).
+ * The errors of a failed POST arrive in the flash cookie, read once here (T13).
+ * Other languages: `pages/[lang]/learn/register.astro`.
+ */
+export const prerender = false;
+
+const signedIn = redirectIfSignedIn(Astro);
+if (signedIn) return signedIn;
+const flash = consumeAuthFlash(Astro.cookies, "register");
+---
+
+<AuthForm lang={defaultLang} page="register" flash={flash} />

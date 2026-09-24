@@ -12,12 +12,26 @@ const t = useTranslations(lang);
 /**
  * Each option points to the same page in another language, so switching
  * language keeps the visitor on the guide they are reading.
+ *
+ * The query string is kept (server-rendered learn pages, e.g. /learn/login?next=…), and a
+ * `next` path is moved to the new language too, so signing in lands in the chosen language.
+ * Prerendered pages have no query at build time: their links are the bare localized path.
  */
+function hrefFor(code: Lang): string {
+	const path = localizePath(Astro.url.pathname, code);
+	if (!Astro.url.search) return path;
+	const params = new URLSearchParams(Astro.url.search);
+	const next = params.get("next");
+	if (next && next.startsWith("/") && !next.startsWith("//")) params.set("next", localizePath(next, code));
+	const query = params.toString();
+	return query ? `${path}?${query}` : path;
+}
+
 const options = langs.map((code) => ({
 	code,
 	label: locales[code].label,
 	short: locales[code].short,
-	href: localizePath(Astro.url.pathname, code),
+	href: hrefFor(code),
 }));
 ---
 
