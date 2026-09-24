@@ -1,6 +1,6 @@
 # Fase B: esquema y ejercicios
 
-> **Estado: abierta, en pausa** (2026-09-23). Ver [Punto de parada](#punto-de-parada-2026-09-23) al final. Progreso global en [`roadmap.md`](./roadmap.md).
+> **Estado: cerrada** (2026-09-24). Integrada en `renovacion` con las PRs #23-#27 (merge final `d6afdef`). Progreso global en [`roadmap.md`](./roadmap.md).
 
 Objetivo: tener la base de datos con las reglas de progresión cerradas (roadmap §4), la lectura de ejercicios
 por API y la pantalla de ejercicio funcionando con **datos de prueba** (fixtures). La fase **no incluye**
@@ -130,3 +130,24 @@ Supabase local: el stack quedó arrancado desde `b-db`. `npx supabase stop` para
 - **Backend (producción):** las categorías viven en `seed.sql`, que no se ejecuta en producción; pasarlas a una migración antes de desplegar (anotado en `produccion.md` de `fase-b/db`).
 - **Usuario:** `npx supabase db reset` borra los ejercicios; hay que volver a ejecutar los scripts de inserción (ver `supabase/exercises/README.md`).
 - **UI (Fase D):** hex sueltos de los docs sin token (`#444`, `#aaa`, `#7e678b`, `#e0e0e0`) y colores en línea de `DifficultyBadge`.
+
+## Cierre (2026-09-24)
+
+| PR | Rama | Merge |
+|----|------|-------|
+| #23 | `fase-b/a11y` (B5 + informe B10) | `db23a82` |
+| #24 | `fase-b/db` (B1-B4 + seed de categorías) | `1668787` |
+| #25 | `fase-b/i18n` (B9 + B11) | `e8f760d` |
+| #26 | `fase-b/ui-exercise` (B6 + B7 + tipos de `@/types/api` + correcciones de B10) | `4fc89fa` |
+| #27 | `fase-b/i18n` (B8: 35 claves en es/fr) | `d6afdef` |
+
+Verificación final en `renovacion`:
+- `npm run build`: 169 páginas.
+- `npm run typecheck`: OK.
+- `npm run check:content`: 43/43/43.
+- `npx supabase db reset`: 8 categorías, 24 traducciones, 0 ejercicios.
+- `npx supabase test db`: 36/36.
+- `GET /api/exercises?locale=es`: 200 `[]`; `?difficulty=11`: 400.
+
+Sin conflictos de merge. `xpToNextLevel` confirmado como la XP que **falta** para el siguiente nivel (`level*100 - xp`).
+Supabase local queda arrancado desde el worktree `renovacion` (`.env` local copiado, no versionado).

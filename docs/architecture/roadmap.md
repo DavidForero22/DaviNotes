@@ -1,7 +1,7 @@
 # Roadmap global · DaviNotes → DaviLearn
 
 Mantenido por: **Project Manager & Tech Lead** (`.claude/agents/00-project-manager.md`).
-Última revisión: **2026-09-23**, sobre la rama de integración `renovacion`.
+Última revisión: **2026-09-24**, sobre la rama de integración `renovacion` (`d6afdef`).
 
 Leyenda: ✅ hecho · 🟡 parcial · ⏳ pendiente · ⛔ bloqueado
 
@@ -14,21 +14,21 @@ Leyenda: ✅ hecho · 🟡 parcial · ⏳ pendiente · ⛔ bloqueado
 
 | Área | Estado | Evidencia (rama `renovacion`) |
 |------|--------|-------------------------------|
-| Build | ✅ | `renovacion`: 166 páginas (163 docs + 3 learn). `fase-b/ui-exercise`: 169 (+3 de demo). `typecheck` OK en todas las ramas |
+| Build | ✅ | `npm run build` → 169 páginas (163 docs + 3 learn + 3 demo de ejercicio); `typecheck` y `check:content` OK |
 | DaviNotes (docs) | ✅ Funcional; solo cambia el `ModeSwitch` en la cabecera | 43 `.md` por idioma (en/es/fr), sin huecos |
 | Infraestructura | ✅ Vue, `@astrojs/node` con `output: 'static'`, Supabase SDK + CLI (devDependency), `supabase/config.toml` | `astro.config.mjs`, `package.json` |
-| Backend | 🟡 Esquema, RLS, RPC de progresión (36/36 tests pgTAP) y `GET /api/exercises` en `fase-b/db`, **sin integrar** | Falta auth/sesión (Fase C) |
-| Modo Aprender | 🟡 Layout, conmutador, rutas localizadas y una isla Vue de prueba | `LearnLayout.astro`, `ModeSwitch.astro`, `LanguageSuggestion.vue` |
-| i18n | 🟡 Namespace `learn` con las claves iniciales | `locales/*/learn.ts` |
+| Backend | 🟡 Esquema + RLS + RPC de progresión (36/36 tests pgTAP), seed de 8 categorías, `GET /api/exercises` | Falta auth/sesión y los POST (Fase C) |
+| Modo Aprender | 🟡 Layout, conmutador, rutas localizadas, `LanguageSuggestion.vue` y `InterfazEjercicio.vue` con demo (`/learn/demo/exercise/`) sobre fixtures | Sin datos reales ni sesión (Fase C) |
+| i18n | ✅ `learn.*` completo en en/es/fr (incluidas las 35 claves de ejercicio); `npm run check:content` | `locales/*/learn.ts`, `scripts/check-content.ts` |
 | SEO técnico | ⏸ Aparcado hasta producción | Ver `produccion.md` |
-| A11y | 🟡 Learn cumple los requisitos de la Fase A; los docs arrastran deuda | Ver Fase D |
+| A11y | 🟡 Guía `docs/guidelines/accessibility.md`; learn revisado (B10: APTA); los docs arrastran deuda | Ver Fase D |
 
 ### Ramas y worktrees
 | Rama | Worktree | Uso |
 |------|----------|-----|
 | `master` | `DaviNotes/` | Estable. **No se toca** hasta el merge final de la renovación |
 | `renovacion` | `../DaviNotes-worktrees/renovacion/` | Integración: aquí se hace merge de las ramas de cada fase |
-| `fase-b/{a11y,db,i18n,ui-exercise}` | `../DaviNotes-worktrees/b-{a11y,db,i18n,ui}/` | Fase B en curso (ver [`fase-b.md`](./fase-b.md)). Las ramas `fase-a/*` se borraron tras integrarse |
+| `fase-b/*` | `../DaviNotes-worktrees/b-{a11y,db,i18n,ui}/` | Fase B cerrada: fusionadas en `renovacion` con las PRs #23-#27. Se pueden borrar ramas y worktrees |
 
 ---
 
@@ -45,24 +45,25 @@ Plan en [`fase-a.md`](./fase-a.md) y diseño en [`layout-modos.md`](./layout-mod
 - ✅ SEO/A11y: requisitos de `ModeSwitch` y `LearnLayout` (skip link, landmarks, un solo h1, `aria-current`, live region) y correcciones de contraste en learn (`5e7e43d`).
 - 🟡 Queda pendiente la validación de SEO del orden visual frente al orden de tabulación en móvil (en `layout-modos.md`).
 
-### Fase B · Esquema y ejercicios 🟡 ← **SPRINT ACTUAL** (plan y punto de parada: [`fase-b.md`](./fase-b.md#punto-de-parada-2026-09-23))
+### Fase B · Esquema y ejercicios ✅ (plan y cierre: [`fase-b.md`](./fase-b.md))
 Objetivo: la base de datos con las reglas de progresión cerradas (§4) y la pantalla de ejercicio funcionando con datos de prueba.
 
 | # | Tarea | Agente | Depende de | Estado |
 |---|-------|--------|-----------|--------|
-| B1 | Migración inicial: tablas + RLS + trigger de perfil + RPC `submit_result` y `unlock_hint` según §4. **Tabla `exercises` vacía** (D4). | Backend | — (Docker ya instalado) | ✅ `fase-b/db` (`60cd66f`) |
-| B2 | `supabase gen types` → `types/database.ts`; DTOs en `types/api.ts` (§5). | Backend | B1 | ✅ `fase-b/db` (`32746d0`) |
-| B3 | `GET /api/exercises` (filtros `language`, `concept`, `difficulty`, `locale`) + `docs/architecture/api.md`. | Backend | B2 | ✅ `fase-b/db` (`32746d0`) |
-| B4 | Plantilla documentada del script de inserción de ejercicios que escribirá el usuario (`supabase/exercises/README.md` + ejemplo comentado, **sin datos**). | Backend | B1 | ✅ `fase-b/db` (`e369f50`) |
+| B1 | Migración inicial: tablas + RLS + trigger de perfil + RPC `submit_result` y `unlock_hint` según §4. **Tabla `exercises` vacía** (D4). | Backend | — (Docker ya instalado) | ✅ `60cd66f` |
+| B2 | `supabase gen types` → `types/database.ts`; DTOs en `types/api.ts` (§5). | Backend | B1 | ✅ `32746d0` |
+| B3 | `GET /api/exercises` (filtros `language`, `concept`, `difficulty`, `locale`) + `docs/architecture/api.md`. | Backend | B2 | ✅ `32746d0` |
+| B4 | Plantilla documentada del script de inserción de ejercicios que escribirá el usuario (`supabase/exercises/README.md` + ejemplo comentado, **sin datos**). | Backend | B1 | ✅ `e369f50` |
 | B5 | `docs/guidelines/accessibility.md` (alt, contraste, teclado, live regions, reduced-motion, foco). | SEO/A11y | — | ✅ integrada (`803a4c7`) |
-| B6 | Ampliar `tokens.css` (hoy hay ~79 hex sueltos) + estados de éxito y error accesibles. | UI | B5 | ✅ `fase-b/ui-exercise` (`62e4e18`) |
-| B7 | `InterfazEjercicio.vue` con **fixtures** que cumplan `types/api.ts` (pistas, "Resuelto / No resuelto"). | UI | B6 (B2 para pasar de fixtures a los tipos definitivos) | ✅ `fase-b/ui-exercise` (`18704bb`) |
-| B8 | Claves `learn.exercise.*`, `learn.hint.*` (`{coins}`) y `learn.result.*`. | i18n | B7 (UI define las claves) | ⏳ 35 claves en inglés listas; faltan es/fr |
+| B6 | Ampliar `tokens.css` (hoy hay ~79 hex sueltos) + estados de éxito y error accesibles. | UI | B5 | ✅ `62e4e18` |
+| B7 | `InterfazEjercicio.vue` con **fixtures** que cumplan `types/api.ts` (pistas, "Resuelto / No resuelto"). | UI | B6 (B2 para pasar de fixtures a los tipos definitivos) | ✅ `18704bb` |
+| B8 | Claves `learn.exercise.*`, `learn.hint.*` (`{coins}`) y `learn.result.*`. | i18n | B7 (UI define las claves) | ✅ PR #27 (`1e7ecb7`) |
 | B9 | `scripts/check-content.ts` + `npm run check:content` (slug ↔ `.md` en 3 idiomas; slugs de ejercicios ↔ catálogo). | i18n | — | ✅ `fase-b/i18n` (`d0aa03a`) |
-| B10 | Revisión a11y de `InterfazEjercicio` (teclado en pistas, anuncio del resultado). | SEO/A11y | B7 | ⏳ siguiente paso |
+| B10 | Revisión a11y de `InterfazEjercicio` (teclado en pistas, anuncio del resultado). | SEO/A11y | B7 | ✅ APTA sin bloqueantes (`docs/reviews/fase-b-b10.md`) |
 | B11 | Categorías iniciales de ejercicios (slugs + nombres en en/es/fr) para `seed.sql`. | i18n → Backend | — | ✅ `fase-b/i18n` + seed en `fase-b/db` |
 
-### Fase C · Cuenta y progreso ⏳
+### Fase C · Cuenta y progreso ⏳ ← **SIGUIENTE SPRINT**
+Arrastra de la Fase B: `role="alert"` ya aplicado; pendientes de B10 no bloqueantes 5-8 (borde de opciones si se oculta el radio, `X-Robots-Tag` en `/api/**`, reflow 320 px y zoom 200 %). Añadir `vue-tsc` al `typecheck` (hoy `tsc` no revisa los `.vue`).
 - ⏳ Auth: `api/auth/{register,login,logout,session}` **sin confirmación de email** (D3); `middleware.ts` con sesión real (`locals.user`, `locals.supabase`).
 - ⏳ `POST /api/exercises/[id]/result` y `POST /api/exercises/[id]/hints` a través de las RPC (las monedas nunca se escriben desde el cliente).
 - ⏳ `GET /api/profile` (nivel, XP, monedas, estadísticas, lenguajes activos, logros).
@@ -201,5 +202,6 @@ interface ApiError { error: { code: "invalid_query" | "invalid_body" | "unauthor
 ## 7. Historial de revisiones
 - **2026-09-23 (v1)**: primer roadmap, basado solo en `master`.
 - **2026-09-23 (v2)**: corregido tras revisar `renovacion` (Fase A ya completada). Se incorporan D1-D5 y las reglas de progresión, se renumeran las fases (0, A, B, C, D, Producción) y se crea `produccion.md`.
+- **2026-09-24 (v5)**: **Fase B cerrada.** PRs #23-#27 fusionadas en `renovacion` en GitHub; B8 y B10 hechas; verificación final (build 169, typecheck, check:content, `db reset` 8/24/0, 36/36 tests, API 200/400). D6 decidida: el cliente decide la corrección en desarrollo.
 - **2026-09-23 (v4)**: punto de parada de la Fase B. B1-B7, B9 y B11 hechas en sus ramas; B5 integrada; pendientes B10, merges y B8. Nueva decisión pendiente D6. Contrato v2.1 (en `fase-b/db`).
 - **2026-09-23 (v3)**: Fase A archivada (ramas y worktrees `fase-a/*` borrados); abierta la Fase B con sus ramas y worktrees; `renovacion` publicada en GitHub.

@@ -23,11 +23,10 @@ Cuando el usuario interactúe contigo, debes:
 ## Estado (revisión 2026-09-23)
 Fuente de verdad del progreso global: `docs/architecture/roadmap.md`. Rama de integración: `renovacion` (worktree `../DaviNotes-worktrees/renovacion/`). Fase A cerrada; **sprint actual: Fase B · Esquema y ejercicios** (`docs/architecture/fase-b.md`). Desarrollo solo local (D1).
 
-**Punto de parada (2026-09-23):** retomar desde `docs/architecture/fase-b.md` → "Punto de parada" (B10, merges, ajustes de UI, B8).
+**Fase B cerrada (2026-09-24)** con las PRs #23-#27 en `renovacion`. Siguiente: **Fase C · Cuenta y progreso**.
 
 ## Tareas Pendientes [ ]
-- [ ] Retomar la Fase B: lanzar SEO (B10), luego UI (merges + ajustes de tipos), luego i18n (B8); cerrar la fase en el roadmap.
-- [ ] Obtener del usuario la decisión D6 (validar la respuesta en el servidor) antes de la Fase C.
+- [ ] Preparar la Fase C: `fase-c.md`, ramas `fase-c/*`, worktrees y prompts. Proponer antes el borrado de ramas y worktrees `fase-b/*`.
 - [ ] Acordar con Backend y UI el cuerpo de `POST .../result`, el significado de `xpToNextLevel` y el DTO de perfil.
 - [ ] Mantener `docs/architecture/produccion.md` al día con lo que vayan detectando los agentes.
 - [ ] Consolidar el progreso en el roadmap al cerrar cada sprint.
@@ -38,6 +37,8 @@ Fuente de verdad del progreso global: `docs/architecture/roadmap.md`. Rama de in
 - [x] Roadmap global creado y corregido tras revisar `renovacion` (fases 0, A, B, C, D y Producción).
 - [x] Decisiones del usuario D1-D5 registradas; reglas de progresión cerradas (roadmap §4).
 - [x] Contrato de ejercicios v2 redactado (roadmap §5); Backend lo amplió a v2.1 (`categoryName`, tipos de petición y error).
+- [x] Decisión D6 registrada (el cliente decide la corrección en desarrollo; se revisa antes de producción).
+- [x] Fase B cerrada: B10 APTA, B8 traducida, PRs #23-#27 fusionadas en GitHub y verificación final en verde.
 - [x] Fase B lanzada y coordinada: B5 integrada; B1-B4, B6, B7, B9 y B11 terminadas en sus ramas; categorías de i18n reenviadas a Backend.
 - [x] Checklist de paso a producción en `docs/architecture/produccion.md`.
 - [x] Fase A archivada: ramas `fase-a/*` borradas; Docker confirmado (v29.7).
