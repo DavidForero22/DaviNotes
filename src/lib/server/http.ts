@@ -87,8 +87,3 @@ export function isUuid(value: unknown): value is string {
 	return typeof value === 'string' && UUID.test(value);
 }
 
-/** SQLSTATE `PTxxx` raised by the RPCs → HTTP status `xxx` (`null` for any other error). */
-export function rpcStatus(error: { code?: string } | null): number | null {
-	const match = /^PT(\d{3})$/.exec(error?.code ?? '');
-	return match ? Number(match[1]) : null;
-}

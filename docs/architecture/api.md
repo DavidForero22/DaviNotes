@@ -10,6 +10,10 @@ Esquema y reglas: `supabase/migrations/20260923120000_initial_schema.sql` y [roa
 | `POST /api/auth/logout` | no (idempotente) | 303 · JSON `200 SessionResponse` | C1 |
 | `GET /api/auth/session` | no | `200 SessionResponse` | C1 |
 | `GET /api/exercises` | no | `200 ExerciseDTO[]` | B3 |
+| `GET /api/exercises/[id]` | no | `200 ExerciseResponse` | C2 |
+| `POST /api/exercises/[id]/result` | **sí** | `200 ResultResponse` | C2 |
+| `POST /api/exercises/[id]/hints` | **sí** | `200 UnlockHintResponse` | C2 |
+| `GET /api/profile` | **sí** | `200 ProfileDTO` | C2 |
 
 ## Convenciones
 
@@ -222,18 +226,110 @@ Orden: `difficulty` ascendente y después `slug`. Las pistas van ordenadas por `
 
 ---
 
-## Fase C (diseño; aún no existen)
+## `GET /api/exercises/[id]` (C2)
 
-Los endpoints llaman a las RPC `security definer` de la base de datos. PostgREST traduce los `SQLSTATE` `PTxxx` a HTTP `xxx`:
+Un ejercicio por id. No requiere sesión; con sesión, `completed` y las pistas desbloqueadas reflejan al usuario.
+
+| Parámetro | Validación |
+|-----------|------------|
+| `[id]` | uuid. Si no lo es → `404 not_found` |
+| `locale` | `en` \| `es` \| `fr`, por defecto `en`. Otro valor → `400 invalid_query` |
+
+**200** `ExerciseResponse` (= `ExerciseDTO`, la misma forma que en la lista).
+
+- **Fallback a inglés:** si el ejercicio no tiene texto en `locale`, se sirve en inglés y `locale` del DTO vale `"en"`
+  (la página marca ese contenido con `lang="en"`, guía de a11y). La categoría y las pistas van en el mismo idioma que el ejercicio.
+- `404 not_found` si no existe (o no tiene texto ni en `locale` ni en inglés) · `500 internal_error`.
+
+```
+GET /api/exercises/de000000-0000-4000-8000-000000000001?locale=es
+```
+
+---
+
+## `POST /api/exercises/[id]/result` (C2)
+
+Registra un intento. **Requiere sesión.** D6: el cliente dice si acertó; la respuesta correcta nunca viaja al navegador.
+
+- Body `ResultRequest` (`Content-Type: application/json`): `{ "correct": true }`.
+- **200** `ResultResponse`:
+
+```json
+{ "correct": true, "firstCompletion": true, "coinsAwarded": 1, "xpAwarded": 20,
+  "coins": 1, "xp": 20, "level": 1, "xpToNextLevel": 80, "newAchievements": [] }
+```
+
+- Reglas (§4, RPC `submit_result`): la primera vez que se completa, monedas 1/2/3 según la dificultad y XP = dificultad × 10,
+  con subida de nivel encadenada. Repetir o "No resuelto" (`correct: false`): 0 y 0, pero el intento cuenta en las estadísticas.
+- `coins`, `xp`, `level`, `xpToNextLevel` son el estado **después** del intento: la UI puede actualizar la cabecera sin
+  volver a pedir el perfil. `newAchievements` siempre es `[]` hasta C7+.
+
+| HTTP | `code` | Cuándo |
+|------|--------|--------|
+| 400 | `invalid_body` | No es JSON, o `correct` no es booleano (`field: "correct"`) |
+| 401 | `unauthorized` | Sin sesión |
+| 404 | `not_found` | `[id]` no es un uuid o el ejercicio no existe |
+| 500 | `internal_error` | Error de la base de datos |
+
+---
+
+## `POST /api/exercises/[id]/hints` (C2)
+
+Desbloquea una pista. **Requiere sesión.**
+
+- Query `locale` (`en` por defecto): idioma de `hint.text` (si la pista no tiene texto en ese idioma, se devuelve en inglés).
+- Body `UnlockHintRequest` (`Content-Type: application/json`): `{ "hintId": "…" }`.
+- **Comprueba que la pista pertenece al ejercicio `[id]` antes de llamar a `unlock_hint`** (la RPC cobra la moneda y no
+  conoce el ejercicio): una pista de otro ejercicio da `404` sin cobrar nada.
+- Cuesta 1 moneda. Una pista ya desbloqueada se devuelve otra vez **sin cobrar** (sirve para pedir su texto en otro idioma).
+- **200** `UnlockHintResponse`:
+
+```json
+{ "hint": { "id": "…", "order": 1, "cost": 1, "unlocked": true, "text": "…" }, "coins": 0 }
+```
+
+| HTTP | `code` | Cuándo |
+|------|--------|--------|
+| 400 | `invalid_query` | `locale` no válido |
+| 400 | `invalid_body` | No es JSON, o `hintId` no es un uuid (`field: "hintId"`) |
+| 401 | `unauthorized` | Sin sesión |
+| 402 | `insufficient_coins` | Sin saldo (un usuario nuevo tiene 0 monedas hasta completar su primer ejercicio) |
+| 404 | `not_found` | `[id]` no es un uuid, o la pista no existe o es de otro ejercicio (`field: "hintId"`) |
+| 500 | `internal_error` | Error de la base de datos |
+
+---
+
+## `GET /api/profile` (C2)
+
+Perfil del usuario con sesión (`401 unauthorized` sin ella). **200** `ProfileDTO`:
+
+```json
+{
+  "id": "f8eb…", "email": "ana@example.com", "displayName": "Ana",
+  "coins": 3, "level": 2, "xp": 40, "xpToNextLevel": 160,
+  "stats": { "exercisesCompleted": 4, "attempts": 7 }
+}
+```
+
+- `xp` es la XP dentro del nivel actual (0 ≤ `xp` < `level` × 100) y `xpToNextLevel` = `level` × 100 − `xp`.
+- `stats.exercisesCompleted`: ejercicios distintos completados (primer acierto de cada uno). `stats.attempts`: todos los
+  intentos enviados, aciertos, fallos y repeticiones.
+- `displayName` se omite si el usuario no eligió nombre.
+- Logros y lenguajes activos llegan en C7+ (se añadirán como campos nuevos, sin romper el contrato).
+- En páginas SSR no hace falta llamar a la API: `getProfile(Astro.locals.supabase, user)` de `@/lib/server/progress`
+  devuelve el mismo DTO.
+
+---
+
+## Base de datos que usan los endpoints
+
+PostgREST traduce los `SQLSTATE` `PTxxx` de las RPC a HTTP `xxx`; `src/lib/server/progress.ts` los convierte en `RpcError`
+con ese `status` y los endpoints responden con los códigos de arriba.
 
 | RPC | Errores | Endpoint |
 |-----|---------|----------|
 | `submit_result(p_exercise_id uuid, p_correct boolean)` | `PT401` sin sesión, `PT400` argumentos nulos, `PT404` ejercicio inexistente | `POST /api/exercises/[id]/result` |
 | `unlock_hint(p_hint_id uuid)` | `PT401`, `PT400`, `PT404` pista inexistente, `PT402` sin saldo | `POST /api/exercises/[id]/hints` |
 
-- `POST /api/exercises/[id]/result` · body `ResultRequest` `{ "correct": true }` → `200 ResultResponse`.
-  La primera vez que se completa: monedas 1/2/3 según dificultad y XP = dificultad × 10, con subida de nivel encadenada. Repetir o "No resuelto": 0 y 0, pero el intento se registra.
-- `POST /api/exercises/[id]/hints` · body `UnlockHintRequest` `{ "hintId": "…" }` → `200 UnlockHintResponse` `{ hint, coins }`.
-  Cuesta 1 moneda; una pista ya desbloqueada se devuelve sin volver a cobrarla. Sin saldo → `402 insufficient_coins`.
-  El endpoint debe comprobar que la pista pertenece al ejercicio `[id]` (`unlock_hint` devuelve `exercise_id`).
-- `GET /api/profile` → nivel, XP, monedas, estadísticas, lenguajes activos y logros (DTO por definir).
+Las consultas de lectura van con la sesión del usuario (RLS): `pgTAP` en `supabase/tests/api.test.sql`.
+Datos de prueba solo locales: `supabase/exercises/_dev_sample.sql` (ver su README).
