@@ -3,47 +3,46 @@ import type en from "../en/account";
 /**
  * Interface strings of the account (DaviLearn): sign in, sign up, the account menu of the
  * header and the texts of every auth error code.
- * TODO(i18n C6): every value below is the provisional English text; translate it.
  */
 export default {
-	"auth.login.title": "Sign in", // TODO(i18n C6)
-	"auth.login.description": "Sign in to DaviLearn to solve exercises and keep your progress.", // TODO(i18n C6)
-	"auth.login.submit": "Sign in", // TODO(i18n C6)
-	"auth.login.switchPrompt": "Don't have an account?", // TODO(i18n C6)
-	"auth.login.switchLink": "Create an account", // TODO(i18n C6)
-	"auth.register.title": "Create an account", // TODO(i18n C6)
-	"auth.register.description": "Create a DaviLearn account to solve exercises, earn coins and level up.", // TODO(i18n C6)
-	"auth.register.submit": "Create account", // TODO(i18n C6)
-	"auth.register.switchPrompt": "Already have an account?", // TODO(i18n C6)
-	"auth.register.switchLink": "Sign in", // TODO(i18n C6)
-	"auth.continueNotice": "Sign in to continue.", // TODO(i18n C6)
-	"auth.requiredNote": "All fields are required unless marked as optional.", // TODO(i18n C6)
-	"auth.errorTitle": "Error: {title}", // TODO(i18n C6)
-	"auth.errorSummary.one": "There is 1 problem", // TODO(i18n C6)
-	"auth.errorSummary.other": "There are {count} problems", // TODO(i18n C6)
-	"auth.errorPrefix": "Error:", // TODO(i18n C6)
-	"auth.email.label": "Email", // TODO(i18n C6)
-	"auth.password.label": "Password", // TODO(i18n C6)
-	"auth.password.hint": "At least {min} characters.", // TODO(i18n C6)
-	"auth.password.show": "Show password", // TODO(i18n C6)
-	"auth.displayName.label": "Display name (optional)", // TODO(i18n C6)
-	"auth.displayName.hint": "Shown at the top of the page instead of your email. Up to {max} characters.", // TODO(i18n C6)
-	"auth.error.emailEmpty": "Enter your email address.", // TODO(i18n C6)
-	"auth.error.emailInvalid": "Enter an email address in the format name@example.com.", // TODO(i18n C6)
-	"auth.error.passwordInvalid": "Enter your password. It can have up to {max} characters.", // TODO(i18n C6)
-	"auth.error.displayNameInvalid": "Shorten your display name to {max} characters or fewer.", // TODO(i18n C6)
-	"auth.error.weakPassword": "Your password must have at least {min} characters.", // TODO(i18n C6)
-	"auth.error.emailTaken": "There is already an account with this email. {signIn} or use another email.", // TODO(i18n C6)
-	"auth.error.emailTakenLink": "Sign in", // TODO(i18n C6)
-	"auth.error.invalidCredentials": "The email or the password is not correct. Check them and try again.", // TODO(i18n C6)
-	"auth.error.rateLimited": "Too many attempts. Wait a few minutes and try again.", // TODO(i18n C6)
-	"auth.error.internal": "We could not complete the action. Please try again.", // TODO(i18n C6)
-	"auth.error.forbiddenOrigin": "The request was blocked because it did not come from this site. Reload the page and try again.", // TODO(i18n C6)
-	"account.label": "Account:", // TODO(i18n C6)
-	"account.fallbackName": "My account", // TODO(i18n C6)
-	"account.level": "Level {level}", // TODO(i18n C6)
-	"account.xp": "{xp} of {total} XP to level {next}", // TODO(i18n C6)
-	"account.signIn": "Sign in", // TODO(i18n C6)
-	"account.signOut": "Sign out", // TODO(i18n C6)
-	"account.signedOut": "You have signed out.", // TODO(i18n C6)
+	"auth.login.title": "Iniciar sesión",
+	"auth.login.description": "Inicia sesión en DaviLearn para resolver ejercicios y guardar tu progreso.",
+	"auth.login.submit": "Iniciar sesión",
+	"auth.login.switchPrompt": "¿No tienes cuenta?",
+	"auth.login.switchLink": "Crear una cuenta",
+	"auth.register.title": "Crear una cuenta",
+	"auth.register.description": "Crea una cuenta en DaviLearn para resolver ejercicios, ganar monedas y subir de nivel.",
+	"auth.register.submit": "Crear cuenta",
+	"auth.register.switchPrompt": "¿Ya tienes cuenta?",
+	"auth.register.switchLink": "Iniciar sesión",
+	"auth.continueNotice": "Inicia sesión para continuar.",
+	"auth.requiredNote": "Todos los campos son obligatorios salvo los marcados como opcionales.",
+	"auth.errorTitle": "Error: {title}",
+	"auth.errorSummary.one": "Hay 1 problema",
+	"auth.errorSummary.other": "Hay {count} problemas",
+	"auth.errorPrefix": "Error:",
+	"auth.email.label": "Correo electrónico",
+	"auth.password.label": "Contraseña",
+	"auth.password.hint": "Al menos {min} caracteres.",
+	"auth.password.show": "Mostrar contraseña",
+	"auth.displayName.label": "Nombre visible (opcional)",
+	"auth.displayName.hint": "Se muestra arriba de la página en lugar de tu correo. Hasta {max} caracteres.",
+	"auth.error.emailEmpty": "Escribe tu correo electrónico.",
+	"auth.error.emailInvalid": "Escribe un correo con el formato nombre@ejemplo.com.",
+	"auth.error.passwordInvalid": "Escribe tu contraseña. Puede tener hasta {max} caracteres.",
+	"auth.error.displayNameInvalid": "Acorta tu nombre visible a {max} caracteres como máximo.",
+	"auth.error.weakPassword": "La contraseña debe tener al menos {min} caracteres.",
+	"auth.error.emailTaken": "Ya hay una cuenta con este correo. {signIn} o usa otro correo.",
+	"auth.error.emailTakenLink": "Inicia sesión",
+	"auth.error.invalidCredentials": "El correo o la contraseña no son correctos. Revísalos y vuelve a intentarlo.",
+	"auth.error.rateLimited": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
+	"auth.error.internal": "No hemos podido completar la acción. Vuelve a intentarlo.",
+	"auth.error.forbiddenOrigin": "Hemos bloqueado la solicitud porque no venía de este sitio. Recarga la página y vuelve a intentarlo.",
+	"account.label": "Cuenta:",
+	"account.fallbackName": "Mi cuenta",
+	"account.level": "Nivel {level}",
+	"account.xp": "{xp} de {total} XP para el nivel {next}",
+	"account.signIn": "Iniciar sesión",
+	"account.signOut": "Cerrar sesión",
+	"account.signedOut": "Has cerrado la sesión.",
 } as const satisfies Record<keyof typeof en, string>;
