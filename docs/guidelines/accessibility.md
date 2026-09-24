@@ -116,7 +116,11 @@ anuncian al recorrer con Tab y no explica nada.
 
 - `aria-disabled="true"`: el botón sigue siendo enfocable y el lector dice "no disponible".
 - El manejador de clic **comprueba** `aria-disabled` y no hace nada (o repite la explicación en la live region). El servidor también lo rechaza (402), pero la UI no debe llegar a llamar.
-- `aria-describedby` apunta a un texto **visible** (no solo un tooltip ni un `title`), que cumple 4,5:1. El `id` es único por pista.
+- `aria-describedby` apunta a un texto **visible** (no solo un tooltip ni un `title`), que cumple 4,5:1. El `id` es único en la página.
+  - Si **varios controles están bloqueados por el mismo motivo** (todas las pistas sin saldo), vale **un único párrafo compartido**
+    al que apuntan todos con el mismo `aria-describedby` (decisión de B10). El párrafo solo existe mientras algún control lo
+    referencia, y cada botón solo lleva `aria-describedby` mientras está bloqueado por ese motivo.
+  - Si el motivo es distinto por control (p. ej. "pista 2 requiere desbloquear antes la 1"), cada uno tiene su propio texto e `id`.
 - Estilo: aspecto atenuado con `[aria-disabled="true"]`, pero el foco sigue visible.
 - Cuando cambia el saldo, se quita `aria-disabled` y el texto explicativo; si el cambio ocurre sin que el usuario lo pida, anúncialo en la live region.
 - Este mismo patrón vale para cualquier acción bloqueada (ejercicio ya enviado, límite alcanzado).
