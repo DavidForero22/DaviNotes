@@ -36,7 +36,8 @@ Cada agente añade aquí cualquier ajuste que detecte y que solo tenga sentido e
 - [ ] Si se activa la confirmación de email: SMTP propio (el SMTP integrado de Supabase tiene un límite muy bajo) y plantillas de email en en/es/fr.
 - [ ] Revisar las políticas RLS con el Security Advisor de Supabase; comprobar que ninguna columna de monedas, XP o nivel se puede escribir desde el cliente (T11).
 - [ ] Copias de seguridad automáticas y, si el plan lo permite, PITR.
-- [ ] Revisar el rate limiting de Auth (registro y login).
+- [ ] Revisar el rate limiting de Auth (registro y login). Los endpoints ya traducen el 429 de Auth a `rate_limited`.
+- [ ] Auth → Providers → Email: longitud mínima de contraseña **8** (igual que `minimum_password_length` de `config.toml` y `PASSWORD_MIN_LENGTH` de `src/lib/auth-rules.ts`), sin reglas de composición, y confirmación de email según D3.
 
 ## 4. Variables de entorno y secretos (Backend)
 - [ ] `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY` con los valores del proyecto remoto, en el panel del hosting (nunca en el repo).
@@ -45,10 +46,11 @@ Cada agente añade aquí cualquier ajuste que detecte y que solo tenga sentido e
 
 ## 5. Servidor y seguridad (Backend)
 - [ ] HTTPS obligatorio y redirección de `http` y de `www`/sin `www` al dominio canónico.
-- [ ] Cookies de sesión con `Secure`, `HttpOnly` y `SameSite=Lax` (revisar las opciones de `@supabase/ssr`).
+- [ ] Cookies: la de sesión (`cookieOptions` en `src/lib/server/supabase.ts`) y la flash `dl_auth_flash` (`src/lib/server/auth.ts`) ya son `HttpOnly` y `SameSite=Lax`; falta **`Secure`** (p. ej. `secure: import.meta.env.PROD`, fuera de local porque `npm run preview` va por http).
 - [ ] Cabeceras de seguridad: `Content-Security-Policy` (permitiendo el dominio de Supabase en `connect-src`), `Strict-Transport-Security`, `X-Content-Type-Options`, `Referrer-Policy`.
 - [ ] Caché larga para `/_astro/*` (los nombres llevan hash) y corta para el HTML.
-- [ ] Protección CSRF en los `POST` de `/api/**` (comprobar `Origin` o usar la opción `security.checkOrigin` de Astro).
+- [x] Protección CSRF: `src/middleware.ts` comprueba `Origin` en los `POST` SSR (C1, T15).
+- [ ] Detrás de un proxy o CDN, `Astro.url.origin` tiene que ser el origen público (cabeceras `Host` / `X-Forwarded-Host` / `X-Forwarded-Proto`, y `security.allowedDomains` de Astro si se usan las `X-Forwarded-*`). Si no coincide con el `Origin` del navegador, **todos los POST dan 403 `forbidden_origin`**.
 
 ## 6. Calidad y despliegue continuo (PM)
 - [ ] Pipeline de CI: `npm ci`, `npm run typecheck`, `npm run check:content`, `npm run build`.

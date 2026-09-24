@@ -1,19 +1,58 @@
 # API de DaviLearn
 
-Mantenido por: **Backend Architect**. Tipos: [`src/types/api.ts`](../../src/types/api.ts) (contrato v2.1, [roadmap §5](./roadmap.md)).
+Mantenido por: **Backend Architect**. Tipos: [`src/types/api.ts`](../../src/types/api.ts) (contrato v2.2, [roadmap §5](./roadmap.md)).
 Esquema y reglas: `supabase/migrations/20260923120000_initial_schema.sql` y [roadmap §4](./roadmap.md).
+
+| Endpoint | Sesión | Respuesta | Fase |
+|----------|--------|-----------|------|
+| `POST /api/auth/register` | no | 303 · JSON `201 AuthResponse` | C1 |
+| `POST /api/auth/login` | no | 303 · JSON `200 AuthResponse` | C1 |
+| `POST /api/auth/logout` | no (idempotente) | 303 · JSON `200 SessionResponse` | C1 |
+| `GET /api/auth/session` | no | `200 SessionResponse` | C1 |
+| `GET /api/exercises` | no | `200 ExerciseDTO[]` | B3 |
 
 ## Convenciones
 
-- Rutas bajo `/api/*`, sin prefijo de idioma. Todas son `prerender = false` (T2) y responden JSON UTF-8 con `Cache-Control: no-store`.
+- Rutas bajo `/api/*`, sin prefijo de idioma. Todas son `prerender = false` (T2) y responden JSON UTF-8.
+- Todas las respuestas de `/api/**` (también las 303 y los errores) llevan `X-Robots-Tag: noindex` y
+  `Cache-Control: private, no-store` (T15). Las páginas SSR (`prerender = false`) llevan `Cache-Control: private, no-store`
+  salvo que la página ponga el suyo (lo hace `src/middleware.ts`).
 - El idioma del contenido se elige con el parámetro `locale` (`en` por defecto), no con la URL.
 - Los handlers solo validan la entrada, llaman a `src/lib/server/*` y devuelven los DTO de `@/types/api`.
-- La sesión va en cookies (`@supabase/ssr`). Sin sesión, las consultas se hacen con el rol `anon` y RLS decide qué se ve.
 - La respuesta correcta de un ejercicio (`exercise_answers`) **nunca** sale de la base de datos.
+
+### Sesión (T12)
+
+- Cookies de `@supabase/ssr` (`sb-127-auth-token*` en local), `HttpOnly`, `SameSite=Lax`, `Path=/`. El navegador **no**
+  habla con Supabase directamente: las islas Vue llaman a `/api/**` con `fetch` (las cookies van solas, mismo origen).
+- `src/middleware.ts` solo actúa en rutas SSR (en las prerenderizadas no hay cookies). Ahí rellena:
+  - `Astro.locals.supabase`: cliente con las cookies de la petición (RLS como el usuario, o `anon`).
+  - `Astro.locals.user`: `SessionUser` (`{ id, email, displayName? }`) o `null`. Valida el token con Supabase Auth
+    (`getUser`) y lo refresca si ha caducado.
+- Helpers en `@/lib/server/auth` (solo para `.astro` y `pages/api`; nunca en `.vue`, T9):
+
+| Helper | Uso |
+|--------|-----|
+| `requireUser(Astro)` | Página privada: devuelve el `SessionUser` o una **302** a `/learn/login?next=<ruta actual>` (o `/{lang}/learn/login`, según el prefijo de la URL). `if (user instanceof Response) return user;` |
+| `redirectIfSignedIn(Astro)` | Login y registro: con sesión devuelve una **303** a `?next=` (si es seguro) o a `/{lang}/learn`; sin sesión, `null`. |
+| `consumeAuthFlash(Astro.cookies, page)` | `page` = `"login"` o `"register"`. Errores y valores del último envío fallido de ese formulario (`AuthFlash`) o `null`. Borra la cookie: al recargar, el formulario sale limpio. |
+| `requireApiUser(context)` | Endpoint: `SessionUser` o **401** `unauthorized`. |
+| `safeNext(value, fallback)`, `loginPath(lang, next)`, `learnPath(lang, path)` | Rutas localizadas y validación de `next`. |
+
+### Seguridad de los POST (T15)
+
+`src/middleware.ts` comprueba `Origin` en todo `POST`/`PUT`/`PATCH`/`DELETE` SSR. Sustituye a `security.checkOrigin` de Astro,
+que se ejecuta antes del middleware y no ponía `X-Robots-Tag`; por eso está desactivado en `astro.config.mjs`.
+
+- Tipo formulario (`application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain`) o sin cuerpo: `Origin` tiene que ser
+  el del sitio. Si falta o es otro → **403** `forbidden_origin`.
+- JSON: **403** si `Origin` es de otro sitio. Sin `Origin` (curl) se acepta: un navegador no puede mandar JSON a otro sitio sin
+  *preflight* CORS, y esta API no responde a CORS.
+- Los endpoints JSON de ejercicios exigen `Content-Type: application/json` (si no, `400 invalid_body`).
 
 ### Errores
 
-Toda respuesta que no sea 2xx tiene esta forma (`ApiError`):
+Toda respuesta JSON que no sea 2xx tiene esta forma (`ApiError`):
 
 ```json
 { "error": { "code": "invalid_query", "message": "\"difficulty\" must be an integer between 1 and 10.", "field": "difficulty" } }
@@ -22,13 +61,99 @@ Toda respuesta que no sea 2xx tiene esta forma (`ApiError`):
 | HTTP | `code` | Cuándo |
 |------|--------|--------|
 | 400 | `invalid_query` | Un parámetro de la query no es válido (`field` indica cuál) |
-| 400 | `invalid_body` | Cuerpo JSON no válido (Fase C) |
-| 401 | `unauthorized` | Hace falta sesión (Fase C) |
-| 402 | `insufficient_coins` | No hay monedas para desbloquear una pista (Fase C) |
-| 404 | `not_found` | El ejercicio o la pista no existen (Fase C) |
-| 500 | `internal_error` | Error de la base de datos; el detalle solo va al log del servidor |
+| 400 | `invalid_body` | Cuerpo JSON no válido o sin `Content-Type: application/json` (`field` si es un campo) |
+| 401 | `unauthorized` | Hace falta sesión |
+| 402 | `insufficient_coins` | No hay monedas para desbloquear una pista |
+| 403 | `forbidden_origin` | `POST` desde otro origen (T15) |
+| 404 | `not_found` | El ejercicio o la pista no existen |
+| 500 | `internal_error` | Error de la base de datos o de Auth; el detalle solo va al log del servidor |
 
-`message` está en inglés y es para depurar: la UI muestra sus propios textos según `code` (T6).
+Más los códigos de auth (tabla de [Auth](#auth)). `message` está en inglés y es para depurar: la UI muestra sus propios
+textos según `code` (T6).
+
+---
+
+## Auth
+
+Registro e inicio de sesión con email y contraseña, **sin confirmación de email** (D3). Cada endpoint acepta dos modos (T13):
+
+- **Formulario HTML** (`<form method="post" action="/api/auth/login" novalidate data-astro-reload>`): responde **303**.
+  - Éxito → `next` (si es seguro) o `/{lang}/learn`.
+  - Error → vuelta al formulario de `lang` (`/{lang}/learn/login` o `/{lang}/learn/register`), con **solo `?next=`** en la query.
+    Los errores y lo que escribió el usuario van en la **cookie flash** `dl_auth_flash` (`HttpOnly`, `SameSite=Lax`, `Path=/`,
+    2 minutos, de un solo uso), que la página lee con `consumeAuthFlash`. **La contraseña nunca se guarda.**
+- **JSON** (`Accept: application/json` o cuerpo `Content-Type: application/json`): responde el DTO o un `ApiError` con el
+  **primer** error.
+
+### Campos (`AuthRequest`)
+
+| Campo | Endpoints | Regla | Error |
+|-------|-----------|-------|-------|
+| `email` | register, login | Obligatorio, formato `a@b.c`, máx. 254; se recorta (`trim`) | `invalid_input` · `email` |
+| `password` | register, login | Obligatorio, máx. 72 (límite de bcrypt); **no** se recorta | `invalid_input` · `password` |
+| `password` (longitud) | register | Mínimo **`PASSWORD_MIN_LENGTH` = 8** (`src/lib/auth-rules.ts`, igual que `minimum_password_length` de `config.toml`). Sin reglas de composición | `weak_password` · `password` |
+| `displayName` | register | Opcional; 1-40 caracteres tras `trim` (vacío = sin nombre) | `invalid_input` · `displayName` |
+| `next` | todos | Ruta relativa que empieza por **una sola** `/` (ni `//` ni `/\`) y que no es `/api/…`. Si no, se ignora | — |
+| `lang` | todos | `en`, `es` o `fr` (por defecto `en`): idioma de las redirecciones | — |
+
+En el login la longitud mínima no se comprueba (una contraseña antigua más corta sigue sirviendo). En el registro se
+devuelven **todos** los errores de validación a la vez, en el orden email → password → displayName.
+
+`src/lib/auth-rules.ts` es isomórfico (se puede importar desde `.vue`): `PASSWORD_MIN_LENGTH`, `PASSWORD_MAX_LENGTH`,
+`DISPLAY_NAME_MAX_LENGTH`, `EMAIL_MAX_LENGTH`.
+
+### Códigos de error de auth (`AuthErrorCode`)
+
+Estables: i18n los traduce (C6). `field` es el `name`/`id` del campo al que enlaza el error.
+
+| `code` | `field` | HTTP (JSON) | Cuándo |
+|--------|---------|-------------|--------|
+| `invalid_input` | `email`, `password` o `displayName` | 400 | Campo vacío, con formato no válido o demasiado largo |
+| `weak_password` | `password` | 422 | Registro con menos de 8 caracteres (o rechazada por Supabase Auth) |
+| `email_taken` | `email` | 409 | Ya hay una cuenta con ese email (registro) |
+| `invalid_credentials` | — (nunca dice cuál falla) | 401 | Email o contraseña incorrectos (login) |
+| `rate_limited` | — | 429 | Demasiados intentos (límites de `[auth.rate_limit]`) |
+| `internal_error` | — | 500 | Fallo de Supabase Auth o formulario ilegible |
+
+Más `forbidden_origin` (403, sin redirección: la petición no viene del sitio).
+
+### `AuthFlash` (lo que recibe la página tras un 303 con error)
+
+```ts
+// consumeAuthFlash(Astro.cookies, "register") →
+{
+  errors: [ { code: "invalid_input", field: "email" }, { code: "weak_password", field: "password" } ],
+  values: { email: "ana@", displayName: "Ana" }   // nunca la contraseña
+}
+// o null si no hay flash de esa página (o ya se leyó)
+```
+
+### `POST /api/auth/register`
+
+Crea la cuenta e inicia sesión. El trigger `on_auth_user_created` crea el perfil (0 monedas, nivel 1, 0 XP; `display_name`
+si se dio). JSON → **201** `AuthResponse` `{ user: SessionUser }` + cookies de sesión.
+
+```sh
+# Formulario (lo que envía el navegador)
+curl -i -H "Origin: http://localhost:4321" \
+  --data-urlencode "email=ana@example.com" --data-urlencode "password=12345678" \
+  --data-urlencode "displayName=Ana" --data-urlencode "lang=es" --data-urlencode "next=/es/learn" \
+  http://localhost:4321/api/auth/register
+# → 303 Location: /es/learn   (o /es/learn/register + Set-Cookie: dl_auth_flash=…)
+```
+
+### `POST /api/auth/login`
+
+JSON → **200** `AuthResponse` + cookies de sesión. Formulario → 303 igual que el registro.
+
+### `POST /api/auth/logout`
+
+Cierra la sesión de este dispositivo (`signOut({ scope: "local" })`) y borra las cookies. Funciona sin sesión.
+Campos opcionales `next` y `lang`. Formulario → **303** a `next` o `/{lang}/learn`; JSON → **200** `{ "user": null }`.
+
+### `GET /api/auth/session`
+
+**200** `SessionResponse`: `{ "user": { "id": "…", "email": "…", "displayName": "Ana" } }` o `{ "user": null }`. Nunca 401.
 
 ---
 

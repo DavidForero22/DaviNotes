@@ -1,5 +1,4 @@
 import type { APIRoute } from 'astro';
-import { createSupabaseServerClient } from '@/lib/server/supabase';
 import { DEFAULT_LIMIT, LOCALES, MAX_LIMIT, listExercises } from '@/lib/server/exercises';
 import { apiError, json } from '@/lib/server/http';
 import type { ExerciseListQuery, ExerciseListResponse, Locale } from '@/types/api';
@@ -57,13 +56,12 @@ function parseQuery(params: URLSearchParams): Parsed {
  * GET /api/exercises — public list of exercises in one locale (docs/architecture/api.md).
  * Without a session every hint is locked and `completed` is false. Never returns answers.
  */
-export const GET: APIRoute = async ({ request, cookies, url }) => {
+export const GET: APIRoute = async ({ locals, url }) => {
 	const parsed = parseQuery(url.searchParams);
 	if (!parsed.ok) return parsed.response;
 
 	try {
-		const supabase = createSupabaseServerClient({ request, cookies });
-		const body: ExerciseListResponse = await listExercises(supabase, {
+		const body: ExerciseListResponse = await listExercises(locals.supabase, {
 			limit: DEFAULT_LIMIT,
 			...parsed.query,
 		});
