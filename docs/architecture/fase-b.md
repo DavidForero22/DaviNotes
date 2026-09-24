@@ -123,7 +123,7 @@ Supabase local: el stack quedó arrancado desde `b-db`. `npx supabase stop` para
 5. **Comprobación final** en `renovacion`: `npm run build`, `npm run typecheck`, `npm run check:content`, `npx supabase db reset` + `npx supabase test db`. Después el PM cierra la Fase B en el roadmap.
 
 ### Decisiones y acuerdos pendientes para la Fase C
-- **D6 (usuario):** validación de la respuesta en el servidor (ver roadmap §3). Condiciona el cuerpo del `POST /api/exercises/[id]/result`.
+- **D6 (decidida, 2026-09-24):** en desarrollo el cliente decide si la respuesta es correcta; `POST /api/exercises/[id]/result` lleva `{ correct }`. Se revisará antes de producción.
   UI hoy envía el índice de la opción, el texto escrito o `null` ("No resuelto").
 - **Backend + UI:** confirmar que `xpToNextLevel` = XP que **falta** (`level × 100 − xp`), que es como lo interpreta la barra de UI.
 - **Backend:** exportar `ProfileSnapshot` o el DTO de `GET /api/profile` (UI deriva hoy el saldo de `ResultResponse`).

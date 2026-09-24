@@ -51,3 +51,6 @@ Cada agente añade aquí cualquier ajuste que detecte y que solo tenga sentido e
 - [ ] Hacer el merge de `renovacion` en `master` y desplegar desde `master`.
 - [ ] Monitorización de errores del servidor y de la disponibilidad.
 - [ ] Pasada final de accesibilidad (Lighthouse/axe) sobre el dominio real.
+
+## 7. Integridad del progreso (decisión D6)
+- [ ] Hoy el navegador decide si una respuesta es correcta (`submit_result(p_exercise_id, p_correct)`), por simplicidad durante el desarrollo. Antes de producción: la RPC recibe la **respuesta** (`p_answer`) y la compara con `exercise_answers` dentro de la BD; `POST /api/exercises/[id]/result` pasa a `{ answer }` y `InterfazEjercicio` envía la respuesta en lugar de un booleano. Para `fill_blank`/`code_output`, el script de ejercicios debe incluir las variantes aceptadas en `accepted_answers`.

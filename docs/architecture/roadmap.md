@@ -96,7 +96,7 @@ Checklist completa en [`produccion.md`](./produccion.md).
 | **D2** | Reglas de progresión **cerradas** (ver §4). El esquema de la BD se diseña sobre ellas. |
 | **D3** | El registro **no exige** confirmar el email. |
 | **D4** | El contenido real de los ejercicios lo escribe el usuario en un script de inserción propio. **La tabla `exercises` empieza vacía**: el seed no incluye ejercicios. |
-| **D6** ⚠️ | **Pendiente del usuario.** `submit_result` acepta el `correct` que declara el navegador, así que un usuario con sesión podría otorgarse monedas y XP llamando a la RPC. Recomendación del Tech Lead: en la Fase C la RPC recibe la **respuesta** y la valida contra `exercise_answers` dentro de la BD. |
+| **D6** | Durante el desarrollo **el cliente decide si la respuesta es correcta**: `submit_result(p_exercise_id, p_correct)` se queda como está, por simplicidad. Riesgo aceptado: un usuario con sesión podría otorgarse monedas y XP. **Se revisa antes de producción** (validar contra `exercise_answers` en la BD; ver `produccion.md`). |
 | **D5** | El usuario instalará las herramientas locales cuando haga falta. Supabase CLI ya viene como devDependency (`npx supabase`). Docker Desktop ya está instalado (v29.7), así que `supabase start` está disponible. |
 
 ### Decisiones del Tech Lead (vigentes salvo que el usuario diga lo contrario)
