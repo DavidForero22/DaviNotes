@@ -41,4 +41,8 @@ export default {
 	"help.diff.adv": "Deep dives and production-level concepts.",
 	"help.beginnerTitle": "Where to start?",
 	"help.beginnerText": "If you are completely new to programming, we highly recommend starting with HTML. It will teach you the basic structure of the web. From there, you can explore Python for its easy-to-read logic, or Astro if you want to build websites!",
+	"mode.switcher": "Site section",
+	"mode.docs": "Documentation",
+	"mode.learn": "Learn",
+	"a11y.skipToContent": "Skip to main content",
 } as const;

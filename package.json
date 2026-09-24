@@ -6,9 +6,21 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "typecheck": "astro sync && tsc --noEmit",
+    "check:content": "node scripts/check-content.ts"
   },
   "dependencies": {
-    "astro": "^5.16.6"
+    "@astrojs/node": "^9.5.5",
+    "@astrojs/vue": "^5.1.4",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.0",
+    "astro": "^5.18.2",
+    "vue": "^3.5.43"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.6",
+    "supabase": "^2.117.0",
+    "typescript": "^5.9.3"
   }
 }

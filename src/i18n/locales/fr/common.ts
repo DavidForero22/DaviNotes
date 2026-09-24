@@ -42,4 +42,8 @@ export default {
 	"help.diff.adv": "Concepts approfondis et de niveau production.",
 	"help.beginnerTitle": "Par où commencer ?",
 	"help.beginnerText": "Si vous êtes totalement novice, nous vous recommandons vivement de commencer par HTML pour comprendre la structure du web. Ensuite, vous pourrez explorer Python pour sa logique simple ou Astro si vous souhaitez créer des sites web !",
+	"mode.switcher": "Section du site",
+	"mode.docs": "Documentation",
+	"mode.learn": "Apprendre",
+	"a11y.skipToContent": "Aller au contenu principal",
 } as const satisfies Record<keyof typeof en, string>;

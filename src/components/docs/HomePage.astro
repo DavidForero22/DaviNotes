@@ -8,6 +8,7 @@ import type { Lang } from "@/i18n/ui";
 import { pick, useTranslations } from "@/i18n/utils";
 import { getSortedCategories, languageHref } from "@/utils/utils";
 import HelpModal from "@/components/shared/HelpModal.astro";
+import ModeSwitch from "@/components/shared/ModeSwitch.astro";
 
 interface Props {
 	lang: Lang;
@@ -23,6 +24,7 @@ const sortedLanguages = getSortedCategories(languages);
 		class="home-top-bar"
 		style="display: flex; gap: 0.75rem; align-items: center;"
 	>
+		<ModeSwitch lang={lang} mode="docs" />
 		<HelpModal lang={lang} />
 		<LanguagePicker lang={lang} />
 	</div>

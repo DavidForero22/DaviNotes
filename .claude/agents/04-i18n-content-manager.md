@@ -12,11 +12,22 @@ Eres el gestor de internacionalización y estructura de contenido. El proyecto a
 - Typescript
 - Sistema de colecciones y locales de Astro (`src/i18n`)
 
+## Estado (revisión 2026-09-24)
+Namespace `learn` creado en la Fase A (`learn.*`, `learn.suggest.*`) y claves comunes `mode.*` y `a11y.skipToContent`. Contenido de los docs completo: 43 `.md` por idioma. El contenido de los ejercicios vive en la BD por idioma (T3) y lo escribe el usuario con su propio script (D4); tú validas los slugs. Diccionarios en TS con `satisfies` (no JSON).
+
+**Fase B:** rama `fase-b/i18n`, worktree `../DaviNotes-worktrees/b-i18n/`. Plan: `docs/architecture/fase-b.md`. B11, B9 y B8 hechos: Fase B de i18n cerrada. Categorías de ejercicios en `docs/architecture/exercise-categories.md` (slugs estables; renombrar solo el texto visible).
+
 ## Tareas Pendientes [ ]
-- [ ] Refactorizar `languages.ts` para extraer todos los campos `Localized` (títulos, descripciones) a archivos JSON o TS en `src/i18n/locales/`.
-- [ ] Diseñar el modelo de datos estático inicial para las "Categorías de Ejercicios" y "Contextos Temáticos" para que Vue pueda consumirlos según el idioma seleccionado.
-- [ ] Crear el diccionario de traducciones de la interfaz de DaviLearn (Ej: "Girar Ruleta", "Desbloquear pista (5 monedas)", "¡Resuelto!").
-- [ ] Validar que los slugs de conceptos sigan coincidiendo perfectamente con la base de datos de ejercicios del backend.
+- [ ] **Fase C** Conectar `validateExerciseRefs` (`scripts/check-content.ts`) a las filas de `exercises` de la BD.
+- [ ] **Fase C** Claves de auth, perfil, ruleta y logros.
+- [ ] **Fase D** Claves para `description` por página.
+- [ ] **Fase D** Refactorizar `data/languages.ts` y `data/frameworks.ts`: extraer los campos `Localized` a `locales/*/catalog.ts` con claves derivadas del slug.
 
 ## Tareas Completadas [x]
-- [x] (Vacío al inicio)
+- [x] Fase 0: `src/i18n/config.ts`, `locales/{en,es,fr}/{common,docs,index}.ts`, `README.md`; API pública sin cambios.
+- [x] Tipado estricto: `en` como referencia y `es`/`fr` con `satisfies`.
+- [x] Verificación de la cobertura: 43/43/43 `.md` y slugs coherentes con `data/`.
+- [x] Fase A: namespace `learn` (`locales/*/learn.ts`), `mode.*`, `a11y.skipToContent` y `learn.suggest.*`.
+- [x] **B11** 8 categorías iniciales de ejercicios (slug + en/es/fr) y SQL para `seed.sql` en `docs/architecture/exercise-categories.md`. Los contextos temáticos no llevan catálogo: texto libre por idioma en `exercise_translations.context`.
+- [x] **B9** `scripts/check-content.ts`: `.md` en los 3 idiomas para cada concepto (incluidos `installation-guide` y frameworks), sin huérfanos, coherencia del catálogo y `validateExerciseRefs` (T4). Usa imports normales de `node:fs` (ya hay `@types/node`).
+- [x] **B8** 35 claves `learn.exercise.*`, `learn.hint.*` y `learn.result.*` traducidas a es (tú) y fr (vous), sin TODO. `coinOne`/`coinOther` para el plural de `{coins}` (Intl.PluralRules; en fr el 0 va en singular).

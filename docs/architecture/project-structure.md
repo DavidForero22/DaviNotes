@@ -1,4 +1,7 @@
-# Estructura del proyecto (v2 · pendiente de aprobación del usuario)
+# Estructura del proyecto (v2 · aplicada en `295b895`)
+
+> Estado del proyecto, fases y decisiones: ver [`roadmap.md`](./roadmap.md).
+> Corrección posterior (decisión T2): **no** se usa `output: 'server'`; ver "Nota para la fase SSR" más abajo.
 
 Documento compartido por los 4 agentes (UI, Backend, i18n, SEO/A11y).
 Objetivo: dejar `master` organizado de forma modular para que el merge de la rama de

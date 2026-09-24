@@ -1,0 +1,56 @@
+---
+import { ClientRouter } from "astro:transitions";
+import AlternateLinks from "@/components/shared/AlternateLinks.astro";
+import Footer from "@/components/shared/Footer.astro";
+import LanguagePicker from "@/components/shared/LanguagePicker.astro";
+import ModeSwitch from "@/components/shared/ModeSwitch.astro";
+import "@/styles/global.css";
+import "@/styles/learn.css";
+import type { Lang } from "@/i18n/ui";
+import { localizePath, useTranslations } from "@/i18n/utils";
+
+interface Props {
+	title: string;
+	lang: Lang;
+	description: string;
+	/** Keeps placeholder pages out of search results while links are still followed. */
+	noindex?: boolean;
+}
+
+const { title, lang, description, noindex = false } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<!doctype html>
+<html lang={lang}>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content={description} />
+		<meta name="viewport" content="width=device-width" />
+		{noindex && <meta name="robots" content="noindex" />}
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<AlternateLinks />
+		<title>{title}</title>
+		<ClientRouter />
+	</head>
+	<body class="learn">
+		<a href="#main-content" class="skip-link">{t("a11y.skipToContent")}</a>
+		{/* Same dotted grid as the home page, so both areas read as one site */}
+		<div class="background-grid"></div>
+
+		{/* Unlike the docs, the header is a top-level landmark (banner), not part of <main> */}
+		<header class="learn-header">
+			<a href={localizePath("/learn/", lang)} class="learn-brand">Davi<span>Learn</span></a>
+			<div class="learn-header-end">
+				<ModeSwitch lang={lang} mode="learn" />
+				<LanguagePicker lang={lang} />
+			</div>
+		</header>
+
+		<main id="main-content" tabindex="-1" class="learn-main">
+			<slot />
+		</main>
+
+		<Footer lang={lang} />
+	</body>
+</html>

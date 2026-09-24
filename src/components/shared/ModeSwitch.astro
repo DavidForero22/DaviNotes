@@ -1,0 +1,107 @@
+---
+import type { Lang } from "@/i18n/ui";
+import { localizePath, useTranslations } from "@/i18n/utils";
+
+export type SiteMode = "docs" | "learn";
+
+interface Props {
+	lang: Lang;
+	/** Section of the site the current page belongs to. */
+	mode: SiteMode;
+}
+
+const { lang, mode } = Astro.props;
+const t = useTranslations(lang);
+
+/**
+ * Both links lead to the entry page of each section in the current language.
+ * The active one uses aria-current="true" rather than "page" because, on a guide
+ * such as /java/oop/, it points to the documentation home and not to the page itself.
+ */
+const options = [
+	{ mode: "docs", label: t("mode.docs"), href: localizePath("/", lang) },
+	{ mode: "learn", label: t("mode.learn"), href: localizePath("/learn/", lang) },
+] as const;
+---
+
+<nav class:list={["mode-switch", { learn: mode === "learn" }]} aria-label={t("mode.switcher")}>
+	{
+		/* The thumb shares a view-transition name across pages, so the ClientRouter
+		   slides it from one half to the other when switching section. */
+	}
+	<span class="thumb" aria-hidden="true" transition:name="mode-switch-thumb"></span>
+	{
+		options.map((option) => (
+			<a
+				href={option.href}
+				class={option.mode === mode ? "active" : ""}
+				aria-current={option.mode === mode ? "true" : undefined}
+			>
+				{option.label}
+			</a>
+		))
+	}
+</nav>
+
+<style>
+	/* Same pill as the language picker; both halves share the width of the longest label */
+	.mode-switch {
+		position: relative;
+		display: inline-grid;
+		grid-template-columns: 1fr 1fr;
+		padding: 0.25rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 99px;
+		background: rgba(19, 21, 26, 0.8);
+		white-space: nowrap;
+	}
+
+	.thumb {
+		position: absolute;
+		top: 0.25rem;
+		bottom: 0.25rem;
+		left: 0.25rem;
+		width: calc(50% - 0.25rem);
+		border-radius: 99px;
+		/* Ends at --brand-strong so the active label keeps 4.5:1 across the whole thumb */
+		background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+	}
+
+	.mode-switch.learn .thumb {
+		left: 50%;
+	}
+
+	.mode-switch a {
+		position: relative;
+		/* 0.35rem vertical padding keeps the target above 24px tall (WCAG 2.5.8) */
+		padding: 0.35rem 0.9rem;
+		border-radius: 99px;
+		color: var(--text-muted);
+		font-size: 0.8rem;
+		font-weight: 600;
+		text-align: center;
+		text-decoration: none;
+		transition: color 0.2s ease;
+	}
+
+	.mode-switch a:not(.active):hover {
+		color: white;
+	}
+
+	/* The active section sits on the thumb and turns heavier, so it does not rely on color alone */
+	.mode-switch a.active {
+		color: var(--on-brand);
+		font-weight: 800;
+	}
+
+	.mode-switch a:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.mode-switch a {
+			transition: none;
+		}
+	}
+</style>
