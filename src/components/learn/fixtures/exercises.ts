@@ -1,4 +1,4 @@
-import type { ExerciseDTO, ResultResponse } from "./api-contract";
+import type { ExerciseDTO, ResultResponse } from "@/types/api";
 
 /**
  * Sample data for the exercise screen demo (/learn/demo/exercise). No real content:
@@ -6,6 +6,10 @@ import type { ExerciseDTO, ResultResponse } from "./api-contract";
  *
  * Exercise texts are in English only (`locale: "en"`), the way the API would answer
  * when a translation is missing; the component marks them with `lang="en"`.
+ * Categories use the seed slugs of B11 (docs/architecture/exercise-categories.md) and
+ * `categoryName` comes in the exercise locale, as `GET /api/exercises` returns it.
+ * Optional fields that do not apply are omitted, never `null` (ExerciseDTO v2.1).
+ * `xpToNextLevel` is the XP still missing: level × 100 − xp (`submit_result`).
  */
 
 /** Balance shown next to the exercise. Same fields as a ResultResponse, so the
@@ -41,7 +45,8 @@ export const demoScenarios: DemoScenario[] = [
 			slug: "python-list-slicing",
 			languageSlug: "python",
 			conceptSlug: "data-structures",
-			category: "fundamentals",
+			category: "data-structures",
+			categoryName: "Data Structures",
 			difficulty: 2,
 			type: "multiple_choice",
 			locale: "en",
@@ -77,6 +82,7 @@ export const demoScenarios: DemoScenario[] = [
 			languageSlug: "react",
 			conceptSlug: "hooks",
 			category: "debugging",
+			categoryName: "Debugging & Errors",
 			difficulty: 5,
 			type: "multiple_choice",
 			locale: "en",
@@ -123,7 +129,8 @@ export const demoScenarios: DemoScenario[] = [
 			slug: "java-equals-hashcode",
 			languageSlug: "java",
 			conceptSlug: "oop",
-			category: "fundamentals",
+			category: "design-architecture",
+			categoryName: "Design & Architecture",
 			difficulty: 8,
 			type: "multiple_choice",
 			locale: "en",
@@ -154,7 +161,8 @@ export const demoScenarios: DemoScenario[] = [
 			slug: "php-array-map-output",
 			languageSlug: "php",
 			conceptSlug: "functions-data",
-			category: "fundamentals",
+			category: "functions",
+			categoryName: "Functions & Modularity",
 			difficulty: 7,
 			type: "code_output",
 			locale: "en",

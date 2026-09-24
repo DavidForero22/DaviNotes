@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref } from "vue";
-import type { ExerciseDTO, HintDTO, Locale, ResultResponse } from "./fixtures/api-contract";
+import type { ExerciseDTO, HintDTO, Locale, ResultResponse } from "@/types/api";
 import type { ProfileSnapshot } from "./fixtures/exercises";
 import type { ExerciseAnswer, ExerciseApi, ExerciseTexts } from "./exercise-ui";
 
@@ -179,14 +179,15 @@ async function submit(solved: boolean) {
 			levelBefore,
 			answer,
 		};
-		// One message, not three announcements in a row: "Correct. You earn … Level up! …"
-		announce(`${resultTitle.value}. ${resultLines.value.join(" ")}`);
+		// Focus reads the title ("Correct") from the h2, so the region only adds the rest,
+		// as one message and not several in a row: "You earn … Level up! …"
+		announce(resultLines.value.join(" "));
 		await nextTick();
 		// The action buttons were replaced by the result: move focus to it (guide §3)
 		resultHeading.value?.focus();
 	} catch {
+		// Shown in the role="alert" container, which announces it (guide §5)
 		failed.value = true;
-		announce(props.texts.error);
 	} finally {
 		sending.value = false;
 	}
@@ -204,7 +205,8 @@ async function retry() {
 <template>
 	<article class="exercise" :aria-labelledby="`${uid}-title`">
 		<!-- Balance: level, XP towards the next level and coins -->
-		<section class="progress" :aria-label="texts.progress">
+		<!-- A named group, not a landmark: only the result is a region (B10) -->
+		<div class="progress" role="group" :aria-label="texts.progress">
 			<span class="level" :class="{ 'level-up': leveledUp }">{{ fill(texts.level, { level: balance.level }) }}</span>
 			<span class="xp">
 				<span class="xp-track" aria-hidden="true">
@@ -219,7 +221,7 @@ async function retry() {
 				</svg>
 				{{ coins(balance.coins) }}
 			</span>
-		</section>
+		</div>
 
 		<h1 :id="`${uid}-title`" :lang="contentLang">{{ exercise.title }}</h1>
 
@@ -228,6 +230,7 @@ async function retry() {
 				<span class="lang-dot" :style="{ background: language.color }" aria-hidden="true"></span>
 				{{ language.name }}
 			</li>
+			<li :lang="contentLang">{{ exercise.categoryName }}</li>
 			<li>{{ fill(texts.difficulty, { n: exercise.difficulty }) }}</li>
 			<li>{{ fill(texts.reward, { coins: coins(exercise.reward.coins), xp: exercise.reward.xp }) }}</li>
 			<li v-if="completed" class="state-tag success">
@@ -329,10 +332,6 @@ async function retry() {
 				</button>
 			</div>
 			<p v-if="!hasAnswer" :id="`${uid}-answer-first`" class="why">{{ texts.answerFirst }}</p>
-			<p v-if="failed" class="why error-text">
-				<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7l10 10M17 7L7 17" /></svg>
-				{{ texts.error }}
-			</p>
 		</div>
 
 		<section v-else-if="result" class="result" :class="result.kind === 'correct' ? 'success' : 'error'" :aria-labelledby="`${uid}-result`">
@@ -351,6 +350,15 @@ async function retry() {
 				<button type="button" class="secondary" @click="retry">{{ texts.resultRetry }}</button>
 			</div>
 		</section>
+
+		<!-- Always rendered (empty on the server) so the alert is announced when its text
+		     appears. Errors are the accepted exception to "one live region" (guide §5, B10) -->
+		<div class="submit-error" role="alert">
+			<p v-if="failed && answering" class="why error-text">
+				<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7l10 10M17 7L7 17" /></svg>
+				{{ texts.error }}
+			</p>
+		</div>
 
 		<!-- Rendered empty on the server so screen readers already track it (guide §5) -->
 		<p class="sr-only" aria-live="polite">{{ announcement }}</p>

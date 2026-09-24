@@ -9,7 +9,7 @@ Components of the learning area (DaviLearn):
 - Owner: UI Frontend Designer.
 - `InterfazEjercicio.vue`: exercise screen (phase B). It receives an `api` object (`exercise-ui.ts`), so it is
   rendered inside another Vue island: today `EjercicioDemo.vue` with `fixtures/` (demo at `/learn/demo/exercise/`).
-  `fixtures/api-contract.ts` is a temporary copy of roadmap §5 until `src/types/api.ts` (B2) lands.
+  Types come from `@/types/api` (contract v2.1); `ProfileSnapshot` is derived from `ResultResponse` in `fixtures/exercises.ts`.
 - Planned: `DashboardPerfil.vue`, `RuletaLenguajes.vue`.
 - Data comes from `src/pages/api/` endpoints; request/response shapes live in `src/types/`.
 - **Never import from `src/lib/server/`** — that code must not reach the client bundle.

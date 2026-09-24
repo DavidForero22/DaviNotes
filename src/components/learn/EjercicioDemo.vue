@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import InterfazEjercicio from "./InterfazEjercicio.vue";
-import type { Locale } from "./fixtures/api-contract";
+import type { Locale } from "@/types/api";
 import { createDemoApi } from "./fixtures/demo-api";
 import { demoScenarios } from "./fixtures/exercises";
 import type { ExerciseTexts } from "./exercise-ui";

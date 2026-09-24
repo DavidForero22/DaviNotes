@@ -1,5 +1,5 @@
 import type { UIKey } from "@/i18n/ui";
-import type { HintUnlockResponse, ResultResponse } from "./fixtures/api-contract";
+import type { ResultResponse, UnlockHintResponse } from "@/types/api";
 
 /**
  * Shared types of the exercise screen (`InterfazEjercicio.vue`) and the helper that
@@ -16,7 +16,7 @@ export type ExerciseAnswer = number | string | null;
  */
 export interface ExerciseApi {
 	submitResult(answer: ExerciseAnswer): Promise<ResultResponse>;
-	unlockHint(hintId: string): Promise<HintUnlockResponse>;
+	unlockHint(hintId: string): Promise<UnlockHintResponse>;
 }
 
 /** Prop name → i18n key. Placeholders are filled in the browser. */
