@@ -31,7 +31,7 @@ Recursos: script de Playwright de UI en `%TEMP%/cui/flow.mjs` (43 comprobaciones
 
 ### Desviaciones declaradas en la Fase C (decidir al revisar)
 
-- `requireUser` (Backend) devuelve **302**; UI lo envuelve en `requireSignedIn` (`src/pages/learn/_exercises.ts`) para devolver 303. Proponer que Backend lo cambie a 303.
+- ~~`requireUser` devolvía 302~~: resuelto en C7 (Backend lo cambió a 303 y UI quitó el envoltorio `requireSignedIn`).
 - Las páginas de learn usan el sufijo de título "· DaviLearn" (antes "· DaviNotes").
 - "Sign in" a 320 px pasa a su propia fila sin sesión.
 - El 402 no se puede provocar desde la interfaz con 0 monedas (el botón tiene `aria-disabled`); está probado por la API.
@@ -45,7 +45,10 @@ Recursos: script de Playwright de UI en `%TEMP%/cui/flow.mjs` (43 comprobaciones
 
 | Fecha | PR | Archivos | Notas |
 |-------|----|----------|-------|
-| — | — | — | — |
+| 2026-09-25 | C7 (`fase-c/c7-ui`, sin PR) | `src/pages/learn/profile.astro`, `src/pages/[lang]/learn/profile.astro`, `src/components/learn/ProfilePage.astro` | Perfil privado con `noindex`. Casillas nativas con `accent-color` dentro de un `fieldset` (`aria-labelledby` al h2, `aria-describedby` a la ayuda). Aviso tras guardar con `tabindex=-1` + `autofocus` (como el resumen de errores de C4) y `<title>` "Error: …" si falla. Barra de XP `aria-hidden` con la frase al lado. Sin JS: probado |
+| 2026-09-25 | C7 | `src/components/learn/RuletaLenguajes.vue`, `src/components/learn/LearnHome.astro` | Rodillo `aria-hidden` + live region `polite` ("Ha salido X."); botón con `aria-disabled` durante el giro y `hidden` hasta hidratar; enlaces directos por lenguaje (camino sin JS). `prefers-reduced-motion`: sin animación. Revisar el anuncio y el orden de foco (botón → enlace al ejercicio) |
+| 2026-09-25 | C7 | `src/pages/learn/play.astro`, `src/pages/[lang]/learn/play.astro`, `src/components/learn/PlayPage.astro` | 303 al ejercicio; si no, h1 con el motivo: sin ejercicios (200), lenguaje no activo o desconocido (400), error (500). Decidir si "sin ejercicios" debería ser 404 |
+| 2026-09-25 | C7 | `src/components/learn/AccountMenu.astro` | Enlace "Mi perfil" (con `aria-current` en el perfil) antes de cerrar sesión |
 
 ## Deuda de los docs (Fase D)
 

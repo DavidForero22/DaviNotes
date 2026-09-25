@@ -1,0 +1,22 @@
+---
+import PlayPage from "@/components/learn/PlayPage.astro";
+import { defaultLang } from "@/i18n/ui";
+import { isLang } from "@/i18n/utils";
+import { requireUser } from "@/lib/server/auth";
+import { loadPlayPage } from "../../learn/_exercises";
+
+/**
+ * /es/learn/play, /fr/learn/play — see `pages/learn/play.astro`.
+ */
+export const prerender = false;
+
+const { lang } = Astro.params;
+if (!isLang(lang) || lang === defaultLang) return new Response(null, { status: 404 });
+
+const user = requireUser(Astro);
+if (user instanceof Response) return user;
+const state = await loadPlayPage(Astro.locals.supabase, user, Astro.url.searchParams.get("language"), lang, Astro.response);
+if (state.kind === "redirect") return state.response;
+---
+
+<PlayPage lang={lang} state={state} />

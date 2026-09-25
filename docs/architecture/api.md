@@ -1,7 +1,7 @@
 # API de DaviLearn
 
-Mantenido por: **Backend Architect**. Tipos: [`src/types/api.ts`](../../src/types/api.ts) (contrato v2.2, [roadmap §5](./roadmap.md)).
-Esquema y reglas: `supabase/migrations/20260923120000_initial_schema.sql` y [roadmap §4](./roadmap.md).
+Mantenido por: **Backend Architect**. Tipos: [`src/types/api.ts`](../../src/types/api.ts) (contrato v2.3, [roadmap §5](./roadmap.md)).
+Esquema y reglas: `supabase/migrations/20260923120000_initial_schema.sql` (+ `20260925120000_user_languages.sql`, C7) y [roadmap §4](./roadmap.md).
 
 | Endpoint | Sesión | Respuesta | Fase |
 |----------|--------|-----------|------|
@@ -13,7 +13,9 @@ Esquema y reglas: `supabase/migrations/20260923120000_initial_schema.sql` y [roa
 | `GET /api/exercises/[id]` | no | `200 ExerciseResponse` | C2 |
 | `POST /api/exercises/[id]/result` | **sí** | `200 ResultResponse` | C2 |
 | `POST /api/exercises/[id]/hints` | **sí** | `200 UnlockHintResponse` | C2 |
-| `GET /api/profile` | **sí** | `200 ProfileDTO` | C2 |
+| `GET /api/profile` | **sí** | `200 ProfileDTO` | C2, C7 |
+| `POST /api/profile/languages` | **sí** | 303 · JSON `200 UpdateLanguagesResponse` | C7 |
+| `GET /api/exercises/random` | **sí** | `200 RandomExerciseResponse` | C7 |
 
 ## Convenciones
 
@@ -37,7 +39,7 @@ Esquema y reglas: `supabase/migrations/20260923120000_initial_schema.sql` y [roa
 
 | Helper | Uso |
 |--------|-----|
-| `requireUser(Astro)` | Página privada: devuelve el `SessionUser` o una **302** a `/learn/login?next=<ruta actual>` (o `/{lang}/learn/login`, según el prefijo de la URL). `if (user instanceof Response) return user;` |
+| `requireUser(Astro)` | Página privada: devuelve el `SessionUser` o una **303** a `/learn/login?next=<ruta actual>` (o `/{lang}/learn/login`, según el prefijo de la URL). `if (user instanceof Response) return user;` |
 | `redirectIfSignedIn(Astro)` | Login y registro: con sesión devuelve una **303** a `?next=` (si es seguro) o a `/{lang}/learn`; sin sesión, `null`. |
 | `consumeAuthFlash(Astro.cookies, page)` | `page` = `"login"` o `"register"`. Errores y valores del último envío fallido de ese formulario (`AuthFlash`) o `null`. Borra la cookie: al recargar, el formulario sale limpio. |
 | `requireApiUser(context)` | Endpoint: `SessionUser` o **401** `unauthorized`. |
@@ -69,7 +71,9 @@ Toda respuesta JSON que no sea 2xx tiene esta forma (`ApiError`):
 | 401 | `unauthorized` | Hace falta sesión |
 | 402 | `insufficient_coins` | No hay monedas para desbloquear una pista |
 | 403 | `forbidden_origin` | `POST` desde otro origen (T15) |
+| 400 | `language_not_active` | `GET /api/exercises/random`: el lenguaje no es uno de los activos del usuario |
 | 404 | `not_found` | El ejercicio o la pista no existen |
+| 404 | `no_exercises` | `GET /api/exercises/random`: ese lenguaje no tiene ejercicios todavía |
 | 500 | `internal_error` | Error de la base de datos o de Auth; el detalle solo va al log del servidor |
 
 Más los códigos de auth (tabla de [Auth](#auth)). `message` está en inglés y es para depurar: la UI muestra sus propios
@@ -307,7 +311,8 @@ Perfil del usuario con sesión (`401 unauthorized` sin ella). **200** `ProfileDT
 {
   "id": "f8eb…", "email": "ana@example.com", "displayName": "Ana",
   "coins": 3, "level": 2, "xp": 40, "xpToNextLevel": 160,
-  "stats": { "exercisesCompleted": 4, "attempts": 7 }
+  "stats": { "exercisesCompleted": 4, "attempts": 7 },
+  "activeLanguages": ["java", "python"]
 }
 ```
 
@@ -315,9 +320,69 @@ Perfil del usuario con sesión (`401 unauthorized` sin ella). **200** `ProfileDT
 - `stats.exercisesCompleted`: ejercicios distintos completados (primer acierto de cada uno). `stats.attempts`: todos los
   intentos enviados, aciertos, fallos y repeticiones.
 - `displayName` se omite si el usuario no eligió nombre.
-- Logros y lenguajes activos llegan en C7+ (se añadirán como campos nuevos, sin romper el contrato).
+- `activeLanguages` (C7): lenguajes que el usuario marcó como activos, en el orden de `SELECTABLE_LANGUAGES`
+  (`@/lib/learn-rules`); `[]` si no eligió ninguno. Los logros llegarán más adelante (D8), como campo nuevo.
 - En páginas SSR no hace falta llamar a la API: `getProfile(Astro.locals.supabase, user)` de `@/lib/server/progress`
   devuelve el mismo DTO.
+
+---
+
+## `POST /api/profile/languages` (C7)
+
+Reemplaza el conjunto de lenguajes activos del usuario (D8). Solo se pueden elegir los de `SELECTABLE_LANGUAGES`
+(`astro`, `html`, `java`, `php`, `python`, `react`; `@/lib/learn-rules`, isomórfico). Una lista vacía los quita todos.
+Los duplicados se ignoran. Se guarda en una transacción (RPC `set_user_languages`): si falla, no cambia nada.
+
+- **Formulario HTML** (funciona sin JS): un campo `languages` por casilla marcada, más `lang` y `next` opcionales.
+  Responde **303** a `next` (si es seguro) o a `/{lang}/learn/profile`, y deja el resultado en la cookie flash
+  `dl_profile_flash` (`HttpOnly`, 2 minutos, un solo uso). La página lo lee con
+  `consumeProfileFlash(Astro.cookies)` de `@/lib/server/profile-flash` → `ProfileFlash | null`:
+  `{ ok: true }`, `{ ok: false, code: "invalid_input" }` (slug no válido) o `{ ok: false, code: "internal_error" }`.
+  Sin sesión: **303** a `/{lang}/learn/login?next=<next o perfil>`.
+
+```html
+<form method="post" action="/api/profile/languages">
+  <input type="hidden" name="lang" value="es">
+  <label><input type="checkbox" name="languages" value="java" checked> Java</label>
+  <label><input type="checkbox" name="languages" value="python"> Python</label>
+  <button>Guardar</button>
+</form>
+```
+
+- **JSON** (`Content-Type: application/json`): `UpdateLanguagesRequest` `{ "languages": ["java", "python"] }` →
+  **200** `UpdateLanguagesResponse` `{ "activeLanguages": ["java", "python"] }` (orden de `SELECTABLE_LANGUAGES`).
+
+| HTTP | `code` | Cuándo |
+|------|--------|--------|
+| 400 | `invalid_input` | `languages` falta, no es una lista o contiene un slug no válido (`field: "languages"`) |
+| 401 | `unauthorized` | Sin sesión (JSON) |
+| 500 | `internal_error` | Error de la base de datos |
+
+---
+
+## `GET /api/exercises/random` (C7)
+
+Ejercicio aleatorio para la ruleta de `/learn`. Requiere sesión.
+
+| Parámetro | Valores | Por defecto |
+|-----------|---------|-------------|
+| `language` | Uno de los lenguajes activos del usuario | — |
+| `locale` | `en`, `es`, `fr` | `en` |
+
+- **200** `RandomExerciseResponse` `{ "id": "de00…" }`. Se abre con `/{lang}/learn/exercise/[id]`.
+- Solo cuenta ejercicios con texto en `locale` o en inglés (el *fallback* de `GET /api/exercises/[id]`).
+- Prefiere los que el usuario no ha completado; cuando los ha completado todos, elige entre todos.
+
+| HTTP | `code` | Cuándo |
+|------|--------|--------|
+| 400 | `language_not_active` | `language` falta, no es seleccionable o no está entre los activos (`field: "language"`) |
+| 400 | `invalid_query` | `locale` no válido |
+| 401 | `unauthorized` | Sin sesión |
+| 404 | `no_exercises` | Ese lenguaje no tiene ejercicios todavía |
+
+En páginas SSR (`/learn/play`) no hace falta la API: `pickExercise(Astro.locals.supabase, user, language, locale)` de
+`@/lib/server/progress` devuelve el id o `null`, y lanza `LanguageNotActiveError` si el lenguaje no está activo.
+`getActiveLanguages(supabase, user)` devuelve solo los lenguajes activos (para la ruleta).
 
 ---
 
@@ -330,6 +395,8 @@ con ese `status` y los endpoints responden con los códigos de arriba.
 |-----|---------|----------|
 | `submit_result(p_exercise_id uuid, p_correct boolean)` | `PT401` sin sesión, `PT400` argumentos nulos, `PT404` ejercicio inexistente | `POST /api/exercises/[id]/result` |
 | `unlock_hint(p_hint_id uuid)` | `PT401`, `PT400`, `PT404` pista inexistente, `PT402` sin saldo | `POST /api/exercises/[id]/hints` |
+| `set_user_languages(p_languages text[])` (`security invoker`, RLS) | `PT401`, `23514` slug no válido (no cambia nada) | `POST /api/profile/languages` |
 
-Las consultas de lectura van con la sesión del usuario (RLS): `pgTAP` en `supabase/tests/api.test.sql`.
+Las consultas de lectura van con la sesión del usuario (RLS): `pgTAP` en `supabase/tests/api.test.sql` y
+`supabase/tests/user_languages.test.sql` (C7).
 Datos de prueba solo locales: `supabase/exercises/_dev_sample.sql` (ver su README).

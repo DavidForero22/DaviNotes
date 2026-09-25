@@ -1,0 +1,175 @@
+---
+import LearnLayout from "@/layouts/learn/LearnLayout.astro";
+import { languages } from "@/data/languages";
+import type { Lang } from "@/i18n/ui";
+import { localizePath, useTranslations } from "@/i18n/utils";
+import type { SelectableLanguage } from "@/lib/learn-rules";
+import { getAllLanguageItems } from "@/utils/utils";
+
+type State =
+	| { kind: "noExercises"; language: SelectableLanguage }
+	| { kind: "notActive"; language: SelectableLanguage }
+	| { kind: "invalid" }
+	| { kind: "error" };
+
+interface Props {
+	lang: Lang;
+	/** Why the roulette result has no exercise (`loadPlayPage`, which also set the HTTP status). */
+	state: State;
+}
+
+/**
+ * `/learn/play` when it cannot redirect to an exercise (C7): one <h1> that names the problem,
+ * a sentence with the way out and the links to take it (the roulette, the profile).
+ */
+const { lang, state } = Astro.props;
+const t = useTranslations(lang);
+const learnHref = localizePath("/learn", lang);
+const profileHref = localizePath("/learn/profile", lang);
+
+const item =
+	"language" in state ? getAllLanguageItems(languages).find((entry) => entry.slug === state.language) : undefined;
+const name = item?.title ?? ("language" in state ? state.language : "");
+
+const copy = {
+	noExercises: { title: t("learn.play.noExercisesTitle", { lang: name }), text: t("learn.play.noExercisesText", { lang: name }) },
+	notActive: { title: t("learn.play.notActiveTitle", { lang: name }), text: t("learn.play.notActiveText") },
+	invalid: { title: t("learn.play.invalidTitle"), text: t("learn.play.invalidText") },
+	error: { title: t("learn.play.errorTitle"), text: t("learn.exercise.loadErrorText") },
+}[state.kind];
+
+/** The profile is the way out when the problem is the user's selection. */
+const profileFirst = state.kind === "notActive";
+---
+
+<LearnLayout title={`${copy.title} · DaviLearn`} lang={lang} description={t("learn.play.description")} noindex>
+	<div class="play-missing" style={item ? `--lang-color: ${item.color}` : undefined}>
+		{
+			item && (
+				<span class="play-mark" aria-hidden="true">
+					<img src={item.icon} alt="" width="40" height="40" />
+				</span>
+			)
+		}
+		<h1>{copy.title}</h1>
+		<p>{copy.text}</p>
+		<div class="play-actions">
+			{
+				state.kind === "error" && (
+					<a href={Astro.url.pathname + Astro.url.search} class="play-primary">
+						{t("learn.exercise.reload")}
+					</a>
+				)
+			}
+			<a href={profileFirst ? profileHref : learnHref} class:list={[state.kind === "error" ? "play-secondary" : "play-primary"]}>
+				{t(profileFirst ? "learn.play.toProfile" : "learn.play.backToRoulette")}
+			</a>
+			{
+				(state.kind === "noExercises" || state.kind === "notActive") && (
+					<a href={profileFirst ? learnHref : profileHref} class="play-secondary">
+						{t(profileFirst ? "learn.play.backToRoulette" : "learn.play.toProfile")}
+					</a>
+				)
+			}
+		</div>
+	</div>
+</LearnLayout>
+
+<style>
+	.play-missing {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	/* The language's own logo on a sunken tile, underlined with its brand color */
+	.play-mark {
+		position: relative;
+		display: grid;
+		place-items: center;
+		width: 4.5rem;
+		height: 4.5rem;
+		margin-bottom: 1.5rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 18px;
+		background: var(--surface-sunken);
+	}
+
+	.play-mark::after {
+		content: "";
+		position: absolute;
+		right: 1rem;
+		bottom: 0.55rem;
+		left: 1rem;
+		height: 3px;
+		border-radius: 3px;
+		background: var(--lang-color);
+	}
+
+	.play-mark img {
+		width: 2.5rem;
+		height: 2.5rem;
+		object-fit: contain;
+	}
+
+	.play-missing h1 {
+		max-width: 20ch;
+	}
+
+	.play-missing p {
+		max-width: 46ch;
+		margin: 0 auto 2rem;
+		color: var(--text-muted);
+		font-size: 1.1rem;
+		line-height: 1.6;
+	}
+
+	.play-actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.75rem;
+	}
+
+	.play-primary,
+	.play-secondary {
+		box-sizing: border-box;
+		display: inline-flex;
+		align-items: center;
+		min-height: 3rem;
+		padding: 0.6rem 1.6rem;
+		border-radius: 99px;
+		font-weight: 700;
+		text-decoration: none;
+		transition:
+			background 0.15s ease,
+			border-color 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.play-primary {
+		background: var(--brand);
+		color: var(--on-brand);
+	}
+
+	.play-primary:hover {
+		background: var(--brand-hover);
+	}
+
+	.play-secondary {
+		border: 1px solid var(--text-subtle);
+		color: var(--text-secondary);
+	}
+
+	.play-secondary:hover {
+		border-color: var(--text-muted);
+		color: var(--text-color);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.play-primary,
+		.play-secondary {
+			transition: none;
+		}
+	}
+</style>

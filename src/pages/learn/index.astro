@@ -1,26 +1,16 @@
 ---
 import LearnHome from "@/components/learn/LearnHome.astro";
 import { defaultLang } from "@/i18n/ui";
-import type { ExerciseDTO } from "@/types/api";
-import { loadExerciseList } from "./_exercises";
+import { loadLearnHome } from "./_exercises";
 
 /**
  * /learn — the learning area in the default language, served without a prefix like the
- * documentation. Server-rendered (T14) so the header and the list follow the session.
- * Other languages: `pages/[lang]/learn/index.astro`.
+ * documentation. Server-rendered (T14) so the header, the roulette and the list follow the
+ * session. Other languages: `pages/[lang]/learn/index.astro`.
  */
 export const prerender = false;
 
-let exercises: ExerciseDTO[] | null = null;
-let loadError = false;
-if (Astro.locals.user) {
-	try {
-		exercises = await loadExerciseList(Astro.locals.supabase, defaultLang);
-	} catch (error) {
-		console.error("[learn] could not list the exercises", error);
-		loadError = true;
-	}
-}
+const data = await loadLearnHome(Astro.locals.supabase, Astro.locals.user, defaultLang);
 ---
 
-<LearnHome lang={defaultLang} exercises={exercises} loadError={loadError} />
+<LearnHome lang={defaultLang} {...data} />

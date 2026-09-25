@@ -44,4 +44,5 @@ export default {
 	"account.signIn": "Sign in",
 	"account.signOut": "Sign out",
 	"account.signedOut": "You have signed out.",
+	"account.profile": "Mi perfil", // TODO(i18n)
 } as const;

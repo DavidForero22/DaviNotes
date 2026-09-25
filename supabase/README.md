@@ -9,11 +9,12 @@ Development runs against a **local** Supabase stack (Docker); there is no remote
   with `npx supabase migration new <name>`. Never edit a migration that was already merged.
 - `seed.sql`: exercise categories only (local; never run in production). **No exercises** (D4).
 - `tests/`: pgTAP tests of the progression rules and of RLS (`progression.test.sql`) and of the queries
-  the API relies on (`api.test.sql`). Run them with `npx supabase test db`.
+  the API relies on (`api.test.sql`), and of the active languages (`user_languages.test.sql`, C7).
+  Run them with `npx supabase test db`.
 - `exercises/`: template and instructions for the user's exercise insertion scripts, and
   `_dev_sample.sql` (fictitious exercises for local development only).
 
-Schema summary (`migrations/20260923120000_initial_schema.sql`):
+Schema summary (`migrations/20260923120000_initial_schema.sql` + `20260925120000_user_languages.sql`):
 
 | Table | Client access (RLS) |
 |-------|---------------------|
@@ -22,9 +23,10 @@ Schema summary (`migrations/20260923120000_initial_schema.sql`):
 | `hint_translations` | read only the hints the user unlocked |
 | `exercise_answers` | none (the answer never leaves the database) |
 | `attempts`, `hint_unlocks`, `user_achievements` | read own; written only by the RPC |
+| `user_languages` (C7: active languages, CHECK on the 6 selectable slugs) | read, insert and delete own; no update |
 
 RPC (`security definer`, only for `authenticated`): `submit_result(p_exercise_id, p_correct)` and
-`unlock_hint(p_hint_id)`. Rules in `docs/architecture/roadmap.md` §4; errors in `docs/architecture/api.md`.
+`unlock_hint(p_hint_id)`. `set_user_languages(p_languages)` is `security invoker` (RLS applies). Rules in `docs/architecture/roadmap.md` §4; errors in `docs/architecture/api.md`.
 
 Local workflow:
 

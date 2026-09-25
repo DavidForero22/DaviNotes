@@ -1,10 +1,13 @@
 /**
- * DTOs of the DaviLearn HTTP API (contract v2.2, docs/architecture/roadmap.md §5).
+ * DTOs of the DaviLearn HTTP API (contract v2.3, docs/architecture/roadmap.md §5).
+ * v2.3 (C7, T16): `ProfileDTO.activeLanguages`, `UpdateLanguagesRequest/Response`,
+ * `ProfileFlash`, `RandomExerciseResponse`, codes `no_exercises` and `language_not_active`.
  * v2.2 (Fase C): auth (`SessionUser`, `AuthRequest`, `AuthResponse`, `SessionResponse`,
  * `AuthErrorCode`), `ProfileDTO`, `ExerciseResponse` and the new `ApiErrorCode` values.
  * Shared by the Vue islands and `pages/api/**`. Type-only: never import `@/lib/server` here.
  * Endpoint details: docs/architecture/api.md.
  */
+import type { SelectableLanguage } from '@/lib/learn-rules';
 import type { Database } from './database';
 
 type PublicEnums = Database['public']['Enums'];
@@ -194,7 +197,7 @@ export interface AuthFlash {
 
 // ---------------------------------------------------------------------------- profile
 
-/** `GET /api/profile` → 200 (requires a session). Achievements and active languages: C7+. */
+/** `GET /api/profile` → 200 (requires a session). Achievements: later (D8). */
 export interface ProfileDTO {
 	id: string;
 	email: string;
@@ -211,6 +214,33 @@ export interface ProfileDTO {
 		/** Every submitted attempt, correct or not, repeats included. */
 		attempts: number;
 	};
+	/** Languages the user marked as active (C7), in the order of `SELECTABLE_LANGUAGES`. */
+	activeLanguages: SelectableLanguage[];
+}
+
+/**
+ * `POST /api/profile/languages` as JSON: replaces the whole set (an empty array clears it).
+ * As an HTML form: one `languages` field per checked box, plus `lang` and `next`.
+ */
+export interface UpdateLanguagesRequest {
+	languages: SelectableLanguage[];
+}
+
+/** `POST /api/profile/languages` (JSON) → 200. */
+export interface UpdateLanguagesResponse {
+	activeLanguages: SelectableLanguage[];
+}
+
+/**
+ * What the profile page receives after a form POST to `/api/profile/languages` (303 + flash
+ * cookie, read once with `consumeProfileFlash` in `@/lib/server/profile-flash`).
+ */
+export type ProfileFlash = { ok: true } | { ok: false; code: 'invalid_input' | 'internal_error' };
+
+/** `GET /api/exercises/random?language=&locale=` → 200 (requires a session). */
+export interface RandomExerciseResponse {
+	/** uuid of the exercise; open it with `/learn/exercise/[id]`. */
+	id: string;
 }
 
 // ---------------------------------------------------------------------------- errors
@@ -222,6 +252,8 @@ export type ApiErrorCode =
 	| 'forbidden_origin'
 	| 'insufficient_coins'
 	| 'not_found'
+	| 'no_exercises'
+	| 'language_not_active'
 	| 'internal_error'
 	| AuthErrorCode;
 

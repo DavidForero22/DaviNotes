@@ -1,0 +1,669 @@
+---
+import LearnLayout from "@/layouts/learn/LearnLayout.astro";
+import { languages } from "@/data/languages";
+import type { Lang, UIKey } from "@/i18n/ui";
+import { localizePath, useTranslations } from "@/i18n/utils";
+import { SELECTABLE_LANGUAGES } from "@/lib/learn-rules";
+import type { ProfileDTO, ProfileFlash } from "@/types/api";
+import { getAllLanguageItems } from "@/utils/utils";
+
+interface Props {
+	lang: Lang;
+	/** Profile of the signed-in user (`loadProfilePage`); null if it could not be read (HTTP 500). */
+	profile: ProfileDTO | null;
+	/** Result of the last POST of the languages form (`consumeProfileFlash`), or null. */
+	flash: ProfileFlash | null;
+}
+
+/**
+ * Profile of DaviLearn (C7, D8): level, XP, coins and stats; the active languages form (plain
+ * `<form method="post">` with one checkbox per language, works without JavaScript) and the
+ * achievements section, empty for now. One <h1>; every section has its <h2>.
+ */
+const { lang, profile, flash } = Astro.props;
+const t = useTranslations(lang);
+const number = new Intl.NumberFormat(lang);
+const plural = new Intl.PluralRules(lang);
+const learnHref = localizePath("/learn", lang);
+
+/** Template with a `{count}` split around the number, so the number can be emphasised. */
+function counted(one: UIKey, other: UIKey, count: number) {
+	const template = t(plural.select(count) === "one" ? one : other);
+	const [before = "", after = ""] = template.split("{count}");
+	return { before, value: number.format(count), after };
+}
+
+const catalog = new Map(getAllLanguageItems(languages).map((item) => [item.slug, item]));
+const options = SELECTABLE_LANGUAGES.map((slug) => {
+	const item = catalog.get(slug);
+	return { slug, name: item?.title ?? slug, icon: item?.icon, checked: profile?.activeLanguages.includes(slug) ?? false };
+});
+
+const total = profile ? profile.xp + profile.xpToNextLevel : 0;
+const progress = profile && {
+	level: t("account.level", { level: number.format(profile.level) }),
+	xp: t("account.xp", {
+		xp: number.format(profile.xp),
+		total: number.format(total),
+		next: number.format(profile.level + 1),
+	}),
+	percent: total > 0 ? Math.min(1, profile.xp / total) : 0,
+	stats: [
+		{ kind: "coins", ...counted("learn.exercise.coinOne", "learn.exercise.coinOther", profile.coins) },
+		{ kind: "completed", ...counted("learn.profile.completedOne", "learn.profile.completedOther", profile.stats.exercisesCompleted) },
+		{ kind: "attempts", ...counted("learn.profile.attemptsOne", "learn.profile.attemptsOther", profile.stats.attempts) },
+	],
+};
+
+const name = profile?.displayName?.trim();
+const initial = name ? Array.from(name)[0]!.toLocaleUpperCase(lang) : "";
+
+const flashError =
+	flash && !flash.ok ? t(flash.code === "invalid_input" ? "learn.profile.errorInvalid" : "learn.profile.errorInternal") : null;
+const hasActive = (profile?.activeLanguages.length ?? 0) > 0;
+
+const heading = profile ? t("learn.profile.title") : t("learn.profile.loadErrorTitle");
+/** Like the auth forms: the <title> starts with "Error:" while an error is shown. */
+const title = flashError || !profile ? t("auth.errorTitle", { title: heading }) : heading;
+const snapshot = profile && {
+	coins: profile.coins,
+	xp: profile.xp,
+	level: profile.level,
+	xpToNextLevel: profile.xpToNextLevel,
+};
+---
+
+<LearnLayout title={`${title} · DaviLearn`} lang={lang} description={t("learn.profile.description")} noindex profile={snapshot}>
+	{
+		profile && progress ? (
+			<div class="profile">
+				<header class="profile-head">
+					<span class="profile-avatar" aria-hidden="true">
+						{initial || (
+							<svg viewBox="0 0 24 24" focusable="false">
+								<circle cx="12" cy="8.5" r="3.5" />
+								<path d="M5 19.5c1.2-3.4 3.8-5 7-5s5.8 1.6 7 5" />
+							</svg>
+						)}
+					</span>
+					<div>
+						<h1>{heading}</h1>
+						<p class="profile-intro">
+							{name && <strong class="profile-name">{name}</strong>}
+							{t("learn.profile.intro")}
+						</p>
+					</div>
+				</header>
+
+				<section class="profile-section" aria-labelledby="progress-heading">
+					<h2 id="progress-heading">{t("learn.profile.progressHeading")}</h2>
+					<div class="progress">
+						<div class="progress-level">
+							<span class="level-badge">{progress.level}</span>
+							<span class="progress-xp">{progress.xp}</span>
+						</div>
+						{/* Decorative: the sentence next to it says the same (guide account-a11y §2.2) */}
+						<span class="xp-track" aria-hidden="true">
+							<span class="xp-fill" style={`transform: scaleX(${progress.percent})`} />
+						</span>
+						<ul class="stats">
+							{progress.stats.map((stat) => (
+								<li class={`stat stat--${stat.kind}`}>
+									<svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+										{stat.kind === "coins" && (
+											<>
+												<circle cx="12" cy="12" r="9" />
+												<path d="M12 7.5v9M9.5 9.5h3.75a1.75 1.75 0 0 1 0 3.5h-2.5a1.75 1.75 0 0 0 0 3.5h3.75" />
+											</>
+										)}
+										{stat.kind === "completed" && (
+											<>
+												<circle cx="12" cy="12" r="9" />
+												<path d="M8 12.5l2.75 2.75L16.5 9.5" />
+											</>
+										)}
+										{stat.kind === "attempts" && <path d="M4 12a8 8 0 0 1 13.66-5.66L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.66 5.66L4 15.5M4 20v-4.5h4.5" />}
+									</svg>
+									<span class="stat-text">
+										{stat.before}
+										<span class="stat-value">{stat.value}</span>
+										{stat.after}
+									</span>
+								</li>
+							))}
+						</ul>
+					</div>
+				</section>
+
+				<section class="profile-section" aria-labelledby="languages-heading">
+					<h2 id="languages-heading">{t("learn.profile.languagesHeading")}</h2>
+					{flash?.ok && (
+						<div class="notice notice--success" tabindex="-1" autofocus data-profile-notice>
+							<svg class="notice-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+								<path d="M5 12.5l4.5 4.5L19 7.5" />
+							</svg>
+							<p>
+								{t(hasActive ? "learn.profile.saved" : "learn.profile.savedNone")}
+								{hasActive && (
+									<>
+										{" "}
+										<a href={learnHref}>{t("learn.profile.goToRoulette")}</a>
+									</>
+								)}
+							</p>
+						</div>
+					)}
+					{flashError && (
+						<div class="notice notice--error" tabindex="-1" autofocus data-profile-notice>
+							<svg class="notice-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+								<circle cx="12" cy="12" r="9" />
+								<path d="M12 7.5v5.5M12 16.5v.01" />
+							</svg>
+							<p>
+								<span class="sr-only">{t("auth.errorPrefix")} </span>
+								{flashError}
+							</p>
+						</div>
+					)}
+					{/* Plain POST: works without JavaScript, the API answers 303 back here (T13) */}
+					<form method="post" action="/api/profile/languages" novalidate data-astro-reload class="languages-form">
+						<input type="hidden" name="lang" value={lang} />
+						<fieldset aria-labelledby="languages-heading" aria-describedby="languages-hint">
+							<p id="languages-hint" class="languages-hint">
+								{t("learn.profile.languagesHint")}
+							</p>
+							<div class="languages-grid">
+								{options.map((option) => (
+									<label class="lang-option">
+										<input type="checkbox" name="languages" value={option.slug} checked={option.checked} />
+										{option.icon && <img src={option.icon} alt="" width="28" height="28" loading="lazy" />}
+										<span class="lang-option-name">{option.name}</span>
+									</label>
+								))}
+							</div>
+						</fieldset>
+						<button type="submit" class="profile-submit">
+							{t("learn.profile.languagesSubmit")}
+						</button>
+					</form>
+				</section>
+
+				<section class="profile-section" aria-labelledby="achievements-heading">
+					<h2 id="achievements-heading">{t("learn.profile.achievementsHeading")}</h2>
+					<div class="achievements-empty">
+						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+							<path d="M8 4h8v5a4 4 0 0 1-8 0V4zM8 6H5v1.5A3.5 3.5 0 0 0 8.5 11M16 6h3v1.5a3.5 3.5 0 0 1-3.5 3.5M12 13v4M8.5 20h7M10 17h4" />
+						</svg>
+						<p>{t("learn.profile.achievementsEmpty")}</p>
+					</div>
+				</section>
+			</div>
+		) : (
+			<div class="profile-missing">
+				<h1>{heading}</h1>
+				<p>{t("learn.profile.loadErrorText")}</p>
+				<div class="missing-actions">
+					<a href={Astro.url.pathname} class="missing-primary">
+						{t("learn.exercise.reload")}
+					</a>
+					<a href={learnHref} class="missing-secondary">
+						{t("learn.exercise.backToLearn")}
+					</a>
+				</div>
+			</div>
+		)
+	}
+</LearnLayout>
+
+<script>
+	/** The notice of the last save gets the focus, also after a client-side navigation (like AuthForm). */
+	document.addEventListener("astro:page-load", () => {
+		const notice = document.querySelector<HTMLElement>("[data-profile-notice]");
+		if (notice && document.activeElement !== notice) notice.focus();
+	});
+</script>
+
+<style>
+	.profile {
+		max-width: 44rem;
+		margin: 0 auto;
+		text-align: start;
+	}
+
+	/* ---------- Header ---------- */
+	.profile-head {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+		margin-bottom: 3rem;
+	}
+
+	.profile-avatar {
+		display: grid;
+		place-items: center;
+		width: 4.25rem;
+		height: 4.25rem;
+		flex: none;
+		border-radius: 50%;
+		background: var(--brand);
+		color: var(--on-brand);
+		font-size: 1.9rem;
+		font-weight: 800;
+	}
+
+	.profile-avatar svg {
+		width: 2.2rem;
+		height: 2.2rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+	}
+
+	.profile-head h1 {
+		margin-bottom: 0.35rem;
+	}
+
+	.profile-intro {
+		margin: 0;
+		color: var(--text-muted);
+		line-height: 1.5;
+	}
+
+	.profile-name {
+		display: block;
+		color: var(--text-secondary);
+		font-size: 1.1rem;
+	}
+
+	/* ---------- Sections ---------- */
+	.profile-section + .profile-section {
+		margin-top: 3.5rem;
+	}
+
+	.profile-section h2 {
+		margin: 0 0 1rem;
+		color: var(--text-secondary);
+		font-size: 1.15rem;
+	}
+
+	/* ---------- Progress ---------- */
+	.progress {
+		padding: 1.5rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 18px;
+		background: var(--card-bg);
+	}
+
+	.progress-level {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.5rem 1rem;
+		margin-bottom: 0.85rem;
+	}
+
+	.level-badge {
+		padding: 0.2rem 0.9rem;
+		border-radius: 99px;
+		background: var(--brand);
+		color: var(--on-brand);
+		font-size: 1.05rem;
+		font-weight: 800;
+	}
+
+	.progress-xp {
+		color: var(--text-muted);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.xp-track {
+		display: block;
+		height: 8px;
+		overflow: hidden;
+		border-radius: 8px;
+		background: var(--grid-dot);
+	}
+
+	.xp-fill {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background: var(--brand);
+		transform-origin: left center;
+	}
+
+	.stats {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		margin: 1.5rem 0 0;
+		padding: 1.25rem 0 0;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+		list-style: none;
+	}
+
+	.stat {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.6rem;
+		padding-inline: 1rem;
+		color: var(--text-muted);
+		line-height: 1.35;
+	}
+
+	.stat:first-child {
+		padding-inline-start: 0;
+	}
+
+	.stat + .stat {
+		border-inline-start: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.stat-icon {
+		width: 1.3rem;
+		height: 1.3rem;
+		flex: none;
+		margin-top: 0.3rem;
+		fill: none;
+		stroke: var(--text-muted);
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.stat--coins .stat-icon {
+		stroke: var(--warning);
+	}
+
+	.stat--completed .stat-icon {
+		stroke: var(--success);
+	}
+
+	/* The number on its own line, the words under it */
+	.stat-value {
+		display: block;
+		color: var(--text-color);
+		font-size: 1.6rem;
+		font-weight: 800;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: -0.01em;
+	}
+
+	/* ---------- Notices after saving ---------- */
+	.notice {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.6rem;
+		margin: 0 0 1.25rem;
+		padding: 0.85rem 1rem;
+		border: 1px solid;
+		border-radius: 12px;
+	}
+
+	.notice:focus {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+
+	.notice p {
+		margin: 0;
+		color: var(--text-secondary);
+		line-height: 1.5;
+	}
+
+	.notice a {
+		color: var(--text-color);
+		font-weight: 700;
+		text-underline-offset: 3px;
+	}
+
+	.notice--success {
+		border-color: var(--success);
+		background: var(--success-bg);
+	}
+
+	.notice--error {
+		border-color: var(--error);
+		background: var(--error-bg);
+	}
+
+	.notice-icon {
+		width: 1.25rem;
+		height: 1.25rem;
+		flex: none;
+		margin-top: 0.1rem;
+		fill: none;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.notice--success .notice-icon {
+		stroke: var(--success);
+	}
+
+	.notice--error .notice-icon {
+		stroke: var(--error);
+	}
+
+	/* ---------- Languages form ---------- */
+	.languages-form fieldset {
+		margin: 0;
+		padding: 0;
+		border: 0;
+	}
+
+	.languages-hint {
+		max-width: 60ch;
+		margin: 0 0 1rem;
+		color: var(--text-muted);
+		line-height: 1.55;
+	}
+
+	.languages-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.65rem;
+	}
+
+	.lang-option {
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		gap: 0.7rem;
+		min-height: 3.5rem;
+		padding: 0.6rem 0.9rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 14px;
+		background: var(--surface-sunken);
+		color: var(--text-secondary);
+		font-weight: 700;
+		cursor: pointer;
+		transition:
+			border-color 0.15s ease,
+			background 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.lang-option:hover {
+		border-color: var(--text-subtle);
+		color: var(--text-color);
+	}
+
+	/* Checked: brand border and a faint brand wash; the native tick says it too */
+	.lang-option:has(input:checked) {
+		border-color: var(--brand);
+		background: rgba(167, 139, 250, 0.1);
+		color: var(--text-color);
+	}
+
+	.lang-option input {
+		width: 1.15rem;
+		height: 1.15rem;
+		flex: none;
+		margin: 0;
+		accent-color: var(--brand);
+		cursor: pointer;
+	}
+
+	.lang-option img {
+		width: 1.75rem;
+		height: 1.75rem;
+		flex: none;
+		object-fit: contain;
+	}
+
+	.profile-submit {
+		min-height: 3rem;
+		margin-top: 1.25rem;
+		padding: 0.6rem 1.75rem;
+		border: none;
+		border-radius: 99px;
+		background: var(--brand);
+		color: var(--on-brand);
+		font: inherit;
+		font-weight: 700;
+		cursor: pointer;
+		transition: background 0.15s ease;
+	}
+
+	.profile-submit:hover {
+		background: var(--brand-hover);
+	}
+
+	/* ---------- Achievements (empty until they are designed, D8) ---------- */
+	.achievements-empty {
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
+		padding: 1.5rem;
+		border: 1px dashed var(--text-subtle);
+		border-radius: 14px;
+		color: var(--text-muted);
+	}
+
+	.achievements-empty svg {
+		width: 1.75rem;
+		height: 1.75rem;
+		flex: none;
+		fill: none;
+		stroke: var(--text-muted);
+		stroke-width: 1.75;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.achievements-empty p {
+		margin: 0;
+		line-height: 1.5;
+	}
+
+	/* ---------- Load error ---------- */
+	.profile-missing p {
+		max-width: 44ch;
+		margin: 0 auto 2rem;
+		color: var(--text-muted);
+		font-size: 1.1rem;
+		line-height: 1.6;
+	}
+
+	.missing-actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.75rem;
+	}
+
+	.missing-primary,
+	.missing-secondary {
+		box-sizing: border-box;
+		display: inline-flex;
+		align-items: center;
+		min-height: 3rem;
+		padding: 0.6rem 1.6rem;
+		border-radius: 99px;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.missing-primary {
+		background: var(--brand);
+		color: var(--on-brand);
+	}
+
+	.missing-primary:hover {
+		background: var(--brand-hover);
+	}
+
+	.missing-secondary {
+		border: 1px solid var(--text-subtle);
+		color: var(--text-secondary);
+	}
+
+	.missing-secondary:hover {
+		border-color: var(--text-muted);
+		color: var(--text-color);
+	}
+
+	@media (max-width: 846px) {
+		.profile-head {
+			margin-bottom: 2.25rem;
+		}
+
+		.profile-avatar {
+			width: 3.25rem;
+			height: 3.25rem;
+			font-size: 1.45rem;
+		}
+
+		.languages-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	/* The three stats stack, each on its own row */
+	@media (max-width: 560px) {
+		.progress {
+			padding: 1.25rem 1rem;
+		}
+
+		.stats {
+			grid-template-columns: 1fr;
+			gap: 0.9rem;
+		}
+
+		.stat,
+		.stat:first-child {
+			align-items: center;
+			padding-inline: 0;
+		}
+
+		.stat + .stat {
+			padding-top: 0.9rem;
+			border-inline-start: 0;
+			border-top: 1px solid rgba(255, 255, 255, 0.1);
+		}
+
+		.stat-icon {
+			margin-top: 0;
+		}
+
+		.stat-value {
+			display: inline;
+			font-size: 1.25rem;
+		}
+	}
+
+	@media (max-width: 360px) {
+		.languages-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.lang-option,
+		.profile-submit {
+			transition: none;
+		}
+	}
+</style>

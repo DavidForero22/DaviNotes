@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
-import type { ProfileDTO, ResultResponse, SessionUser } from '@/types/api';
+import { isSelectableLanguage, sortLanguages, type SelectableLanguage } from '@/lib/learn-rules';
+import type { Locale, ProfileDTO, ResultResponse, SessionUser } from '@/types/api';
 
 type Client = SupabaseClient<Database>;
 
@@ -61,7 +62,7 @@ export async function unlockHint(supabase: Client, hintId: string): Promise<{ co
  * row is missing (it is created by the sign-up trigger, so only if it was deleted).
  */
 export async function getProfile(supabase: Client, user: SessionUser): Promise<ProfileDTO | null> {
-	const [profile, attempts, completed] = await Promise.all([
+	const [profile, attempts, completed, activeLanguages] = await Promise.all([
 		supabase.from('profiles').select('display_name, coins, level, xp').eq('id', user.id).maybeSingle(),
 		supabase.from('attempts').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
 		supabase
@@ -69,6 +70,7 @@ export async function getProfile(supabase: Client, user: SessionUser): Promise<P
 			.select('id', { count: 'exact', head: true })
 			.eq('user_id', user.id)
 			.eq('first_completion', true),
+		getActiveLanguages(supabase, user),
 	]);
 	for (const result of [profile, attempts, completed]) {
 		if (result.error) throw result.error;
@@ -84,7 +86,75 @@ export async function getProfile(supabase: Client, user: SessionUser): Promise<P
 		xp,
 		xpToNextLevel: level * 100 - xp,
 		stats: { exercisesCompleted: completed.count ?? 0, attempts: attempts.count ?? 0 },
+		activeLanguages,
 	};
 	if (display_name) dto.displayName = display_name;
 	return dto;
+}
+
+// ------------------------------------------------------------------------------ languages (C7)
+
+/** Active languages of the signed-in user, in the order of `SELECTABLE_LANGUAGES`. */
+export async function getActiveLanguages(supabase: Client, user: SessionUser): Promise<SelectableLanguage[]> {
+	const { data, error } = await supabase.from('user_languages').select('language_slug').eq('user_id', user.id);
+	if (error) throw error;
+	return sortLanguages(data.map((row) => row.language_slug));
+}
+
+/**
+ * Replaces the active languages of the signed-in user (RPC `set_user_languages`, one
+ * transaction). The caller validates the slugs first (`isSelectableLanguage`); the database
+ * CHECK rejects any other. Returns the resulting set. Throws `RpcError` (401 no session).
+ */
+export async function setActiveLanguages(
+	supabase: Client,
+	languages: readonly SelectableLanguage[],
+): Promise<SelectableLanguage[]> {
+	const { data, error } = await supabase.rpc('set_user_languages', { p_languages: [...languages] });
+	if (error) throw rpcError(error);
+	return sortLanguages(data);
+}
+
+/** Thrown by `pickExercise` when `language` is not one of the user's active languages. */
+export class LanguageNotActiveError extends Error {
+	constructor(readonly language: string) {
+		super(`"${language}" is not an active language of the user`);
+		this.name = 'LanguageNotActiveError';
+	}
+}
+
+/**
+ * Id of a random exercise of `language` for the roulette (C7), or `null` if that language has
+ * no exercises readable in `locale` (or in English, the fallback of the exercise page).
+ * Prefers the exercises the user has not completed; once every one is completed, any of them.
+ * Only accepts active languages of the user: throws `LanguageNotActiveError` otherwise.
+ *
+ * ```astro
+ * const id = await pickExercise(Astro.locals.supabase, user, 'java', 'es');
+ * ```
+ */
+export async function pickExercise(
+	supabase: Client,
+	user: SessionUser,
+	language: string,
+	locale: Locale,
+): Promise<string | null> {
+	if (!isSelectableLanguage(language)) throw new LanguageNotActiveError(language);
+	const active = await getActiveLanguages(supabase, user);
+	if (!active.includes(language)) throw new LanguageNotActiveError(language);
+
+	// Small catalog per language: read the ids and choose here. `attempts` only holds the
+	// user's own rows (RLS), filtered to first completions.
+	const { data, error } = await supabase
+		.from('exercises')
+		.select('id, exercise_translations!inner ( locale ), attempts ( id )')
+		.eq('language_slug', language)
+		.in('exercise_translations.locale', locale === 'en' ? ['en'] : [locale, 'en'])
+		.eq('attempts.first_completion', true);
+	if (error) throw error;
+	if (data.length === 0) return null;
+
+	const pending = data.filter((row) => row.attempts.length === 0);
+	const pool = pending.length > 0 ? pending : data;
+	return pool[Math.floor(Math.random() * pool.length)]!.id;
 }

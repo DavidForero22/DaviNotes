@@ -51,6 +51,8 @@ const stats = profile && {
 	coins: fill(plural.select(profile.coins) === "one" ? coinOne : coinOther, { count: profile.coins }),
 	percent: total > 0 ? Math.min(100, (profile.xp / total) * 100) : 0,
 };
+const profileHref = localizePath("/learn/profile", lang);
+const onProfile = bare === "/learn/profile";
 const signedOutNext = `${localizePath("/learn", lang)}?signedout=1`;
 ---
 
@@ -99,6 +101,13 @@ const signedOutNext = `${localizePath("/learn", lang)}?signedout=1`;
 						</li>
 					</ul>
 				)}
+				<a href={profileHref} class="account-link" aria-current={onProfile ? "page" : undefined}>
+					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<circle cx="12" cy="8.5" r="3.5" />
+						<path d="M5 19.5c1.2-3.4 3.8-5 7-5s5.8 1.6 7 5" />
+					</svg>
+					{t("account.profile")}
+				</a>
 				<form method="post" action="/api/auth/logout" novalidate data-astro-reload class="account-signout">
 					<input type="hidden" name="lang" value={lang} />
 					<input type="hidden" name="next" value={signedOutNext} />
@@ -332,6 +341,42 @@ const signedOutNext = `${localizePath("/learn", lang)}?signedout=1`;
 		stroke-linejoin: round;
 	}
 
+	/* "Mi perfil": a full-width row, quieter than the sign-out button */
+	.account-link {
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		min-height: 2.75rem;
+		margin: 0 0 0.6rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: 12px;
+		color: var(--text-secondary);
+		font-size: 0.95rem;
+		font-weight: 700;
+		text-decoration: none;
+		transition:
+			background 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.account-link:hover,
+	.account-link[aria-current="page"] {
+		background: var(--surface-sunken);
+		color: var(--text-color);
+	}
+
+	.account-link svg {
+		width: 1.15rem;
+		height: 1.15rem;
+		flex: none;
+		fill: none;
+		stroke: var(--brand);
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
 	.account-signout {
 		margin: 0;
 	}
@@ -424,6 +469,7 @@ const signedOutNext = `${localizePath("/learn", lang)}?signedout=1`;
 		.account-chevron,
 		.account-xp-fill,
 		.account-signin,
+		.account-link,
 		.account-signout button {
 			transition: none;
 		}

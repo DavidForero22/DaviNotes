@@ -87,7 +87,7 @@ interface GuardContext {
 }
 
 /**
- * Page guard (T14). Returns the signed-in user, or a 302 redirect to the login page of the
+ * Page guard (T14). Returns the signed-in user, or a 303 redirect to the login page of the
  * page's language with `?next=` pointing back to it.
  *
  * ```astro
@@ -97,7 +97,7 @@ interface GuardContext {
  */
 export function requireUser({ locals, url }: GuardContext): SessionUser | Response {
 	if (locals.user) return locals.user;
-	return redirect(loginPath(getLangFromUrl(url), url.pathname + url.search), 302);
+	return redirect(loginPath(getLangFromUrl(url), url.pathname + url.search), 303);
 }
 
 /**
