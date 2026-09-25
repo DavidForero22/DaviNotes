@@ -143,7 +143,7 @@ Verificación en `renovacion`:
   - Error de escaneo de Vite en `DocSearch.astro` (UI).
 - Supabase local: arrancar Docker Desktop y ejecutar `npx supabase start` desde `renovacion`. Contiene los usuarios de prueba de UI y los 3 ejercicios de `_dev_sample.sql`.
 
-## C7 · Perfil, lenguajes activos y ruleta (abierta 2026-09-25)
+## C7 · Perfil, lenguajes activos y ruleta (terminada 2026-09-25, pendiente de PR)
 
 Decisiones del usuario (D8):
 - **Lenguajes activos:** los elige el usuario en su perfil. Por ahora solo se pueden elegir `astro`, `html`, `java`, `php`, `python` y `react`, los lenguajes con documentación.
@@ -168,3 +168,17 @@ Ramas (desde `origin/renovacion`, en este orden y **sin PR**, que la decide el u
 - `/learn/profile` (+ `/[lang]/…`), SSR y privada, con `noindex`. Contiene `DashboardPerfil.vue` o su equivalente en Astro: nivel, XP, monedas y estadísticas; el formulario de lenguajes activos (casillas, funciona sin JS); y la sección "Logros" vacía ("Próximamente").
 - `/learn` con sesión: `RuletaLenguajes.vue`, que evoluciona el rodillo de `LanguageSuggestion`. Gira solo entre los `activeLanguages`. El resultado lleva a `/learn/play?language=x`: página SSR que redirige con 303 a `/learn/exercise/[id]` (vía `pickExercise`) o muestra "No hay ejercicios de X todavía". Con 0 lenguajes activos, enlace al perfil.
 - El menú de cuenta enlaza a "Mi perfil".
+
+### Cierre de C7
+- Backend (`fase-c/c7-api`: `bb952d3`, `b47441e`):
+  - RPC `set_user_languages` (transaccional, `security invoker`).
+  - Códigos `language_not_active` (400) y `no_exercises` (404).
+  - `requireUser` devuelve 303.
+  - 66/66 tests.
+- UI (`fase-c/c7-ui`: `7e785cd`, contiene la rama de API):
+  - `/learn/profile` en Astro puro (sin `DashboardPerfil.vue`, porque todavía no hay nada interactivo).
+  - `RuletaLenguajes.vue` en `/learn` con sesión (`LanguageSuggestion` queda solo para invitados).
+  - `/learn/play`.
+  - 43 claves en español con `TODO(i18n)`, apuntadas en los backlogs.
+- Verificado: `typecheck` y build (163 páginas, docs idénticos). Prueba con Playwright en `%TEMP%/cui/c7.mjs`.
+- **PR pendiente (la decide el usuario):** `fase-c/c7-ui` → `renovacion`. Incluye `fase-c/c7-api`, así que basta con una PR.

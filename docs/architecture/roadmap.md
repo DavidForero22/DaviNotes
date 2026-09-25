@@ -73,7 +73,7 @@ Objetivo de C1-C6: registrarse, iniciar sesión, resolver un ejercicio real y ga
 | C4 | Páginas de login y registro, cuenta en la cabecera, learn en SSR | UI | C1, C3 | ✅ PR #31 |
 | C5 | `/learn/exercise/[id]` con `InterfazEjercicio` conectado a la API real; se retira la demo | UI | C2, C4 | ✅ PR #31 |
 | C6 | Traducciones es/fr de C4-C5 y errores de auth; `check:content --db` | i18n | C4, C5 | ✅ PR #32 |
-| C7+ | `DashboardPerfil.vue`, `RuletaLenguajes.vue` (necesita definir los "lenguajes activos"), logros | UI/Backend/i18n | C6 | ⏳ siguiente sprint |
+| C7+ | `DashboardPerfil.vue`, `RuletaLenguajes.vue` (necesita definir los "lenguajes activos"), logros | UI/Backend/i18n | C6 | ✅ C7 en `fase-c/c7-ui` (pendiente de PR); logros: los diseña el usuario |
 
 Arrastra de la Fase B: no bloqueantes 5, 6 y 8 de B10 (borde de las opciones, reflow a 320 px y zoom al 200 %).
 **Despliegue:** Vercel está **pausado por completo** (decisión del usuario, 2026-09-24): los previews de `renovacion` fallaban con `@astrojs/node`, pero ahora ni `master` ni las ramas se despliegan. El hosting se decide antes de producción (`produccion.md` §0).
@@ -104,6 +104,8 @@ Checklist completa en [`produccion.md`](./produccion.md).
 | **D3** | El registro **no exige** confirmar el email. |
 | **D4** | El contenido real de los ejercicios lo escribe el usuario en un script de inserción propio. **La tabla `exercises` empieza vacía**: el seed no incluye ejercicios. |
 | **D6** | Durante el desarrollo **el cliente decide si la respuesta es correcta** (**autoevaluación**: el usuario marca «Resuelto» o «No resuelto», confirmado el 2026-09-24): `submit_result(p_exercise_id, p_correct)` se queda como está, por simplicidad. Riesgo aceptado: un usuario con sesión podría otorgarse monedas y XP. **Se revisa antes de producción** (validar contra `exercise_answers` en la BD; ver `produccion.md`). |
+| **D8** | Lenguajes activos elegidos en el perfil entre `astro`, `html`, `java`, `php`, `python` y `react`. La ruleta solo usa los activos (con 1, solo ese). Logros: sección vacía hasta que el usuario los diseñe. |
+| **D9** | Flujo eficiente: [`workflow.md`](./workflow.md) (Backend con Sonnet, verificación completa solo al cerrar una fase, documentación solo al cerrar un bloque, las PR las decide el usuario). |
 | **D7** | **SEO/A11y e i18n en pausa.** La interfaz se desarrolla **solo en español** hasta consolidar la base. Claves nuevas: texto en español en `es` y la misma clave con el texto español + `// TODO(i18n)` en `en`/`fr`. Las ramas se fusionan sin revisión de SEO. Lo aplazado está en `docs/backlog/i18n.md` y `docs/backlog/seo-a11y.md`. |
 | **D5** | El usuario instalará las herramientas locales cuando haga falta. Supabase CLI ya viene como devDependency (`npx supabase`). Docker Desktop ya está instalado (v29.7), así que `supabase start` está disponible. |
 
@@ -209,6 +211,7 @@ interface ApiError { error: { code: "invalid_query" | "invalid_body" | "unauthor
 ## 7. Historial de revisiones
 - **2026-09-23 (v1)**: primer roadmap, basado solo en `master`.
 - **2026-09-23 (v2)**: corregido tras revisar `renovacion` (Fase A ya completada). Se incorporan D1-D5 y las reglas de progresión, se renumeran las fases (0, A, B, C, D, Producción) y se crea `produccion.md`.
+- **2026-09-25 (v8)**: C7 terminada (`fase-c/c7-api` + `fase-c/c7-ui`, pendiente de PR): perfil con lenguajes activos, ruleta y `/learn/play`. Decisiones D8 y D9.
 - **2026-09-24 (v7)**: **C1-C6 cerradas** (PRs #29-#32; build 163, typecheck con vue-tsc, check:content OK; tests de BD 48/48 en la rama de Backend). Nueva decisión D7: SEO e i18n en pausa, interfaz solo en español, backlogs en `docs/backlog/`.
 - **2026-09-24 (v6)**: abierta la Fase C (C1-C6) con [`fase-c.md`](./fase-c.md), ramas `fase-c/*` y decisiones T12-T15. Detectado el fallo de los previews de Vercel.
 - **2026-09-24 (v5)**: **Fase B cerrada.** PRs #23-#27 fusionadas en `renovacion` en GitHub; B8 y B10 hechas; verificación final (build 169, typecheck, check:content, `db reset` 8/24/0, 36/36 tests, API 200/400). D6 decidida: el cliente decide la corrección en desarrollo.
