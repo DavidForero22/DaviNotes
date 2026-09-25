@@ -2,6 +2,7 @@
 import type { ProfileSnapshot } from "@/components/learn/exercise-ui";
 import type { Lang } from "@/i18n/ui";
 import { localizePath, stripLang, useTranslations } from "@/i18n/utils";
+import { isAdminRole } from "@/lib/admin-rules";
 import type { SessionUser } from "@/types/api";
 
 interface Props {
@@ -53,7 +54,10 @@ const stats = profile && {
 };
 const profileHref = localizePath("/learn/profile", lang);
 const onProfile = bare === "/learn/profile";
-const signedOutNext = `${localizePath("/learn", lang)}?signedout=1`;
+/** C8: quick access to the admin panel, only for admin and superadmin (the panel checks it again). */
+const isAdmin = isAdminRole(user?.role);
+const onAdmin = Astro.url.pathname.startsWith("/admin");
+const signedOutNext =`${localizePath("/learn", lang)}?signedout=1`;
 ---
 
 {
@@ -108,6 +112,15 @@ const signedOutNext = `${localizePath("/learn", lang)}?signedout=1`;
 					</svg>
 					{t("account.profile")}
 				</a>
+				{isAdmin && (
+					<a href="/admin" class="account-link" aria-current={onAdmin ? "page" : undefined}>
+						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+							<path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V6L12 3z" />
+							<path d="M9 12l2 2 4-4" />
+						</svg>
+						{t("account.admin")}
+					</a>
+				)}
 				<form method="post" action="/api/auth/logout" novalidate data-astro-reload class="account-signout">
 					<input type="hidden" name="lang" value={lang} />
 					<input type="hidden" name="next" value={signedOutNext} />

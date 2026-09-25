@@ -1,0 +1,90 @@
+---
+import AccountMenu from "@/components/learn/AccountMenu.astro";
+import type { ProfileSnapshot } from "@/components/learn/exercise-ui";
+import { getProfile } from "@/lib/server/progress";
+import "@/styles/global.css";
+import "@/styles/learn.css";
+import "@/styles/admin.css";
+
+interface Props {
+	/** Page name, without the site suffix. */
+	title: string;
+	/** Active section of the panel navigation. */
+	section: "users" | "exercises";
+}
+
+/**
+ * Layout of the admin panel (C8): `/admin/*`, Spanish only, no language prefix, always
+ * server-rendered and `noindex`. Same dark world as DaviLearn (tokens, grid, account menu),
+ * with a wider working area aligned to the start instead of the centered learn column.
+ * The pages call `requireAdmin` before rendering it, so `locals.user` is an admin here.
+ */
+const { title, section } = Astro.props;
+const user = Astro.locals.user!;
+let profile: ProfileSnapshot | null = null;
+try {
+	profile = await getProfile(Astro.locals.supabase, user);
+} catch (error) {
+	console.error("[admin] could not read the profile for the header", error);
+}
+
+const nav = [
+	{ id: "users", href: "/admin/users", label: "Usuarios" },
+	{ id: "exercises", href: "/admin/exercises", label: "Ejercicios" },
+] as const;
+const roleLabel = user.role === "superadmin" ? "Superadmin" : "Admin";
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="robots" content="noindex, nofollow" />
+		<meta name="description" content="Panel de administración de DaviLearn." />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<title>{`${title} · Panel · DaviLearn`}</title>
+	</head>
+	<body class="learn admin">
+		<a href="#main-content" class="skip-link">Saltar al contenido</a>
+		<div class="background-grid"></div>
+
+		<header class="admin-header">
+			<div class="admin-header-start">
+				<a href="/admin/users" class="learn-brand">Davi<span>Learn</span></a>
+				<span class="admin-badge">
+					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V6L12 3z" />
+					</svg>
+					Panel <span class="sr-only">de administración, rol</span><span class="admin-badge-role">{roleLabel}</span>
+				</span>
+			</div>
+			<nav class="admin-nav" aria-label="Secciones del panel">
+				<ul>
+					{
+						nav.map((item) => (
+							<li>
+								<a href={item.href} aria-current={item.id === section ? "page" : undefined}>
+									{item.label}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</nav>
+			<div class="admin-header-end">
+				<a href="/es/learn" class="admin-back">
+					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<path d="M15 6l-6 6 6 6" />
+					</svg>
+					<span>Volver a DaviLearn</span>
+				</a>
+				<AccountMenu lang="es" user={user} profile={profile} />
+			</div>
+		</header>
+
+		<main id="main-content" tabindex="-1" class="admin-main learn-main">
+			<slot />
+		</main>
+	</body>
+</html>

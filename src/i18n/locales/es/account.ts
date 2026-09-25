@@ -46,4 +46,5 @@ export default {
 	"account.signOut": "Cerrar sesión",
 	"account.signedOut": "Has cerrado la sesión.",
 	"account.profile": "Mi perfil",
+	"account.admin": "Panel de administración",
 } as const satisfies Record<keyof typeof en, string>;

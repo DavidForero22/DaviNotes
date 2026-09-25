@@ -1,0 +1,10 @@
+---
+import { adminGuard } from "./_guard";
+
+/** /admin — the panel starts at its users page. Guests go to the login; non-admins, to /learn. */
+export const prerender = false;
+
+const user = adminGuard(Astro);
+if (user instanceof Response) return user;
+return Astro.redirect("/admin/users", 302);
+---

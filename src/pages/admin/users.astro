@@ -1,0 +1,30 @@
+---
+import AdminUsers from "@/components/admin/AdminUsers.vue";
+import AdminLayout from "@/layouts/admin/AdminLayout.astro";
+import { adminGuard, adminLoginHref } from "./_guard";
+
+/**
+ * /admin/users — users of the admin panel (C8). Server-rendered, `noindex`; guests go to the
+ * login (`?next=` back here), users without an admin role to /learn. The list, filters and
+ * forms are the `AdminUsers` island, which talks to `/api/admin/users`.
+ */
+export const prerender = false;
+
+const user = adminGuard(Astro);
+if (user instanceof Response) return user;
+const loginHref = adminLoginHref("/admin/users");
+---
+
+<AdminLayout title="Usuarios" section="users">
+	<div class="admin-page-head">
+		<h1>Usuarios</h1>
+		<p class="admin-lede">
+			{
+				user.role === "superadmin"
+					? "Crea cuentas, cambia roles y gestiona a usuarios y administradores."
+					: "Crea y gestiona las cuentas de usuario. Los administradores solo los gestiona el superadmin."
+			}
+		</p>
+	</div>
+	<AdminUsers client:load actorRole={user.role} actorId={user.id} loginHref={loginHref} />
+</AdminLayout>

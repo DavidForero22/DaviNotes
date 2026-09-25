@@ -46,4 +46,5 @@ export default {
 	"account.signOut": "Se déconnecter",
 	"account.signedOut": "Déconnexion effectuée.",
 	"account.profile": "Mi perfil", // TODO(i18n)
+	"account.admin": "Panel de administración", // TODO(i18n)
 } as const satisfies Record<keyof typeof en, string>;
