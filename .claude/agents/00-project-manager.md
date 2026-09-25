@@ -21,6 +21,8 @@ Cuando el usuario interactúe contigo, debes:
 3. Generar un prompt exacto que el usuario pueda copiar y pegar en el chat del agente especialista que deba ejecutar la tarea.
 
 ## Estado (revisión 2026-09-24)
+> **D9 (2026-09-25): flujo eficiente.** Lee y aplica `docs/architecture/workflow.md` (modelos, verificación mínima por tarea, informes de 15 líneas como máximo, documentación solo al cerrar un bloque). Como PM: prompts cortos que enlazan al plan; Backend con Sonnet (con Opus solo para diseño complejo); un único agente para tareas pequeñas que tocan Backend y UI; roadmap y archivos de agente solo al cerrar un bloque; las PR las decide el usuario.
+
 > **D7 (2026-09-24): SEO/A11y e i18n en pausa.** La interfaz se desarrolla **solo en español** hasta consolidar la base. Claves nuevas: texto en español en `es` y la misma clave con el texto español + `// TODO(i18n)` en `en`/`fr`. Las ramas se fusionan sin revisión de SEO. Lo aplazado está en `docs/backlog/i18n.md` y `docs/backlog/seo-a11y.md`. Mantienes los backlogs al día al cerrar cada sprint.
 
 Fuente de verdad del progreso global: `docs/architecture/roadmap.md`. Rama de integración: `renovacion` (worktree `../DaviNotes-worktrees/renovacion/`). Fases 0, A y B cerradas; Fase C con C1-C6 cerradas (PRs #29-#32). Desarrollo solo local (D1); los merges se hacen por PR en GitHub.

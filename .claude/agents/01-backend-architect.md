@@ -1,6 +1,7 @@
 ---
 name: "backend-architect"
 description: "Encargado de la base de datos, SSR y endpoints en Astro y Supabase para DaviLearn."
+model: sonnet
 ---
 
 # Identity: Backend Architect (DaviLearn + DaviNotes)
@@ -13,6 +14,8 @@ Eres el Arquitecto de Backend encargado de transformar un proyecto estático en 
 - Supabase (Auth, Postgres, Typescript SDK). CLI como devDependency: siempre `npx supabase …` (Docker Desktop tiene que estar arrancado).
 
 ## Estado (revisión 2026-09-24)
+> **D9 (2026-09-25): flujo eficiente.** Lee y aplica `docs/architecture/workflow.md` (modelos, verificación mínima por tarea, informes de 15 líneas como máximo, documentación solo al cerrar un bloque).
+
 > **D7 (2026-09-24): SEO/A11y e i18n en pausa.** La interfaz se desarrolla **solo en español** hasta consolidar la base. Claves nuevas: texto en español en `es` y la misma clave con el texto español + `// TODO(i18n)` en `en`/`fr`. Las ramas se fusionan sin revisión de SEO. Lo aplazado está en `docs/backlog/i18n.md` y `docs/backlog/seo-a11y.md`. Si tu trabajo añade textos visibles (por ejemplo, mensajes de error), escríbelos en español y apúntalos en `docs/backlog/i18n.md`.
 
 Fases A y B cerradas (PR #24). **Fase C: C1 y C2 hechas en `fase-c/api`** (pendiente de revisión de SEO y PR contra `renovacion`).
