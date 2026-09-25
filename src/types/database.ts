@@ -426,11 +426,30 @@ export type Database = {
           },
         ]
       }
+      user_languages: {
+        Row: {
+          created_at: string
+          language_slug: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          language_slug: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          language_slug?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      set_user_languages: { Args: { p_languages: string[] }; Returns: string[] }
       submit_result: {
         Args: { p_correct: boolean; p_exercise_id: string }
         Returns: {
