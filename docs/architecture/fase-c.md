@@ -142,3 +142,29 @@ Verificación en `renovacion`:
   - `requireUser` debe devolver 303 en lugar de 302 (Backend).
   - Error de escaneo de Vite en `DocSearch.astro` (UI).
 - Supabase local: arrancar Docker Desktop y ejecutar `npx supabase start` desde `renovacion`. Contiene los usuarios de prueba de UI y los 3 ejercicios de `_dev_sample.sql`.
+
+## C7 · Perfil, lenguajes activos y ruleta (abierta 2026-09-25)
+
+Decisiones del usuario (D8):
+- **Lenguajes activos:** los elige el usuario en su perfil. Por ahora solo se pueden elegir `astro`, `html`, `java`, `php`, `python` y `react`, los lenguajes con documentación.
+- **Ruleta:** solo contiene los lenguajes activos del usuario. Con 1 lenguaje activo, la ruleta tiene solo ese (se revisará en el futuro). Con 0, invita a elegirlos en el perfil.
+- **Logros:** los diseña el usuario. Por ahora solo hay una **sección vacía** en el perfil, sin tablas ni reglas nuevas.
+- **Idioma de la interfaz:** solo español (D7). Las páginas y claves nuevas se apuntan en `docs/backlog/{i18n,seo-a11y}.md`.
+
+Ramas (desde `origin/renovacion`, en este orden y **sin PR**, que la decide el usuario): `fase-c/c7-api` (worktree `c7-api`) y después `fase-c/c7-ui` (worktree `c7-ui`, que parte de `c7-api`).
+
+### Contrato (T16)
+- `src/lib/learn-rules.ts` (isomórfico): `SELECTABLE_LANGUAGES = ["astro","html","java","php","python","react"] as const` y el tipo `SelectableLanguage`.
+- BD: tabla `user_languages (user_id → auth.users, language_slug, created_at, PK (user_id, language_slug))`, con un CHECK sobre los 6 slugs. RLS: el dueño lee, inserta y borra.
+- `ProfileDTO` + `activeLanguages: SelectableLanguage[]` (en el orden de `SELECTABLE_LANGUAGES`).
+- `POST /api/profile/languages` (sesión): reemplaza el conjunto de lenguajes.
+  - Formulario HTML: campos `languages` repetidos, más `lang` y `next`. Responde con una redirección 303 a `next` o `/{lang}/learn/profile`, y deja un aviso de éxito o error en una cookie flash.
+  - JSON: `{ languages: [...] }` → 200 `{ activeLanguages }`.
+  - Un slug que no sea válido → 400 `invalid_input`. Una lista vacía está permitida.
+- `pickExercise(supabase, user, language, locale)` en `lib/server/progress.ts`: devuelve el id de un ejercicio aleatorio de ese lenguaje, dando preferencia a los que el usuario no ha completado, o `null`. Solo acepta lenguajes activos del usuario.
+- `GET /api/exercises/random?language=&locale=` (sesión): 200 `{ id }` / 404 `no_exercises` / 400 si el lenguaje no está activo.
+
+### Páginas (UI)
+- `/learn/profile` (+ `/[lang]/…`), SSR y privada, con `noindex`. Contiene `DashboardPerfil.vue` o su equivalente en Astro: nivel, XP, monedas y estadísticas; el formulario de lenguajes activos (casillas, funciona sin JS); y la sección "Logros" vacía ("Próximamente").
+- `/learn` con sesión: `RuletaLenguajes.vue`, que evoluciona el rodillo de `LanguageSuggestion`. Gira solo entre los `activeLanguages`. El resultado lleva a `/learn/play?language=x`: página SSR que redirige con 303 a `/learn/exercise/[id]` (vía `pickExercise`) o muestra "No hay ejercicios de X todavía". Con 0 lenguajes activos, enlace al perfil.
+- El menú de cuenta enlaza a "Mi perfil".
