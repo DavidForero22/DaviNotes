@@ -62,7 +62,7 @@ Objetivo: la base de datos con las reglas de progresión cerradas (§4) y la pan
 | B10 | Revisión a11y de `InterfazEjercicio` (teclado en pistas, anuncio del resultado). | SEO/A11y | B7 | ✅ APTA sin bloqueantes (`docs/reviews/fase-b-b10.md`) |
 | B11 | Categorías iniciales de ejercicios (slugs + nombres en en/es/fr) para `seed.sql`. | i18n → Backend | — | ✅ `fase-b/i18n` + seed en `fase-b/db` |
 
-### Fase C · Cuenta y progreso 🟡 **C1-C6 ✅** (PRs #29-#32) · siguiente: **C7+** (plan: [`fase-c.md`](./fase-c.md))
+### Fase C · Cuenta y progreso ✅ (plan: [`fase-c.md`](./fase-c.md))
 Objetivo de C1-C6: registrarse, iniciar sesión, resolver un ejercicio real y ganar monedas y XP, con la interfaz en en/es/fr.
 
 | # | Tarea | Agente | Depende de | Estado |
