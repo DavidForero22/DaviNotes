@@ -8,7 +8,7 @@ export const prerender = false;
 
 /**
  * GET /api/profile — coins, level, XP and basic stats of the signed-in user (401 without a
- * session). Achievements and active languages arrive in C7+. docs/architecture/api.md
+ * session) and the active languages (C7). Achievements: later (D8). docs/architecture/api.md
  */
 export const GET: APIRoute = async (context) => {
 	const user = requireApiUser(context);
