@@ -17,6 +17,9 @@ export type Locale = PublicEnums['locale'];
 
 export type ExerciseType = PublicEnums['exercise_type'];
 
+/** C8: `user` (default), `admin`, `superadmin` (only one, created from the SUPER_ADMIN_* variables). */
+export type UserRole = PublicEnums['user_role'];
+
 /** Every hint costs 1 coin (roadmap §4). */
 export type HintCost = 1;
 
@@ -134,6 +137,8 @@ export interface SessionUser {
 	email: string;
 	/** Omitted when the user did not choose one. */
 	displayName?: string;
+	/** Panel role (C8). `admin` and `superadmin` can use `/api/admin/**`. */
+	role: UserRole;
 }
 
 /**
@@ -253,6 +258,8 @@ export type ApiErrorCode =
 	| 'insufficient_coins'
 	| 'not_found'
 	| 'no_exercises'
+	| 'forbidden'
+	| 'slug_taken'
 	| 'language_not_active'
 	| 'internal_error'
 	| AuthErrorCode;
@@ -265,4 +272,193 @@ export interface ApiError {
 		/** Query or body field that failed validation. */
 		field?: string;
 	};
+}
+
+// ---------------------------------------------------------------------------- admin (C8)
+// All /api/admin/** endpoints: 401 `unauthorized` without a session, 403 `forbidden` if the role is
+// not admin/superadmin or the permission rules below forbid the action. Spanish only (D7).
+// Rules (enforced by the server; `canManageUser` in @/lib/admin-rules mirrors them for the UI):
+//  - the superadmin cannot be edited, deleted or assigned to anyone;
+//  - admin manages only users with role `user` (and can only create role `user`);
+//  - only the superadmin creates, promotes, demotes, edits or deletes admins;
+//  - nobody deletes themselves.
+
+/** Common pagination of the admin lists. `limit` 1-100 (default 20), `offset` >= 0. */
+export interface AdminPage {
+	total: number;
+	limit: number;
+	offset: number;
+}
+
+export type AdminOrder = 'asc' | 'desc';
+
+/** A user as the admin panel sees it. */
+export interface AdminUserDTO {
+	id: string;
+	email: string;
+	/** Omitted when the user has no name. */
+	displayName?: string;
+	role: UserRole;
+	level: number;
+	coins: number;
+	/** ISO 8601. */
+	createdAt: string;
+	/** ISO 8601; omitted if the user never signed in. */
+	lastSignInAt?: string;
+	/** Whether the caller may edit/delete this user (role rules; deleting oneself is a separate 403). */
+	manageable: boolean;
+}
+
+export type AdminUserSort = 'created_at' | 'display_name' | 'level' | 'coins' | 'role';
+
+/**
+ * `GET /api/admin/users?q=&role=&sort=&order=&limit=&offset=`
+ * - `q`: case-insensitive substring of the display name.
+ * - `role`: `user` | `admin` | `superadmin`.
+ * - `sort`: default `created_at`; `order`: default `desc`.
+ * Invalid values → 400 `invalid_query` (with `field`).
+ */
+export interface AdminUserListQuery {
+	q?: string;
+	role?: UserRole;
+	sort?: AdminUserSort;
+	order?: AdminOrder;
+	limit?: number;
+	offset?: number;
+}
+
+/** `GET /api/admin/users` → 200. */
+export interface AdminUserListResponse extends AdminPage {
+	users: AdminUserDTO[];
+}
+
+/**
+ * `POST /api/admin/users` (JSON) → 201 `AdminUserResponse`. `role` defaults to `user`; `admin`
+ * only if the caller is superadmin (else 403); `superadmin` → 403. Errors: 400 `invalid_input`,
+ * 422 `weak_password`, 409 `email_taken` (each with `field`).
+ */
+export interface AdminCreateUserRequest {
+	email: string;
+	password: string;
+	displayName?: string;
+	role?: Exclude<UserRole, 'superadmin'>;
+}
+
+/**
+ * `PATCH /api/admin/users/[id]` (JSON, every field optional) → 200 `AdminUserResponse`.
+ * `displayName: ""` clears the name. Changing `role` requires superadmin. 404 `not_found`.
+ */
+export interface AdminUpdateUserRequest {
+	email?: string;
+	password?: string;
+	displayName?: string;
+	role?: Exclude<UserRole, 'superadmin'>;
+}
+
+/** `GET|PATCH|POST` of one user. */
+export interface AdminUserResponse {
+	user: AdminUserDTO;
+}
+
+/** `DELETE` of a user or an exercise → 200. */
+export interface AdminDeleteResponse {
+	id: string;
+}
+
+/** One hint of the panel (Spanish text). Its order is its position in the array (1-based). */
+export interface AdminHintInput {
+	text: string;
+}
+
+/**
+ * Exercise as the panel sees it: metadata, the Spanish translation, the CORRECT ANSWER and the
+ * Spanish hints. The answer is only served by /api/admin/**.
+ */
+export interface AdminExerciseDTO {
+	id: string;
+	slug: string;
+	languageSlug: string;
+	frameworkSlug?: string;
+	conceptSlug?: string;
+	category: string;
+	type: ExerciseType;
+	difficulty: number;
+	/** ISO 8601. */
+	createdAt: string;
+	/** Spanish translation. */
+	title: string;
+	context?: string;
+	objective: string;
+	prompt: string;
+	code?: string;
+	/** Only `multiple_choice`. */
+	options?: string[];
+	/** Only `multiple_choice`: 0-based index into `options`. */
+	correctOption?: number;
+	/** `fill_blank` / `code_output`: accepted answers. */
+	acceptedAnswers?: string[];
+	/** Spanish hints in display order (only in the detail/create/update responses; empty in the list). */
+	hints: { id: string; order: number; text: string }[];
+}
+
+export type AdminExerciseSort = 'created_at' | 'title' | 'difficulty' | 'slug';
+
+/**
+ * `GET /api/admin/exercises?q=&language=&framework=&concept=&category=&type=&difficulty=&sort=&order=&limit=&offset=`
+ * - `q`: case-insensitive substring of the Spanish title.
+ * - `type`: `multiple_choice` | `fill_blank` | `code_output`; `difficulty` 1-10.
+ * - `sort`: default `created_at`; `order`: default `desc`.
+ */
+export interface AdminExerciseListQuery {
+	q?: string;
+	language?: string;
+	framework?: string;
+	concept?: string;
+	category?: string;
+	type?: ExerciseType;
+	difficulty?: number;
+	sort?: AdminExerciseSort;
+	order?: AdminOrder;
+	limit?: number;
+	offset?: number;
+}
+
+/** `GET /api/admin/exercises` → 200 (`exercises[].hints` is empty: use the detail). */
+export interface AdminExerciseListResponse extends AdminPage {
+	exercises: AdminExerciseDTO[];
+}
+
+/**
+ * `POST /api/admin/exercises` (JSON) → 201 `AdminExerciseResponse`; `PATCH /api/admin/exercises/[id]`
+ * (`AdminExercisePatch`: every field optional; `hints`, if sent, replaces the list;
+ * `frameworkSlug`/`conceptSlug`/`context`/`code` accept `null` to clear) → 200. Rules:
+ *  - `slug`: lowercase kebab-case, unique (409 `slug_taken`); `category` must exist;
+ *  - `multiple_choice`: `options` (>= 2) and `correctOption` (valid index) required;
+ *  - `fill_blank` / `code_output`: `acceptedAnswers` (>= 1) required.
+ * Errors: 400 `invalid_input` (with `field`), 404 `not_found`.
+ */
+export interface AdminExerciseInput {
+	slug: string;
+	languageSlug: string;
+	frameworkSlug?: string | null;
+	conceptSlug?: string | null;
+	category: string;
+	type: ExerciseType;
+	difficulty: number;
+	title: string;
+	context?: string | null;
+	objective: string;
+	prompt: string;
+	code?: string | null;
+	options?: string[];
+	correctOption?: number;
+	acceptedAnswers?: string[];
+	hints?: AdminHintInput[];
+}
+
+export type AdminExercisePatch = Partial<AdminExerciseInput>;
+
+/** `GET|POST|PATCH` of one exercise. */
+export interface AdminExerciseResponse {
+	exercise: AdminExerciseDTO;
 }

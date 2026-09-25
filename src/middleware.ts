@@ -1,5 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { loadSessionUser } from '@/lib/server/auth';
+import { ensureSuperAdmin } from '@/lib/server/bootstrap';
 import { apiError } from '@/lib/server/http';
 import { createSupabaseServerClient } from '@/lib/server/supabase';
 
@@ -20,6 +21,9 @@ const FORM_TYPES = ['application/x-www-form-urlencoded', 'multipart/form-data', 
 export const onRequest = defineMiddleware(async (context, next) => {
 	context.locals.user = null;
 	if (context.isPrerendered) return next();
+
+	// C8: creates the super admin once per process (not awaited; never throws).
+	void ensureSuperAdmin();
 
 	const isApi = context.url.pathname.startsWith('/api/');
 	if (isCrossSite(context.request, context.url)) {

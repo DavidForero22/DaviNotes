@@ -16,3 +16,10 @@ Server-only code: the Supabase client (cookie-based session) and the services us
 - `progress.ts`: `submitResult`, `unlockHint` (RPC, `RpcError` with the HTTP status of `PTxxx`) and `getProfile`.
 
 See `docs/architecture/project-structure.md`.
+
+C8 (admin panel):
+- `supabase-admin.ts`: service-role client (`getServiceClient`) and `serverEnv`. Never import it from the browser.
+- `admin-common.ts`: `AdminError`, `adminResponse`, query parsers shared by `/api/admin/**`.
+- `users.ts`, `admin-exercises.ts`: user and exercise CRUD (permission rules in `@/lib/admin-rules`).
+- `bootstrap.ts`: `ensureSuperAdmin()`, called once from the middleware.
+- Guards in `auth.ts`: `requireAdmin` (pages), `requireApiAdmin` (API).

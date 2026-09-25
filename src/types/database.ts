@@ -373,6 +373,7 @@ export type Database = {
           display_name: string | null
           id: string
           level: number
+          role: Database["public"]["Enums"]["user_role"]
           xp: number
         }
         Insert: {
@@ -381,6 +382,7 @@ export type Database = {
           display_name?: string | null
           id: string
           level?: number
+          role?: Database["public"]["Enums"]["user_role"]
           xp?: number
         }
         Update: {
@@ -389,6 +391,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           level?: number
+          role?: Database["public"]["Enums"]["user_role"]
           xp?: number
         }
         Relationships: []
@@ -477,6 +480,7 @@ export type Database = {
     Enums: {
       exercise_type: "multiple_choice" | "fill_blank" | "code_output"
       locale: "en" | "es" | "fr"
+      user_role: "user" | "admin" | "superadmin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -609,6 +613,7 @@ export const Constants = {
     Enums: {
       exercise_type: ["multiple_choice", "fill_blank", "code_output"],
       locale: ["en", "es", "fr"],
+      user_role: ["user", "admin", "superadmin"],
     },
   },
 } as const

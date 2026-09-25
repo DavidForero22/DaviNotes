@@ -8,6 +8,7 @@ import {
 	PASSWORD_MAX_LENGTH,
 	PASSWORD_MIN_LENGTH,
 } from '@/lib/auth-rules';
+import { isAdminRole } from '@/lib/admin-rules';
 import type { AuthErrorCode, AuthField, AuthFieldError, AuthFlash, SessionUser } from '@/types/api';
 import type { Database } from '@/types/database';
 import { apiError, redirect } from './http';
@@ -30,11 +31,11 @@ export async function loadSessionUser(supabase: Client): Promise<SessionUser | n
 export async function toSessionUser(supabase: Client, user: User): Promise<SessionUser> {
 	const { data: profile, error } = await supabase
 		.from('profiles')
-		.select('display_name')
+		.select('display_name, role')
 		.eq('id', user.id)
 		.maybeSingle();
 	if (error) console.error('[auth] could not read the profile', error);
-	const session: SessionUser = { id: user.id, email: user.email ?? '' };
+	const session: SessionUser = { id: user.id, email: user.email ?? '', role: profile?.role ?? 'user' };
 	if (profile?.display_name) session.displayName = profile.display_name;
 	return session;
 }
@@ -124,6 +125,23 @@ export function redirectIfSignedIn({ locals, url }: GuardContext): Response | nu
  */
 export function requireApiUser({ locals }: Pick<GuardContext, 'locals'>): SessionUser | Response {
 	return locals.user ?? apiError(401, 'unauthorized', 'Sign in to continue.');
+}
+
+/**
+ * Page guard for the admin panel: signed-in admin/superadmin, else a 303 redirect (to the
+ * login page without a session, to /learn of the page language if the role is not enough).
+ */
+export function requireAdmin({ locals, url }: GuardContext): SessionUser | Response {
+	const user = requireUser({ locals, url });
+	if (user instanceof Response) return user;
+	return isAdminRole(user.role) ? user : redirect(learnPath(getLangFromUrl(url)), 303);
+}
+
+/** API guard: 401 unauthorized without a session, 403 forbidden unless admin/superadmin. */
+export function requireApiAdmin({ locals }: Pick<GuardContext, 'locals'>): SessionUser | Response {
+	const user = requireApiUser({ locals });
+	if (user instanceof Response) return user;
+	return isAdminRole(user.role) ? user : apiError(403, 'forbidden', 'Admin role required.');
 }
 
 // ------------------------------------------------------------------------------ errors
