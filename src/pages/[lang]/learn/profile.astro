@@ -1,0 +1,23 @@
+---
+import ProfilePage from "@/components/learn/ProfilePage.astro";
+import { defaultLang } from "@/i18n/ui";
+import { isLang } from "@/i18n/utils";
+import { requireUser } from "@/lib/server/auth";
+import { consumeProfileFlash } from "@/lib/server/profile-flash";
+import { loadProfilePage } from "../../learn/_exercises";
+
+/**
+ * /es/learn/profile, /fr/learn/profile — see `pages/learn/profile.astro`.
+ */
+export const prerender = false;
+
+const { lang } = Astro.params;
+if (!isLang(lang) || lang === defaultLang) return new Response(null, { status: 404 });
+
+const user = requireUser(Astro);
+if (user instanceof Response) return user;
+const flash = consumeProfileFlash(Astro.cookies);
+const profile = await loadProfilePage(Astro.locals.supabase, user, Astro.response);
+---
+
+<ProfilePage lang={lang} profile={profile} flash={flash} />

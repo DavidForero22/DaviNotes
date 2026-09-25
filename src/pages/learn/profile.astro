@@ -1,0 +1,22 @@
+---
+import ProfilePage from "@/components/learn/ProfilePage.astro";
+import { defaultLang } from "@/i18n/ui";
+import { requireUser } from "@/lib/server/auth";
+import { consumeProfileFlash } from "@/lib/server/profile-flash";
+import { loadProfilePage } from "./_exercises";
+
+/**
+ * /learn/profile — server-rendered (T14) and private: without a session, 303 to the login
+ * page with `?next=` back here. The result of the languages form (POST
+ * /api/profile/languages, 303 back here) arrives in a flash cookie, read once.
+ * Other languages: `pages/[lang]/learn/profile.astro`.
+ */
+export const prerender = false;
+
+const user = requireUser(Astro);
+if (user instanceof Response) return user;
+const flash = consumeProfileFlash(Astro.cookies);
+const profile = await loadProfilePage(Astro.locals.supabase, user, Astro.response);
+---
+
+<ProfilePage lang={defaultLang} profile={profile} flash={flash} />

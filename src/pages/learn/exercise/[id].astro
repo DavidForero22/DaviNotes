@@ -1,7 +1,8 @@
 ---
 import ExercisePage from "@/components/learn/ExercisePage.astro";
 import { defaultLang } from "@/i18n/ui";
-import { loadExercisePage, requireSignedIn } from "../_exercises";
+import { requireUser } from "@/lib/server/auth";
+import { loadExercisePage } from "../_exercises";
 
 /**
  * /learn/exercise/[id] — server-rendered (T14), private: without a session, 303 to the login
@@ -10,7 +11,7 @@ import { loadExercisePage, requireSignedIn } from "../_exercises";
  */
 export const prerender = false;
 
-const user = requireSignedIn(Astro);
+const user = requireUser(Astro);
 if (user instanceof Response) return user;
 const state = await loadExercisePage(Astro.locals.supabase, user, Astro.params.id, defaultLang, Astro.response);
 ---

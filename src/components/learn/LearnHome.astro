@@ -1,9 +1,11 @@
 ---
 import LearnLayout from "@/layouts/learn/LearnLayout.astro";
 import LanguageSuggestion from "@/components/learn/LanguageSuggestion.vue";
+import RuletaLenguajes from "@/components/learn/RuletaLenguajes.vue";
 import { languages } from "@/data/languages";
 import type { Lang } from "@/i18n/ui";
 import { localizePath, useTranslations } from "@/i18n/utils";
+import type { SelectableLanguage } from "@/lib/learn-rules";
 import type { ExerciseDTO } from "@/types/api";
 import { getAllLanguageItems } from "@/utils/utils";
 
@@ -13,9 +15,11 @@ interface Props {
 	exercises: ExerciseDTO[] | null;
 	/** The list could not be read (database error). */
 	loadError?: boolean;
+	/** Active languages of the signed-in user for the roulette (C7); null without a session or on error. */
+	activeLanguages?: SelectableLanguage[] | null;
 }
 
-const { lang, exercises, loadError = false } = Astro.props;
+const { lang, exercises, loadError = false, activeLanguages = null } = Astro.props;
 const t = useTranslations(lang);
 const languageItems = getAllLanguageItems(languages);
 const suggestedLanguages = languageItems.map((item) => ({ name: item.title, color: item.color }));
@@ -26,7 +30,19 @@ const plural = new Intl.PluralRules(lang);
 const coins = (count: number) =>
 	t(plural.select(count) === "one" ? "learn.exercise.coinOne" : "learn.exercise.coinOther", { count: number.format(count) });
 
-const signedIn = exercises !== null || loadError;
+const signedIn = Astro.locals.user != null;
+const profileHref = localizePath("/learn/profile", lang);
+const rouletteLanguages = (activeLanguages ?? []).flatMap((slug) => {
+	const item = catalog.get(slug);
+	return item ? [{ slug, name: item.title, color: item.color, icon: item.icon }] : [];
+});
+const rouletteTexts = {
+	spin: t("learn.roulette.spin"),
+	spinAgain: t("learn.roulette.spinAgain"),
+	result: t("learn.roulette.result"),
+	play: t("learn.roulette.play"),
+	direct: t("learn.roulette.direct"),
+};
 const signedOut = Astro.url.searchParams.has("signedout") && !Astro.locals.user;
 ---
 
@@ -43,6 +59,48 @@ const signedOut = Astro.url.searchParams.has("signedout") && !Astro.locals.user;
 				</svg>
 				{t("account.signedOut")}
 			</p>
+		)
+	}
+
+	{
+		signedIn && (
+			<section class="learn-section roulette-section" aria-labelledby="roulette-heading">
+				<h2 id="roulette-heading">{t("learn.roulette.heading")}</h2>
+				{activeLanguages === null ? (
+					<p class="list-message list-error">
+						<svg class="learn-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+							<circle cx="12" cy="12" r="9" />
+							<path d="M12 7.5v5.5M12 16.5v.01" />
+						</svg>
+						{t("learn.roulette.loadError")}
+					</p>
+				) : rouletteLanguages.length === 0 ? (
+					<div class="roulette-empty">
+						<p>{t("learn.roulette.empty")}</p>
+						<a class="guest-primary" href={profileHref}>
+							{t("learn.roulette.emptyLink")}
+						</a>
+					</div>
+				) : (
+					<>
+						<p class="roulette-intro">
+							{rouletteLanguages.length === 1
+								? t("learn.roulette.single", { lang: rouletteLanguages[0]!.name })
+								: t("learn.roulette.intro")}
+						</p>
+						{/* Texts are passed already translated so the island does not ship the dictionaries */}
+						<RuletaLenguajes
+							client:visible
+							languages={rouletteLanguages}
+							playHref={localizePath("/learn/play", lang)}
+							texts={rouletteTexts}
+						/>
+						<p class="roulette-edit">
+							<a href={profileHref}>{t("learn.roulette.edit")}</a>
+						</p>
+					</>
+				)}
+			</section>
 		)
 	}
 
@@ -122,16 +180,21 @@ const signedOut = Astro.url.searchParams.has("signedout") && !Astro.locals.user;
 		)
 	}
 
-	<section class="learn-section suggest" aria-labelledby="suggest-heading">
-		<h2 id="suggest-heading">{t("learn.suggest.heading")}</h2>
-		{/* Texts are passed already translated so the island does not ship the dictionaries */}
-		<LanguageSuggestion
-			client:visible
-			languages={suggestedLanguages}
-			buttonLabel={t("learn.suggest.button")}
-			resultTemplate={t("learn.suggest.result")}
-		/>
-	</section>
+	{/* Signed-in users get the roulette of their own languages instead (C7) */}
+	{
+		!signedIn && (
+			<section class="learn-section suggest" aria-labelledby="suggest-heading">
+				<h2 id="suggest-heading">{t("learn.suggest.heading")}</h2>
+				{/* Texts are passed already translated so the island does not ship the dictionaries */}
+				<LanguageSuggestion
+					client:visible
+					languages={suggestedLanguages}
+					buttonLabel={t("learn.suggest.button")}
+					resultTemplate={t("learn.suggest.result")}
+				/>
+			</section>
+		)
+	}
 </LearnLayout>
 
 <style>
@@ -160,6 +223,47 @@ const signedOut = Astro.url.searchParams.has("signedout") && !Astro.locals.user;
 
 	.learn-section + .learn-section {
 		margin-top: 4rem;
+	}
+
+	/* ---------- Roulette (C7) ---------- */
+	.roulette-intro {
+		max-width: 46ch;
+		margin: -0.5rem auto 1.75rem;
+		color: var(--text-muted);
+		line-height: 1.6;
+	}
+
+	.roulette-edit {
+		margin: 1.5rem 0 0;
+		font-size: 0.92rem;
+	}
+
+	.roulette-edit a {
+		color: var(--text-muted);
+		text-underline-offset: 3px;
+	}
+
+	.roulette-edit a:hover {
+		color: var(--text-color);
+	}
+
+	.roulette-empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.25rem;
+		max-width: 34rem;
+		margin: 0 auto;
+		padding: 2rem 1.25rem;
+		border: 1px dashed var(--text-subtle);
+		border-radius: 18px;
+	}
+
+	.roulette-empty p {
+		max-width: 40ch;
+		margin: 0;
+		color: var(--text-muted);
+		line-height: 1.6;
 	}
 
 	/* ---------- Exercise list ---------- */

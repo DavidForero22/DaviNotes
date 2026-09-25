@@ -2,8 +2,7 @@
 import LearnHome from "@/components/learn/LearnHome.astro";
 import { defaultLang } from "@/i18n/ui";
 import { isLang } from "@/i18n/utils";
-import type { ExerciseDTO } from "@/types/api";
-import { loadExerciseList } from "../../learn/_exercises";
+import { loadLearnHome } from "../../learn/_exercises";
 
 /**
  * /es/learn, /fr/learn — the learning area in every language except the default one, which
@@ -15,16 +14,7 @@ export const prerender = false;
 const { lang } = Astro.params;
 if (!isLang(lang) || lang === defaultLang) return new Response(null, { status: 404 });
 
-let exercises: ExerciseDTO[] | null = null;
-let loadError = false;
-if (Astro.locals.user) {
-	try {
-		exercises = await loadExerciseList(Astro.locals.supabase, lang);
-	} catch (error) {
-		console.error("[learn] could not list the exercises", error);
-		loadError = true;
-	}
-}
+const data = await loadLearnHome(Astro.locals.supabase, Astro.locals.user, lang);
 ---
 
-<LearnHome lang={lang} exercises={exercises} loadError={loadError} />
+<LearnHome lang={lang} {...data} />

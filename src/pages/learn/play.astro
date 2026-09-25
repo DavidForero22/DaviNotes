@@ -1,0 +1,27 @@
+---
+import PlayPage from "@/components/learn/PlayPage.astro";
+import { defaultLang } from "@/i18n/ui";
+import { requireUser } from "@/lib/server/auth";
+import { loadPlayPage } from "./_exercises";
+
+/**
+ * /learn/play?language=x — result of the roulette (C7). Server-rendered (T14) and private.
+ * 303 to a random exercise of `x`; otherwise explains why there is none ("no exercises yet",
+ * language not active, unknown language or database error).
+ * Other languages: `pages/[lang]/learn/play.astro`.
+ */
+export const prerender = false;
+
+const user = requireUser(Astro);
+if (user instanceof Response) return user;
+const state = await loadPlayPage(
+	Astro.locals.supabase,
+	user,
+	Astro.url.searchParams.get("language"),
+	defaultLang,
+	Astro.response,
+);
+if (state.kind === "redirect") return state.response;
+---
+
+<PlayPage lang={defaultLang} state={state} />
