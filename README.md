@@ -33,7 +33,10 @@ The main objective is to guide the user through different technologies in a basi
 
 ## ⚙️ Installation
 
-To run this project locally, you will need **Node.js** installed. This project uses the standard Astro setup.
+To run this project locally, you will need:
+
+- **Node.js** (the project uses the standard Astro setup with the Node adapter).
+- **Docker Desktop**, running, for the local Supabase stack (database and authentication of DaviLearn). The Supabase CLI is a devDependency, so always call it with `npx supabase`; no global install is needed.
 
 1. **Clone the repository:**
 
@@ -48,13 +51,62 @@ To run this project locally, you will need **Node.js** installed. This project u
     npm install
 ```
 
-3. **Start the development server:**
+3. **Start the local Supabase stack** (with Docker Desktop open):
+
+```bash
+    npx supabase start
+```
+
+The first run downloads the Docker images and takes a few minutes. It then applies every migration in `supabase/migrations/` and `supabase/seed.sql` (exercise categories only, no exercises). When it finishes you have:
+
+| Service | URL |
+|---------|-----|
+| API (Auth + REST) | `http://127.0.0.1:54321` |
+| Postgres | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` |
+| Studio (database UI) | `http://127.0.0.1:54323` |
+| Mailpit (captured emails) | `http://127.0.0.1:54324` |
+
+4. **Configure the environment variables:** copy the example file and fill it in with the keys of your local stack.
+
+```bash
+    cp .env.example .env
+```
+
+```bash
+    npx supabase status -o env
+```
+
+| `.env` variable | Where to get it | Required |
+|-----------------|-----------------|----------|
+| `PUBLIC_SUPABASE_URL` | `API_URL` (default `http://127.0.0.1:54321`) | Yes |
+| `PUBLIC_SUPABASE_ANON_KEY` | `ANON_KEY` ("Publishable key" in plain `npx supabase status`) | Yes |
+| `SUPABASE_SERVICE_ROLE_KEY` | `SERVICE_ROLE_KEY` ("Secret key" in plain `npx supabase status`) | For the admin panel |
+| `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` | Your choice (password: at least 8 characters) | For the admin panel |
+| `SUPER_ADMIN_NAME` | Your choice (optional display name, max 40 characters) | No |
+
+- Variables prefixed with `PUBLIC_` are sent to the browser. `SUPABASE_SERVICE_ROLE_KEY` bypasses Row Level Security, so it must **never** get the `PUBLIC_` prefix.
+- With the service role key and the super admin email and password set, the server creates the single super admin on the first server-rendered request (if the email already belongs to a user, that user is promoted instead). If any of them is missing, the server only logs a warning and the rest of the site works normally.
+- The local keys are the same on every machine and only work against your local stack. `.env` is ignored by git: never commit it.
+- Restart `npm run dev` after editing `.env`.
+
+5. **Start the development server:**
 
 ```bash
     npm run dev
 ```
 
 Open your browser and navigate to `http://localhost:4321`.
+
+**Useful Supabase commands:**
+
+```bash
+    npx supabase stop        # stops the stack (the data is kept)
+    npx supabase db reset    # re-applies migrations + seed.sql (deletes users, progress and exercises)
+    npx supabase test db     # runs the pgTAP tests in supabase/tests/
+    npx supabase gen types typescript --local > src/types/database.ts   # after every new migration
+```
+
+Exercises are not included in the seed: see [`supabase/exercises/README.md`](supabase/exercises/README.md) to load them, and [`supabase/README.md`](supabase/README.md) for the database schema.
 
 ---
 
